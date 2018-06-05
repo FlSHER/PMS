@@ -36,7 +36,7 @@ class CreateEventLogTable extends Migration
             $table->string('reject_remark')->nullable()->default('')->comment('驳回备注');
             $table->string('recorder_sn')->nullable()->default('')->comment('记录人编号');
             $table->string('recorder_name')->nullable()->default('')->comment('记录人姓名');
-            $tablle->unsignedTinyInteger('status_id')->nullable()->default(0)->comment('状态ID');
+            $table->unsignedTinyInteger('status_id')->nullable()->default(0)->comment('状态ID');
             $table->timestamp('executed_at')->nullable()->default(null)->comment('执行时间');
 
             $table->index('event_id');
