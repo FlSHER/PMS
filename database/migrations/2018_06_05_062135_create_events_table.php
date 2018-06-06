@@ -17,12 +17,12 @@ class CreateEventsTable extends Migration
             $table->increments('id');
             $table->string('name')->comment('事件名称');
             $table->unsignedTinyInteger('type_id')->nullable()->default(0)->comment('事件类型');
-            $table->unsignedInteger('point_a_min')->nullable()->default()->comment('A分最小值');
-            $table->unsignedInteger('point_a_max')->nullable()->default()->comment('A分最大值');
-            $table->unsignedInteger('point_b_min')->nullable()->default()->comment('B分最小值');
-            $table->unsignedInteger('point_b_max')->nullable()->default()->comment('B分最大值');
-            $table->unsignedInteger('point_a_default')->nullable()->default()->comment('A分最默认值');
-            $table->unsignedInteger('point_b_default')->nullable()->default()->comment('B分最默认值');
+            $table->unsignedInteger('point_a_min')->nullable()->default(0)->comment('A分最小值');
+            $table->unsignedInteger('point_a_max')->nullable()->default(0)->comment('A分最大值');
+            $table->unsignedInteger('point_b_min')->nullable()->default(0)->comment('B分最小值');
+            $table->unsignedInteger('point_b_max')->nullable()->default(0)->comment('B分最大值');
+            $table->unsignedInteger('point_a_default')->nullable()->default(0)->comment('A分最默认值');
+            $table->unsignedInteger('point_b_default')->nullable()->default(0)->comment('B分最默认值');
             $table->unsignedSmallInteger('is_independent')->nullable()->default(0)->comment('是否专人审核');
             $table->string('first_approver_sn')->nullable()->default('')->comment('初审人编号');
             $table->string('first_approver_name')->nullable()->default('')->comment('初审人姓名');
