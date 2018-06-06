@@ -23,12 +23,15 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 Route::group(['prefix' => 'event-logs'], function (RouteContract $api) {
 
-	// 初审通过
+	// 初审奖扣事件
 	// @post /api/event-logs/:eventlog/first-approve
 	$api->post('{eventlog}/first-approve', APIs\EventLogController::class.'@firstApprove');
 
-	// 终审通过
+	// 终审奖扣事件
 	// @post /api/event-logs/:eventlog/final-approve
 	$api->post('{eventlog}/final-approve', APIs\EventLogController::class.'@finalApprove');
 
+	// 驳回奖扣事件
+	// @post /api/event-logs/:eventlog/reject
+	$api->post('{eventlog}/reject', APIs\EventLogController::class.'@reject');
 });
