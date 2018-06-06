@@ -27,5 +27,8 @@ Route::group(['prefix' => 'event-logs'], function (RouteContract $api) {
 	// @post /api/event-logs/:eventlog/first-approve
 	$api->post('{eventlog}/first-approve', APIs\EventLogController::class.'@firstApprove');
 
+	// 终审通过
+	// @post /api/event-logs/:eventlog/final-approve
+	$api->post('{eventlog}/final-approve', APIs\EventLogController::class.'@finalApprove');
 
 });

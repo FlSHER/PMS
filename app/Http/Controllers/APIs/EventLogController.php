@@ -48,4 +48,32 @@ class EventLogController extends Controller
 		], 201);
 	}
 
+	/**
+	 * 终审通过.
+	 * 
+	 * @author 28youth
+	 * @param  \Illuminate\Http\Request  $request
+	 * @param  \App\Models\EventLog $eventlog
+	 * @return mixed
+	 */
+	public function finalApprove(Request $request, EventLogModel $eventlog)
+	{
+		$user = $request->user();
+
+		if ($eventlog->final_approver_at !== null) {
+			return response()->json([
+				'message' => '终审已通过'
+			], 422);
+		}
+
+		$eventlog->final_approver_sn = $user->staff_sn;
+		$eventlog->final_approver_name = $user->realname;
+		$eventlog->final_approver_remark = $request->remark;
+		$eventlog->final_approver_at = Carbon::now();
+		$eventlog->save();
+
+		return response()->json([
+			'message' => '终审成功'
+		], 201);
+	}
 }
