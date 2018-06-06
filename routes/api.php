@@ -26,17 +26,20 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
 	$api->group(['prefix' => 'event-logs'], function (RouteContract $api) {
 
 		// 初审奖扣事件
-		// @post /api/event-logs/:eventlog/first-approve
-		$api->post('{eventlog}/first-approve', APIs\EventLogController::class.'@firstApprove');
+		// @put /api/event-logs/:eventlog/first-approve
+		$api->put('{eventlog}/first-approve', APIs\EventLogController::class.'@firstApprove');
 
 		// 终审奖扣事件
-		// @post /api/event-logs/:eventlog/final-approve
-		$api->post('{eventlog}/final-approve', APIs\EventLogController::class.'@finalApprove');
+		// @put /api/event-logs/:eventlog/final-approve
+		$api->put('{eventlog}/final-approve', APIs\EventLogController::class.'@finalApprove');
 
-	// @post /api/event-logs/:eventlog/final-approve
 		// 驳回奖扣事件
-		// @post /api/event-logs/:eventlog/reject
-		$api->post('{eventlog}/reject', APIs\EventLogController::class.'@reject');
+		// @put /api/event-logs/:eventlog/reject
+		$api->put('{eventlog}/reject', APIs\EventLogController::class.'@reject');
+
+		// 撤回奖扣事件
+		// @put /api/event-logs/:eventlog/withdraw
+		$api->put('{eventlog}/withdraw', APIs\EventLogController::class.'@withdraw');
 	});
 
 });

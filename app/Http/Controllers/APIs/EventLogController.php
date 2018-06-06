@@ -31,6 +31,7 @@ class EventLogController extends Controller
         $eventlog->first_approver_name = $user->realname;
         $eventlog->first_approver_remark = $request->remark;
         $eventlog->first_approver_at = Carbon::now();
+        $eventlog->status_id = 1;
         $eventlog->save();
 
         return response()->json([
@@ -60,6 +61,7 @@ class EventLogController extends Controller
         $eventlog->final_approver_name = $user->realname;
         $eventlog->final_approver_remark = $request->remark;
         $eventlog->final_approver_at = Carbon::now();
+        $eventlog->status_id = 2;
         $eventlog->save();
 
         return response()->json([
@@ -89,10 +91,32 @@ class EventLogController extends Controller
         $eventlog->rejecter_name = $user->realname;
         $eventlog->rejecter_remark = $request->remark;
         $eventlog->rejecter_at = Carbon::now();
+        $eventlog->status_id = -1;
         $eventlog->save();
 
         return response()->json([
             'message' => '驳回成功'
         ], 201);
     }
+
+    /**
+     * 撤回奖扣事件.
+     * 
+     * @author 28youth
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\EventLog $eventlog
+     * @return mixed
+     */
+    public function withdraw(Request $request, EventLogModel $eventlog)
+    {
+        $user = $request->user();
+
+        $eventlog->status_id = -2;
+        $eventlog->save();
+
+        return response()->json([
+            'message' => '撤回成功'
+        ], 201);
+    }
+
 }
