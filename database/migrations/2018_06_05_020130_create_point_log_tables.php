@@ -13,6 +13,13 @@ class CreatePointLogTables extends Migration
      */
     public function up()
     {
+        Schema::create('point_log_sources', function (Blueprint $table) {
+            $table->tinyInteger('id')->default(0);
+            $table->char('name', 10);
+
+            $table->unique('id');
+        });
+
         Schema::create('point_logs', function (Blueprint $table) {
             $table->increments('id');
             $table->char('title', 50)->comment('标题');
@@ -35,11 +42,8 @@ class CreatePointLogTables extends Migration
             $table->char('final_approver_name', 10)->comment('终审人姓名');
             $table->timestamps();
             $table->softDeletes();
-        });
 
-        Schema::create('point_log_sources', function (Blueprint $table) {
-            $table->tinyInteger('id');
-            $table->char('name', 10);
+            $table->foreign('source_id')->references('id')->on('point_log_sources');
         });
 
         Schema::create('personal_point_statistics', function (Blueprint $table) {
