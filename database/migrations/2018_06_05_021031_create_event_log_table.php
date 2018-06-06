@@ -15,32 +15,38 @@ class CreateEventLogTable extends Migration
     {
         Schema::create('event_logs', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('event_name')->nullable()->default('')->comment('事件名称');
-            $table->string('description')->nullable()->default('')->comment('事件说明');
             $table->unsignedInteger('event_id')->comment('事件ID');
-            $table->unsignedTinyInteger('event_type_id')->comment('事件类型ID');
-            $table->unsignedInteger('point_a')->nullable()->default(0)->comment('A分变化');
-            $table->unsignedInteger('point_b')->nullable()->default(0)->comment('B分变化');
-            $table->unsignedInteger('count')->nullable()->default(0)->comment('完成次数');
-            $table->string('first_approver_sn')->nullable()->default('')->comment('初审人编号');
-            $table->string('first_approver_name')->nullable()->default('')->comment('初审人姓名');
-            $table->string('first_approver_remark')->nullable()->default('')->comment('初审人备注');
-            $table->timestamp('first_approver_at')->nullable()->default(null)->comment('初审通过时间');
-            $table->string('final_approver_sn')->nullable()->default('')->comment('终审人编号');
-            $table->string('final_approver_name')->nullable()->default('')->comment('终审人姓名');
-            $table->string('final_approver_remark')->nullable()->default('')->comment('终审人备注');
-            $table->timestamp('final_approver_at')->nullable()->default(null)->comment('终审通过时间');
-            $table->string('rejecter_sn')->nullable()->default('')->comment('驳回人编号');
-            $table->string('rejecter_name')->nullable()->default('')->comment('驳回人姓名');
-            $table->timestamp('rejected_at')->nullable()->default(null)->comment('驳回时间');
-            $table->string('reject_remark')->nullable()->default('')->comment('驳回备注');
-            $table->string('recorder_sn')->nullable()->default('')->comment('记录人编号');
-            $table->string('recorder_name')->nullable()->default('')->comment('记录人姓名');
-            $table->unsignedTinyInteger('status_id')->nullable()->default(0)->comment('状态ID');
-            $table->timestamp('executed_at')->nullable()->default(null)->comment('执行时间');
-
-            $table->index('event_id');
+            $table->unsignedSmallInteger('event_type_id')->comment('事件类型ID');
+            $table->char('event_name', 50)->comment('事件名称');
+            $table->char('description', 255)->default('')->comment('事件说明');
+            $table->mediumInteger('point_a')->default(0)->comment('A分变化');
+            $table->mediumInteger('point_b')->default(0)->comment('B分变化');
+            $table->unsignedMediumInteger('count')->default(1)->comment('完成次数');
+            $table->unsignedMediumInteger('first_approver_sn')->comment('初审人编号');
+            $table->char('first_approver_name', 10)->comment('初审人姓名');
+            $table->char('first_approve_remark', 255)->default('')->comment('初审人备注');
+            $table->timestamp('first_approved_at')->nullable()->comment('初审通过时间');
+            $table->unsignedMediumInteger('final_approver_sn')->comment('终审人编号');
+            $table->char('final_approver_name', 10)->comment('终审人姓名');
+            $table->char('final_approve_remark', 255)->default('')->comment('终审人备注');
+            $table->timestamp('final_approved_at')->nullable()->comment('终审通过时间');
+            $table->unsignedMediumInteger('rejecter_sn')->nullable()->comment('驳回人编号');
+            $table->char('rejecter_name', 10)->nullable()->comment('驳回人姓名');
+            $table->timestamp('rejected_at')->nullable()->comment('驳回时间');
+            $table->char('reject_remark', 255)->default('')->comment('驳回备注');
+            $table->unsignedMediumInteger('recorder_sn')->comment('记录人编号');
+            $table->char('recorder_name', 10)->comment('记录人姓名');
+            $table->tinyInteger('status_id')->default(0)->comment('状态ID');
+            $table->timestamp('executed_at')->nullable()->comment('执行时间');
             $table->timestamps();
+            /* 索引和外键 */
+            $table->foreign('event_id')->references('id')->on('events');
+            $table->foreign('event_type_id')->references('id')->on('event_types');
+            $table->index('first_approver_sn');
+            $table->index('final_approver_sn');
+            $table->index('rejecter_sn');
+            $table->index('recorder_sn');
+            $table->index('status_id');
         });
     }
 
