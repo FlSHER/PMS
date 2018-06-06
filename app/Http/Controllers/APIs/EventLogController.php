@@ -10,16 +10,6 @@ class EventLogController extends Controller
 {
 
     /**
-     * EventLogController constructor.
-     * 
-     * @author 28youth
-     */
-    public function __construct(Request $request)
-    {
-        $this->middleware('auth:api');
-    }
-
-    /**
      * 初审奖扣事件.
      * 
      * @author 28youth
