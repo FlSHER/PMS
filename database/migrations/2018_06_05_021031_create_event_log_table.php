@@ -19,8 +19,8 @@ class CreateEventLogTable extends Migration
             $table->string('description')->nullable()->default('')->comment('事件说明');
             $table->unsignedInteger('event_id')->comment('事件ID');
             $table->unsignedTinyInteger('event_type_id')->comment('事件类型ID');
-            $table->unsignedInteger('point_a')->nullable()->default('')->comment('A分变化');
-            $table->unsignedInteger('point_b')->nullable()->default('')->comment('B分变化');
+            $table->unsignedInteger('point_a')->nullable()->default(0)->comment('A分变化');
+            $table->unsignedInteger('point_b')->nullable()->default(0)->comment('B分变化');
             $table->unsignedInteger('count')->nullable()->default(0)->comment('完成次数');
             $table->string('first_approver_sn')->nullable()->default('')->comment('初审人编号');
             $table->string('first_approver_name')->nullable()->default('')->comment('初审人姓名');
