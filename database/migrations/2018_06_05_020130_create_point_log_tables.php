@@ -35,11 +35,11 @@ class CreatePointLogTables extends Migration
             $table->mediumInteger('point_b')->default(0)->comment('B分变化');
             $table->timestamp('changed_at')->comment('积分变化时间');
             $table->tinyInteger('source_id')->default(0)->comment('积分来源');
-            $table->unsignedInteger('source_foreign_key')->default(0)->comment('来源关联ID');
-            $table->unsignedMediumInteger('first_approver_sn')->comment('初审人编号');
-            $table->char('first_approver_name', 10)->comment('初审人姓名');
-            $table->unsignedMediumInteger('final_approver_sn')->comment('终审人编号');
-            $table->char('final_approver_name', 10)->comment('终审人姓名');
+            $table->unsignedInteger('source_foreign_key')->nullable()->comment('来源关联ID');
+            $table->unsignedMediumInteger('first_approver_sn')->nullable()->comment('初审人编号');
+            $table->char('first_approver_name', 10)->default('')->comment('初审人姓名');
+            $table->unsignedMediumInteger('final_approver_sn')->nullable()->comment('终审人编号');
+            $table->char('final_approver_name', 10)->default('')->comment('终审人姓名');
             $table->timestamps();
             $table->softDeletes();
 
