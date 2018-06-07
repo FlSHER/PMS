@@ -25,7 +25,7 @@ class EventLogRepository
 	}
 
 	/**
-	 * 获取事件奖扣纪录分页列表.
+	 * 获取事件日志分页列表.
 	 * 
 	 * @author 28youth
 	 * @param  \Illuminate\Http\Request $request
@@ -37,7 +37,7 @@ class EventLogRepository
 	}
 
 	/**
-	 * 获取全部事件奖扣纪录列表.
+	 * 获取全部事件日志列表.
 	 * 
 	 * @author 28youth
 	 * @param  \Illuminate\Http\Request $request
@@ -49,7 +49,7 @@ class EventLogRepository
 	}
 
 	/**
-	 * 获取我纪录的事件列表.
+	 * 获取我记录的事件日志列表.
 	 * 
 	 * @param  \Illuminate\Http\Request $request
 	 * @return mixed
@@ -73,7 +73,7 @@ class EventLogRepository
 	}
 
 	/**
-	 * 待审核的事件列表.
+	 * 待审核的事件日志列表.
 	 * 
 	 * @author 28youth
 	 * @param  \Illuminate\Http\Request $request
