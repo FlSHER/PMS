@@ -38,6 +38,8 @@ class CreateEventLogTable extends Migration
             $table->char('recorder_name', 10)->comment('记录人姓名');
             $table->tinyInteger('status_id')->default(0)->comment('状态ID');
             $table->timestamp('executed_at')->nullable()->comment('执行时间');
+            $table->mediumInteger('recorder_point')->comment('记录人得分');
+            $table->mediumInteger('first_approver_point')->comment('初审人得分');
             $table->timestamps();
             /* 索引和外键 */
             $table->foreign('event_id')->references('id')->on('events');
