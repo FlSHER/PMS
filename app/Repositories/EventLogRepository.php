@@ -43,7 +43,7 @@ class EventLogRepository
 	 * @param  \Illuminate\Http\Request $request
 	 * @return mixed
 	 */
-	public function getList(Request $request, $model)
+	public function getList(Request $request)
 	{
 		return $this->getFilteredList($request, $this->eventlog);
 	}
