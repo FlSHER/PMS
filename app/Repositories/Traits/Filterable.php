@@ -14,7 +14,7 @@ Trait Filterable
      * @param  \Illuminate\Http\Request $request
      * @return mixed
      */
-    protected function getFilteredPageList(Request $request, $model)
+    protected function getFilteredPaginateList(Request $request, $model)
     {   
         $sort =  explode('-', $request->sort);
         $limit = $request->query('limit', 20);
