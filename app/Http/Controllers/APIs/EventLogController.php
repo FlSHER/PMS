@@ -5,12 +5,14 @@ namespace App\Http\Controllers\APIs;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\EventLog as EventLogModel;
+use Illuminate\Support\Facades\Auth;
+use App\Repositories\EventLogRepository;
 
 class EventLogController extends Controller
 {
 
     /**
-     * 初审奖扣事件.
+     * 初审事件.
      * 
      * @author 28youth
      * @param  \Illuminate\Http\Request  $request
@@ -40,7 +42,7 @@ class EventLogController extends Controller
     }
 
     /**
-     * 终审奖扣事件.
+     * 终审事件.
      * 
      * @author 28youth
      * @param  \Illuminate\Http\Request  $request
@@ -70,7 +72,7 @@ class EventLogController extends Controller
     }
 
     /**
-     *  驳回奖扣事件.
+     *  驳回事件.
      *  
      * @author 28youth
      * @param  \Illuminate\Http\Request  $request
@@ -100,7 +102,7 @@ class EventLogController extends Controller
     }
 
     /**
-     * 撤回奖扣事件.
+     * 撤回事件.
      * 
      * @author 28youth
      * @param  \Illuminate\Http\Request  $request
