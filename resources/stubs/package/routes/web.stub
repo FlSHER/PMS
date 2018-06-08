@@ -1,5 +1,9 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+use {namespace}\Web\Controllers as Web;
+use Illuminate\Contracts\Routing\Registrar as RouteRegisterContract;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -11,4 +15,8 @@
 |
 */
 
-Route::get('/', 'HomeController@welcome');
+Route::group(['prefix' => '{name}'], function (RouteRegisterContract $route) {
+
+    // Home Router.
+    $route->get('/', Web\HomeController::class.'@index');
+});

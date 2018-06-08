@@ -1,8 +1,12 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+use {namespace}\Admin\Controllers as Admin;
+use Illuminate\Contracts\Routing\Registrar as RouteRegisterContract;
+
 /*
 |--------------------------------------------------------------------------
-| Web Routes
+| Admin Routes
 |--------------------------------------------------------------------------
 |
 | Here is where you can register web routes for your application. These
@@ -11,4 +15,8 @@
 |
 */
 
-Route::get('/', 'HomeController@welcome');
+Route::group(['prefix' => '{vendor}/{name}'], function (RouteRegisterContract $route) {
+
+    // Home router.
+    $route->get('/', Admin\HomeController::class.'@index')->name('{name}:admin-home');
+});
