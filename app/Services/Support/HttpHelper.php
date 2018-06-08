@@ -5,7 +5,7 @@ namespace App\Services\Support;
 use GuzzleHttp\Client;
 use Psr\Http\Message\ResponseInterface;
 
-class HttpHelper
+Trait HttpHelper
 {
 
 	/**
