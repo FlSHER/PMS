@@ -18,4 +18,15 @@ class EventLog extends Model
     {
         return $query->where('status_id', $status);
     }
+
+    /**
+     * 事件参与者.
+     * 
+     * @author 28youth
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function participant()
+    {
+        return $this->hasMany(EventLogParticipant::class, 'event_log_id', 'id');
+    }
 }

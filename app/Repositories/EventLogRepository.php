@@ -95,4 +95,16 @@ class EventLogRepository
 		];
 	}
 
+	/**
+	 * 获取事件参与人.
+	 * 
+	 * @author 28youth
+	 * @param  EventLogModel $eventlog
+	 * @return mixed
+	 */
+	public function getParticipant(EventLogModel $eventlog)
+	{
+		return $eventlog->participant()->pluck('participant_sn');
+	}
+
 }

@@ -7,9 +7,19 @@ use Illuminate\Http\Request;
 use App\Models\EventLog as EventLogModel;
 use Illuminate\Support\Facades\Auth;
 use App\Repositories\EventLogRepository;
+use App\Services\PointLogger;
 
 class EventLogController extends Controller
 {
+    protected $pointLoggerService;
+
+    protected $eventLogRepository;
+
+    public function __construct(PointLogger $pointLogger, EventLogRepository $eventlog)
+    {
+        $this->pointLoggerService = $pointLogger;
+        $this->eventLogRepository = $eventlog;
+    }
 
     /**
      * 初审事件.
@@ -34,7 +44,6 @@ class EventLogController extends Controller
         $eventlog->first_approver_remark = $request->remark;
         $eventlog->first_approver_at = Carbon::now();
         $eventlog->status_id = 1;
-        $eventlog->save();
 
         return response()->json([
             'message' => '初审成功'
@@ -64,8 +73,15 @@ class EventLogController extends Controller
         $eventlog->final_approver_remark = $request->remark;
         $eventlog->final_approver_at = Carbon::now();
         $eventlog->status_id = 2;
-        $eventlog->save();
 
+        $participant = $this->eventLogRepository->getParticipant();
+
+        $eventlog->getConnection()->transaction(function () use ($eventlog, $participant) {
+            $eventlog->save();
+            // 事件参与者记录积分
+            $this->pointLoggerService->logEventPoint($participant, $eventlog);
+        });
+        
         return response()->json([
             'message' => '终审成功'
         ], 201);
