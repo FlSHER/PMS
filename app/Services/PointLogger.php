@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Repositories\PointLogRepository;
+use App\Jobs\PointLogger AS PointLoggerJob;
 use App\Models\PointLog as PointLogModel;
 use App\Models\EventLog as EventLogModel;
 
@@ -15,7 +15,7 @@ class PointLogger
 
         if (is_array($target_sn)) {
             foreach ($target_sn as $key => $value) {
-                $this->createPointLog($value, $title, $eventlog);
+                dispatch(new PointLoggerJob($value, $title, $eventlog));
             }
         }
         $this->createPointLog($target_sn, $title, $eventlog);
