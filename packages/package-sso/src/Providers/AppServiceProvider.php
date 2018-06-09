@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Fisher\SSO\Providers;
 
 use App\Support\PackageHandler;
+use Fisher\SSO\Services\OAGuard;
+use Fisher\SSO\Services\OAUserProvider;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -60,6 +63,24 @@ class AppServiceProvider extends ServiceProvider
 
         // Register package handlers.
         $this->registerPackageHandlers();
+
+        $this->registerSsoService();
+    }
+
+    /**
+     * register sso service.
+     * 
+     * @return void
+     */
+    protected function registerSsoService()
+    {
+        Auth::provider('oa', function () {
+            return new OAUserProvider();
+        });
+
+        Auth::extend('oa', function ($app, $name, array $config) {
+            return new OAGuard(Auth::createUserProvider($config['provider']), $app->make('request'));
+        });
     }
 
     /**

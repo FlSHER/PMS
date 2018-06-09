@@ -6,8 +6,7 @@
  * Time: 20:56
  */
 
-namespace App\Services\SSO;
-
+namespace Fisher\SSO\Services;
 
 use Illuminate\Contracts\Auth\Authenticatable as UserContract;
 
