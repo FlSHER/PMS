@@ -8,6 +8,7 @@ class HomeController
 {
     public function index()
     {
+    	dd(app('api')->getStaff('110105'));
         return trans('package-sso::messages.success');
     }
 }

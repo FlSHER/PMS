@@ -11,24 +11,17 @@ namespace Fisher\SSO\Services;
 
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\UserProvider;
+use Illuminate\Http\Request;
 use Fisher\SSO\Traits\UserHelper;
 
 class OAUserProvider implements UserProvider
 {
     use UserHelper;
 
-    protected $headers;
-
     protected function getBaseUri(): string
     {
         return config('oa.host');
     }
-
-    protected function getHeader($header = []): array
-    {
-        return array_merge(['Accept' => 'application/json'], $this->headers);
-    }
-
 
     public function retrieveById($identifier)
     {
@@ -39,9 +32,7 @@ class OAUserProvider implements UserProvider
 
     public function retrieveByCredentials(array $credentials)
     {
-        $this->headers = $credentials;
-
-        $user = $this->get('/api/current-user');
+        $user = $this->setHeader($credentials)->get('/api/current-user');
 
         return $this->getOAUser($user);
     }
