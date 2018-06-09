@@ -7,6 +7,21 @@ use Psr\Http\Message\ResponseInterface;
 
 trait UserHelper
 {
+
+    protected $headers;
+
+    /**
+     * Set headers.
+     * 
+     * @param  array $headers
+     */
+    public function setHeader($headers = [])
+    {
+        $this->headers = $headers;
+
+        return $this;
+    }
+
 	/**
      * Make a get request.
      *
@@ -19,7 +34,7 @@ trait UserHelper
     protected function get($endpoint, $query = [], $headers = [])
     {
         return $this->request('get', $endpoint, [
-            'headers' => method_exists($this, 'getHeader') ? $this->getHeader() : $headers,
+            'headers' => array_merge($headers, $this->headers),
             'query' => $query,
         ]);
     }
@@ -36,7 +51,7 @@ trait UserHelper
     protected function post($endpoint, $params = [], $headers = [])
     {
         return $this->request('post', $endpoint, [
-            'headers' => method_exists($this, 'getHeader') ? $this->getHeader() : $headers,
+            'headers' => array_merge($headers, $this->headers),
             'json' => $params,
         ]);
     }

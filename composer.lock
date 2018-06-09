@@ -372,7 +372,7 @@
             "dist": {
                 "type": "path",
                 "url": "packages/package-sso",
-                "reference": "33a923947c5e90dd2ca59d30f973e4439801f4fc",
+                "reference": "18d98c98758926dcdce43dc0d728a861c6be0270",
                 "shasum": null
             },
             "require": {
@@ -384,7 +384,8 @@
                     "providers": [
                         "Fisher\\SSO\\Providers\\AppServiceProvider",
                         "Fisher\\SSO\\Providers\\ModelServiceProvider",
-                        "Fisher\\SSO\\Providers\\RouteServiceProvider"
+                        "Fisher\\SSO\\Providers\\RouteServiceProvider",
+                        "Fisher\\SSO\\Providers\\SSOServiceProvider"
                     ]
                 }
             },

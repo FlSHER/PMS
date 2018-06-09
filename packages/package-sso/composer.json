@@ -20,7 +20,8 @@
             "providers": [
                 "Fisher\\SSO\\Providers\\AppServiceProvider",
                 "Fisher\\SSO\\Providers\\ModelServiceProvider",
-                "Fisher\\SSO\\Providers\\RouteServiceProvider"
+                "Fisher\\SSO\\Providers\\RouteServiceProvider",
+                "Fisher\\SSO\\Providers\\SSOServiceProvider"
             ]
         }
     },
