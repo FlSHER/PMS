@@ -36,7 +36,7 @@ class CreateEventLogTable extends Migration
             $table->char('reject_remark', 255)->default('')->comment('驳回备注');
             $table->unsignedMediumInteger('recorder_sn')->comment('记录人编号');
             $table->char('recorder_name', 10)->comment('记录人姓名');
-            $table->tinyInteger('status_id')->default(0)->comment('状态ID 0:待审核 1:初审通过 2:终审通过 -1:驳回');
+            $table->tinyInteger('status_id')->default(0)->comment('状态ID 0:待审核 1:初审通过 2:终审通过 -1:驳回 -2:撤回');
             $table->timestamp('executed_at')->nullable()->comment('执行时间');
             $table->mediumInteger('recorder_point')->default(0)->comment('记录人得分');
             $table->mediumInteger('first_approver_point')->default(0)->comment('初审人得分');

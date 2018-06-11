@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App\Repositories\Traits;
 
@@ -10,15 +10,15 @@ Trait Filterable
 
     /**
      * 获取筛选列表(带分页).
-     * 
+     *
      * @author 28youth
      * @param  \Illuminate\Http\Request $request
      * @return mixed
      */
     protected function getFilteredPaginateList(Request $request, $model)
-    {   
+    {
         $builder = ($model instanceof Model) ? $model->query() : $model;
-        $sort =  explode('-', $request->sort);
+        $sort = explode('-', $request->sort);
         $limit = $request->query('limit', 20);
         $filters = $request->query('filters', '');
 
@@ -46,7 +46,7 @@ Trait Filterable
 
     /**
      * 获取筛选列表.
-     * 
+     *
      * @author 28youth
      * @param  \Illuminate\Http\Request $request
      * @return mixed
@@ -54,7 +54,7 @@ Trait Filterable
     protected function getFilteredList(Request $request, $model)
     {
         $builder = ($model instanceof Model) ? $model->query() : $model;
-        $sort =  explode('-', $request->sort);
+        $sort = explode('-', $request->sort);
         $filters = $request->query('filters', '');
 
         if ($filters && $filters !== null) {
@@ -76,7 +76,7 @@ Trait Filterable
 
     /**
      * filter 格式化.
-     * 
+     *
      * @author 28youth
      * @param  \Illuminate\Http\Request $request
      * @return mixed
@@ -84,7 +84,7 @@ Trait Filterable
     public function formatFilter(string $filters): array
     {
         $maps = $fields = [];
-        $filters = explode(';', $filters);
+        $filters = array_filter(explode(';', $filters));
         foreach ($filters as $key => $value) {
             preg_match('/(=|~|>=|>|<=|<)/', $value, $match);
             $filter = explode($match[0], $value);
@@ -93,14 +93,14 @@ Trait Filterable
                     if (strpos($filter[1], '[', 0) !== false) {
                         $toArr = explode(',', trim($filter[1], '[]'));
                         array_push($maps, [
-                            $filter[0] => function ($query) use ( $filter, $toArr ) {
+                            $filter[0] => function ($query) use ($filter, $toArr) {
                                 $query->where($filter[0], $toArr);
                             }
                         ]);
                         continue;
                     }
                     array_push($maps, [
-                        $filter[0] => function ($query) use ( $filter ) {
+                        $filter[0] => function ($query) use ($filter) {
                             $query->where($filter[0], $filter[1]);
                         }
                     ]);
@@ -108,7 +108,7 @@ Trait Filterable
 
                 case '~':
                     array_push($maps, [
-                        $filter[0] => function ($query) use ( $filter ) {
+                        $filter[0] => function ($query) use ($filter) {
                             $query->where($filter[0], 'like', "%{$filter[1]}%");
                         }
                     ]);
@@ -116,7 +116,7 @@ Trait Filterable
 
                 default:
                     array_push($maps, [
-                        $filter[0] => function ($query) use ( $filter, $match ) {
+                        $filter[0] => function ($query) use ($filter, $match) {
                             $query->where($filter[0], $match[0], $filter[1]);
                         }
                     ]);
