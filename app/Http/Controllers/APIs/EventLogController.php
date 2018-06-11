@@ -32,7 +32,7 @@ class EventLogController extends Controller
      */
     public function index(Request $request)
     {
-        $type = $request->query('type');
+        $type = $request->query('type', 'all');
         switch ($type) {
             case 'participant':
                 $items = $this->eventLogRepository->getParticipantList($request);
@@ -93,11 +93,8 @@ class EventLogController extends Controller
             'description',
             'first_approver_sn',
             'first_approver_name',
-            'first_approve_remark',
             'final_approver_sn',
-            'final_approver_name',
-            'final_approve_remark',
-            'recorder_point'
+            'final_approver_name'
         );
     }
 
@@ -113,19 +110,17 @@ class EventLogController extends Controller
     {
         $user = $request->user();
 
-        if ($eventlog->first_approver_at !== null) {
+        if ($eventlog->first_approved_at !== null) {
             return response()->json([
                 'message' => '初审已通过'
             ], 422);
         }
-        $eventlog->first_approver_remark = $request->remark;
-        $eventlog->first_approver_at = Carbon::now();
+        $eventlog->first_approve_remark = $request->remark;
+        $eventlog->first_approved_at = Carbon::now();
         $eventlog->status_id = 1;
         $eventlog->save();
 
-        return response()->json([
-            'message' => '初审成功'
-        ], 201);
+        return response()->json($eventlog, 201);
     }
 
     /**
@@ -140,13 +135,15 @@ class EventLogController extends Controller
     {
         $user = $request->user();
 
-        if ($eventlog->final_approver_at !== null) {
+        if ($eventlog->final_approved_at !== null) {
             return response()->json([
                 'message' => '终审已通过'
             ], 422);
         }
-        $eventlog->final_approver_remark = $request->remark;
-        $eventlog->final_approver_at = Carbon::now();
+        $eventlog->recorder_point = $request->recorder_point;
+        $eventlog->first_approver_point = $request->first_approver_point;
+        $eventlog->final_approve_remark = $request->remark;
+        $eventlog->final_approved_at = Carbon::now();
         $eventlog->status_id = 2;
 
         $participant = $this->eventLogRepository->getParticipant($eventlog);
@@ -157,9 +154,7 @@ class EventLogController extends Controller
             $this->pointLoggerService->logEventPoint($participant, $eventlog);
         });
         
-        return response()->json([
-            'message' => '终审成功'
-        ], 201);
+        return response()->json($eventlog, 201);
     }
 
     /**
@@ -188,14 +183,12 @@ class EventLogController extends Controller
 
         $eventlog->rejecter_sn = $user->staff_sn;
         $eventlog->rejecter_name = $user->realname;
-        $eventlog->rejecter_remark = $request->remark;
-        $eventlog->rejecter_at = Carbon::now();
+        $eventlog->reject_remark = $request->remark;
+        $eventlog->rejected_at = Carbon::now();
         $eventlog->status_id = -1;
         $eventlog->save();
 
-        return response()->json([
-            'message' => '驳回成功'
-        ], 201);
+        return response()->json($eventlog, 201);
     }
 
     /**
@@ -210,9 +203,9 @@ class EventLogController extends Controller
     {
         $user = $request->user();
 
-        if ($eventlog->status_id === 2) {
+        if ($eventlog->status_id === 2 || $eventlog->status_id === -2) {
             return response()->json([
-                'message' => '已终审不能撤回'
+                'message' => '已终审或已撤回'
             ], 422);
         }
 
@@ -225,9 +218,7 @@ class EventLogController extends Controller
         $eventlog->status_id = -2;
         $eventlog->save();
 
-        return response()->json([
-            'message' => '撤回成功'
-        ], 201);
+        return response()->json($eventlog, 201);
     }
 
 }

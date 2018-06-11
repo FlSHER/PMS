@@ -30,8 +30,7 @@ class StoreEventLogRequest extends FormRequest
             'first_approver_sn' => 'required|integer',
             'first_approver_name' => 'required|string',
             'final_approver_sn' => 'required|integer',
-            'final_approver_name' => 'required|string',
-            'recorder_point' => 'required|integer',
+            'final_approver_name' => 'required|string'
         ];
     }
 
@@ -48,8 +47,7 @@ class StoreEventLogRequest extends FormRequest
         	'first_approver_sn.required' => '初审人编号不能为空',
         	'first_approver_name.required' => '初审人姓名不能为空',
         	'final_approver_sn.required' => '终审人编号不能为空',
-        	'final_approver_name.required' => '终审人姓名不能为空',
-        	'recorder_point.required' => '记录人得分不能为空',
+        	'final_approver_name.required' => '终审人姓名不能为空'
         ];
     }
 
