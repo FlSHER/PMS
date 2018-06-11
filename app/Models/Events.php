@@ -12,4 +12,15 @@ class Events extends Model
      * @var bool
      */
     public $timestamps = false;
+
+    /**
+     * has event log.
+     * 
+     * @author 28youth
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function logs()
+    {
+    	return $this->hasMany(EventLog::class, 'event_id', 'id');
+    }
 }
