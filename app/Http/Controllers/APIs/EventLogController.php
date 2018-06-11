@@ -22,6 +22,41 @@ class EventLogController extends Controller
     }
 
     /**
+     * 获取事件日志列表.
+     * 
+     * @author 28youth
+     * @param  \Illuminate\Http\Request  $request
+     * @return mixed
+     */
+    public function index(Request $request)
+    {
+        $type = $request->query('type');
+        switch ($type) {
+            case 'participant':
+                $items = $this->eventLogRepository->getParticipantList($request);
+                break;
+
+            case 'recorded':
+                $items = $this->eventLogRepository->getRecordedList($request);
+                break;
+
+            case 'approved':
+                $items = $this->eventLogRepository->getApprovedList($request);
+                break;
+
+            case 'carbon_copy':
+                $items = $this->eventLogRepository->getCopyList($request);
+                break;
+                  
+            default:
+                $items = $this->eventLogRepository->getPaginateList($request);
+                break;
+        }
+
+        return response()->json($items, 200);
+    }
+
+    /**
      * 初审事件.
      * 
      * @author 28youth
@@ -74,7 +109,7 @@ class EventLogController extends Controller
         $eventlog->final_approver_at = Carbon::now();
         $eventlog->status_id = 2;
 
-        $participant = $this->eventLogRepository->getParticipant();
+        $participant = $this->eventLogRepository->getParticipant($eventlog);
 
         $eventlog->getConnection()->transaction(function () use ($eventlog, $participant) {
             $eventlog->save();

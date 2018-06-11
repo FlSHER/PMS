@@ -29,10 +29,10 @@ Trait Filterable
 
                 $builder->when($curKey, $map[$curKey]);
             }
-            $builder->when(($sort && !$sort), function ($query) use ($sort) {
-                $query->orderBy($sort[0], $sort[1]);
-            });
         }
+        $builder->when(($sort && !$sort), function ($query) use ($sort) {
+            $query->orderBy($sort[0], $sort[1]);
+        });
         $items = $builder->paginate($limit);
 
         return [

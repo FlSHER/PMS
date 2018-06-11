@@ -25,6 +25,10 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
 	// @route 事件奖扣
 	$api->group(['prefix' => 'event-logs'], function (RouteContract $api) {
 
+		// 事件日志列表
+		// @put /api/event-logs
+		$api->get('/', APIs\EventLogController::class.'@index');
+
 		// 初审奖扣事件
 		// @put /api/event-logs/:eventlog/first-approve
 		$api->put('{eventlog}/first-approve', APIs\EventLogController::class.'@firstApprove');

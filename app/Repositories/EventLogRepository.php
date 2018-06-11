@@ -49,6 +49,28 @@ class EventLogRepository
 	}
 
 	/**
+	 * 获取我参与的事件日志列表.
+	 * 
+	 * @author 28youth
+	 * @param  \Illuminate\Http\Request $request
+	 * @return mixed
+	 */
+	public function getParticipantList(Request $request)
+	{
+		$user = $request->user();
+		$limit = $request->query('limit', 10);
+
+		$items = $this->eventlog
+			->whereHas('participant', function($query) use ($user) {
+				return $query->where('participant_sn', $user->staff_sn);
+			})
+			->latest('id')
+			->paginate($limit);
+
+		return $this->response($items);
+	}
+
+	/**
 	 * 获取我记录的事件日志列表.
 	 * 
 	 * @param  \Illuminate\Http\Request $request
@@ -57,19 +79,57 @@ class EventLogRepository
 	public function getRecordedList(Request $request)
 	{
 		$user = $request->user();
-		$limit = $request->query('limit', 20);
+		$limit = $request->query('limit', 10);
 
 		$items = $this->eventlog
 			->where('recorder_sn', $user->staff_sn)
+			->latest('id')
 			->paginate($limit);
 
-		return [
-			'data' => $items->items(),
-			'total' => $items->count(),
-			'page' => $items->currentPage(),
-			'pagesize' => $limit,
-			'totalpage' => $items->total(),
-		];
+		return $this->response($items);
+	}
+
+	/**
+	 * 获取我审核的事件记录列表.
+	 * 
+	 * @author 28youth
+	 * @param  \Illuminate\Http\Request $request
+	 * @return mixed
+	 */
+	public function getApprovedList(Request $request)
+	{
+		$user = $request->user();
+		$limit = $request->query('limit', 10);
+
+		$items = $this->eventlog
+			->where('first_approver_sn', $user->staff_sn)
+			->orWhere('final_approver_sn', $user->staff_sn)
+			->latest('id')
+			->paginate($limit);
+
+		return $this->response($items);
+	}
+
+	/**
+	 * 获取抄送我的事件记录列表.
+	 * 
+	 * @author 28youth
+	 * @param  \Illuminate\Http\Request $request
+	 * @return mixed
+	 */
+	public function getCopyList(Request $request)
+	{
+		$user = $request->user();
+		$limit = $request->query('limit', 10);
+
+		$items = $this->eventlog
+			->whereHas('copy', function($query) use ($user) {
+				return $query->where('addressee_sn', $user->staff_sn);
+			})
+			->latest('id')
+			->paginate($limit);
+
+		return $this->response($items);
 	}
 
 	/**
@@ -81,16 +141,23 @@ class EventLogRepository
 	 */
 	public function getProcessingList(Request $request)
 	{
+		$limit = $request->query('limit', 10);
+
 		$items = $this->eventlog
 			->byAudit(0)
-			->where('recorder_sn', $user->staff_sn)
+			->latest('id')
 			->paginate($limit);
 
+		return $this->response($items);
+	}
+
+	protected function response($items)
+	{
 		return [
 			'data' => $items->items(),
 			'total' => $items->count(),
 			'page' => $items->currentPage(),
-			'pagesize' => $limit,
+			'pagesize' => $items->perPage(),
 			'totalpage' => $items->total(),
 		];
 	}

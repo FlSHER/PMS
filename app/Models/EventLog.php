@@ -29,4 +29,15 @@ class EventLog extends Model
     {
         return $this->hasMany(EventLogParticipant::class, 'event_log_id', 'id');
     }
+
+    /**
+     * 事件抄送者.
+     * 
+     * @author 28youth
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function copy()
+    {
+        return $this->hasMany(EventCarbonCopyLog::class, 'event_log_id', 'id');
+    }
 }
