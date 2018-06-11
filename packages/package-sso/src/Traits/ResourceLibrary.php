@@ -27,14 +27,14 @@ trait ResourceLibrary
      * @param  $params 非数组为部门主键
      * @return mixed
      */
-    public function getDepartmenet($params)
+    public function getDepartmenets($params)
     {
         if (is_array($params)) {
             
-            return $this->get('api/department', $params);
+            return $this->get('api/departments', $params);
         }
 
-        return $this->get('api/department/'.$params);
+        return $this->get('api/departments/'.$params);
     }
 
     /**
@@ -44,14 +44,14 @@ trait ResourceLibrary
      * @param  非数组为品牌主键
      * @return mixed
      */
-    public function getBrand($params)
+    public function getBrands($params)
     {
         if (is_array($params)) {
             
-            return $this->get('api/brand', $params);
+            return $this->get('api/brands', $params);
         }
 
-        return $this->get('api/brand/'.$params);
+        return $this->get('api/brands/'.$params);
     }
 
     /**
@@ -61,14 +61,14 @@ trait ResourceLibrary
      * @param  非数组为主键
      * @return mixed
      */
-    public function getPosition($params)
+    public function getPositions($params)
     {
         if (is_array($params)) {
             
-            return $this->get('api/position', $params);
+            return $this->get('api/positions', $params);
         }
 
-        return $this->get('api/position/'.$params);
+        return $this->get('api/positions/'.$params);
     }
 
     /**
@@ -78,30 +78,31 @@ trait ResourceLibrary
      * @param  非数组为商品主键
      * @return mixed
      */
-    public function getShop($params)
+    public function getShops($params)
     {
         if (is_array($params)) {
             
-            return $this->get('api/shop', $params);
+            return $this->get('api/shops', $params);
         }
 
-        return $this->get('api/shop/'.$params);
+        return $this->get('api/shops/'.$params);
     }
 
     /**
      * 获取用户角色信息.
      * 
+     * @author 28youth
      * @param  非数组为主键
      * @return mixed
      */
-    public function getRole($params)
+    public function getRoles($params)
     {
         if (is_array($params)) {
             
-            return $this->get('api/role', $params);
+            return $this->get('api/roles', $params);
         }
 
-        return $this->get('api/role/'.$params);
+        return $this->get('api/roles/'.$params);
     }
-    
+
 }
