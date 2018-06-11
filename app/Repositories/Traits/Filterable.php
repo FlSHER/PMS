@@ -55,12 +55,15 @@ Trait Filterable
     {
         $builder = ($model instanceof Model) ? $model->query() : $model;
         $sort =  explode('-', $request->sort);
-        $maps = $this->formatFilter($request->filters);
+        $filters = $request->query('filters', '');
 
-        foreach ($maps['maps'] as $k => $map) {
-            $curKey = $maps['fields'][$k];
+        if ($filters && $filters !== null) {
+            $maps = $this->formatFilter($filters);
+            foreach ($maps['maps'] as $k => $map) {
+                $curKey = $maps['fields'][$k];
 
-            $builder->when($curKey, $map[$curKey]);
+                $builder->when($curKey, $map[$curKey]);
+            }
         }
         $builder->when(($sort && !$sort), function ($query) use ($sort) {
             $query->orderBy($sort[0], $sort[1]);
