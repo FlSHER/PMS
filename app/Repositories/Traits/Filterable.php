@@ -3,6 +3,7 @@
 namespace App\Repositories\Traits;
 
 use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Model;
 
 Trait Filterable
 {
@@ -16,19 +17,23 @@ Trait Filterable
      */
     protected function getFilteredPaginateList(Request $request, $model)
     {   
+        $builder = ($model instanceof Model) ? $model->query() : $model;
         $sort =  explode('-', $request->sort);
         $limit = $request->query('limit', 20);
-        $maps = $this->formatFilter($request->filters);
-        
-        foreach ($maps['maps'] as $k => $map) {
-            $curKey = $maps['fields'][$k];
+        $filters = $request->query('filters', '');
 
-            $model->when($curKey, $map[$curKey]);
+        if ($filters && $filters !== null) {
+            $maps = $this->formatFilter($filters);
+            foreach ($maps['maps'] as $k => $map) {
+                $curKey = $maps['fields'][$k];
+
+                $builder->when($curKey, $map[$curKey]);
+            }
+            $builder->when(($sort && !$sort), function ($query) use ($sort) {
+                $query->orderBy($sort[0], $sort[1]);
+            });
         }
-        $model->when(($sort && !$sort), function ($query) use ($sort) {
-            $query->orderBy($sort[0], $sort[1]);
-        });
-        $items = $model->paginate($limit);
+        $items = $builder->paginate($limit);
 
         return [
             'data' => $items->items(),
@@ -48,19 +53,20 @@ Trait Filterable
      */
     protected function getFilteredList(Request $request, $model)
     {
+        $builder = ($model instanceof Model) ? $model->query() : $model;
         $sort =  explode('-', $request->sort);
         $maps = $this->formatFilter($request->filters);
 
         foreach ($maps['maps'] as $k => $map) {
             $curKey = $maps['fields'][$k];
 
-            $model->when($curKey, $map[$curKey]);
+            $builder->when($curKey, $map[$curKey]);
         }
-        $model->when(($sort && !$sort), function ($query) use ($sort) {
+        $builder->when(($sort && !$sort), function ($query) use ($sort) {
             $query->orderBy($sort[0], $sort[1]);
         });
 
-        $items = $model->get();
+        $items = $builder->get();
 
         return $items;
     }
@@ -81,8 +87,8 @@ Trait Filterable
             $filter = explode($match[0], $value);
             switch ($match[0]) {
                 case '=':
-                    $toArr = explode(',', $filter[1]);
-                    if (count($toArr) > 1) {
+                    if (strpos($filter[1], '[', 0) !== false) {
+                        $toArr = explode(',', trim($filter[1], '[]'));
                         array_push($maps, [
                             $filter[0] => function ($query) use ( $filter, $toArr ) {
                                 $query->where($filter[0], $toArr);
