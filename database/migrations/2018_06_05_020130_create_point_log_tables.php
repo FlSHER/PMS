@@ -46,7 +46,7 @@ class CreatePointLogTables extends Migration
             $table->foreign('source_id')->references('id')->on('point_log_sources');
         });
 
-        Schema::create('personal_point_statistics', function (Blueprint $table) {
+        Schema::create('personal_point_statistic_logs', function (Blueprint $table) {
             $table->increments('id');
             $table->unsignedMediumInteger('staff_sn')->comment('员工编号');
             $table->char('staff_name', 10)->comment('员工姓名');
@@ -63,7 +63,7 @@ class CreatePointLogTables extends Migration
             $table->timestamps();
         });
 
-        Schema::create('personal_point_statistic_logs', function (Blueprint $table) {
+        Schema::create('personal_point_statistics', function (Blueprint $table) {
             $table->increments('id');
             $table->unsignedMediumInteger('staff_sn')->comment('员工编号');
             $table->mediumInteger('point_a')->comment('A分');
