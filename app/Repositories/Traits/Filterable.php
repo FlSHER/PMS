@@ -94,7 +94,7 @@ Trait Filterable
                         $toArr = explode(',', trim($filter[1], '[]'));
                         array_push($maps, [
                             $filter[0] => function ($query) use ($filter, $toArr) {
-                                $query->where($filter[0], $toArr);
+                                $query->whereIn($filter[0], $toArr);
                             }
                         ]);
                         continue;

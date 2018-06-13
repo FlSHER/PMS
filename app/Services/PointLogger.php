@@ -42,7 +42,7 @@ class PointLogger
         $logModel = new PointLogModel();
         $logModel->title = $title;
         $logModel->staff_sn = $user->staff_sn;
-        $logModel->staff_name = $user->staff_name;
+        $logModel->staff_name = $user->realname;
         $logModel->brand_id = $user->brand->id;
         $logModel->brand_name = $user->brand->name;
         $logModel->department_id = $user->department->id;

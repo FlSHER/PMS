@@ -4,10 +4,12 @@ namespace App\Http\Controllers\APIs;
 
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use App\Models\EventLog as EventLogModel;
 use Illuminate\Support\Facades\Auth;
-use App\Repositories\EventLogRepository;
 use App\Services\PointLogger;
+use App\Repositories\EventLogRepository;
+use App\Models\Events as EventsModel;
+use App\Models\EventLog as EventLogModel;
+use App\Http\Requests\API\StoreEventLogRequest;
 
 class EventLogController extends Controller
 {
@@ -30,7 +32,7 @@ class EventLogController extends Controller
      */
     public function index(Request $request)
     {
-        $type = $request->query('type');
+        $type = $request->query('type', 'all');
         switch ($type) {
             case 'participant':
                 $items = $this->eventLogRepository->getParticipantList($request);
@@ -57,6 +59,46 @@ class EventLogController extends Controller
     }
 
     /**
+     * 创建事件日志.
+     * 
+     * @author 28youth
+     * @param  \App\Http\Requests\API\StoreEventLogRequest $request
+     * @param  \App\Models\EventLog  $eventlog
+     * @param  \App\Models\Events  $event
+     * @return mixed
+     */
+    public function store(StoreEventLogRequest $request, EventLogModel $eventlog, EventsModel $event)
+    {
+        $user = $request->user();
+        $datas = $this->getRequestOnly($request);
+
+        foreach ($datas as $key => $data) {
+            $eventlog->{$key} = $data;
+        }
+
+        $eventlog->event_type_id = $event->type_id;
+        $eventlog->event_name = $event->name;
+        $eventlog->recorder_sn = $user->staff_sn;
+        $eventlog->recorder_name = $user->realname;
+        $event->logs()->save($eventlog);
+
+        return response()->json($eventlog, 201);
+    }
+
+    public function getRequestOnly(Request $request)
+    {
+        return $request->only(
+            'point_a',
+            'point_b',
+            'description',
+            'first_approver_sn',
+            'first_approver_name',
+            'final_approver_sn',
+            'final_approver_name'
+        );
+    }
+
+    /**
      * 初审事件.
      * 
      * @author 28youth
@@ -68,21 +110,17 @@ class EventLogController extends Controller
     {
         $user = $request->user();
 
-        if ($eventlog->first_approver_at !== null) {
+        if ($eventlog->first_approved_at !== null) {
             return response()->json([
                 'message' => '初审已通过'
             ], 422);
         }
-
-        $eventlog->first_approver_sn = $user->staff_sn;
-        $eventlog->first_approver_name = $user->realname;
-        $eventlog->first_approver_remark = $request->remark;
-        $eventlog->first_approver_at = Carbon::now();
+        $eventlog->first_approve_remark = $request->remark;
+        $eventlog->first_approved_at = Carbon::now();
         $eventlog->status_id = 1;
+        $eventlog->save();
 
-        return response()->json([
-            'message' => '初审成功'
-        ], 201);
+        return response()->json($eventlog, 201);
     }
 
     /**
@@ -97,16 +135,15 @@ class EventLogController extends Controller
     {
         $user = $request->user();
 
-        if ($eventlog->final_approver_at !== null) {
+        if ($eventlog->final_approved_at !== null) {
             return response()->json([
                 'message' => '终审已通过'
             ], 422);
         }
-
-        $eventlog->final_approver_sn = $user->staff_sn;
-        $eventlog->final_approver_name = $user->realname;
-        $eventlog->final_approver_remark = $request->remark;
-        $eventlog->final_approver_at = Carbon::now();
+        $eventlog->recorder_point = $request->recorder_point;
+        $eventlog->first_approver_point = $request->first_approver_point;
+        $eventlog->final_approve_remark = $request->remark;
+        $eventlog->final_approved_at = Carbon::now();
         $eventlog->status_id = 2;
 
         $participant = $this->eventLogRepository->getParticipant($eventlog);
@@ -117,9 +154,7 @@ class EventLogController extends Controller
             $this->pointLoggerService->logEventPoint($participant, $eventlog);
         });
         
-        return response()->json([
-            'message' => '终审成功'
-        ], 201);
+        return response()->json($eventlog, 201);
     }
 
     /**
@@ -134,22 +169,26 @@ class EventLogController extends Controller
     {
         $user = $request->user();
 
-        if ($eventlog->first_approver_at === null || $eventlog->final_approver_at === null) {
+        if ($eventlog->status_id === 1 && $user->staff_sn !== $eventlog->first_approver_sn) {
             return response()->json([
-                'message' => '未审核不能驳回'
-            ], 422);
+                'message' => '非初审人无权驳回'
+            ], 401);
+        }
+
+        if ($eventlog->status_id === 2 && $user->staff_sn !== $eventlog->final_approver_sn) {
+            return response()->json([
+                'message' => '非终审人无权驳回'
+            ], 401);
         }
 
         $eventlog->rejecter_sn = $user->staff_sn;
         $eventlog->rejecter_name = $user->realname;
-        $eventlog->rejecter_remark = $request->remark;
-        $eventlog->rejecter_at = Carbon::now();
+        $eventlog->reject_remark = $request->remark;
+        $eventlog->rejected_at = Carbon::now();
         $eventlog->status_id = -1;
         $eventlog->save();
 
-        return response()->json([
-            'message' => '驳回成功'
-        ], 201);
+        return response()->json($eventlog, 201);
     }
 
     /**
@@ -164,12 +203,22 @@ class EventLogController extends Controller
     {
         $user = $request->user();
 
+        if ($eventlog->status_id === 2 || $eventlog->status_id === -2) {
+            return response()->json([
+                'message' => '已终审或已撤回'
+            ], 422);
+        }
+
+        if ($eventlog->recorder_sn !== $user->staff_sn) {
+            return response()->json([
+                'message' => '非记录人无权撤回'
+            ], 401);
+        }
+
         $eventlog->status_id = -2;
         $eventlog->save();
 
-        return response()->json([
-            'message' => '撤回成功'
-        ], 201);
+        return response()->json($eventlog, 201);
     }
 
 }
