@@ -3,7 +3,7 @@
 namespace Fisher\SSO\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Fisher\SSO\Services\RequestOSSService;
+use Fisher\SSO\Services\RequestSSOService;
 
 class SSOServiceProvider extends ServiceProvider
 {
@@ -25,7 +25,7 @@ class SSOServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->singleton('api', function ($app) {
-        	return new RequestOSSService($app->make('request'));
+        	return new RequestSSOService($app->make('request'));
         });
     }
 }

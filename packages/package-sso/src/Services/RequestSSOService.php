@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Fisher\SSO\Traits\UserHelper;
 use Fisher\SSO\Traits\ResourceLibrary;
 
-class RequestOSSService
+class RequestSSOService
 {
 	use UserHelper;
 	use ResourceLibrary;
