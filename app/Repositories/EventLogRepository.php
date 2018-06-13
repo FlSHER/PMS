@@ -58,14 +58,14 @@ class EventLogRepository
 	public function getParticipantList(Request $request)
 	{
 		$user = $request->user();
-		$limit = $request->query('limit', 10);
+		$pagesize = $request->query('pagesize', 10);
 
 		$items = $this->eventlog
 			->whereHas('participant', function($query) use ($user) {
 				return $query->where('participant_sn', $user->staff_sn);
 			})
 			->latest('id')
-			->paginate($limit);
+			->paginate($pagesize);
 
 		return $this->response($items);
 	}
@@ -79,18 +79,18 @@ class EventLogRepository
 	public function getRecordedList(Request $request)
 	{
 		$user = $request->user();
-		$limit = $request->query('limit', 10);
+		$pagesize = $request->query('pagesize', 10);
 
 		$items = $this->eventlog
 			->where('recorder_sn', $user->staff_sn)
 			->latest('id')
-			->paginate($limit);
+			->paginate($pagesize);
 
 		return $this->response($items);
 	}
 
 	/**
-	 * 获取我审核的事件记录列表.
+	 * 获取我审核的事件记录列表. 初审 终审 驳回 并且对应时间不为空
 	 * 
 	 * @author 28youth
 	 * @param  \Illuminate\Http\Request $request
@@ -99,13 +99,23 @@ class EventLogRepository
 	public function getApprovedList(Request $request)
 	{
 		$user = $request->user();
-		$limit = $request->query('limit', 10);
+		$pagesize = $request->query('pagesize', 10);
 
 		$items = $this->eventlog
-			->where('first_approver_sn', $user->staff_sn)
-			->orWhere('final_approver_sn', $user->staff_sn)
+			->where(function ($query) use ($user) {
+				$query->where('first_approver_sn', $user->staff_sn)
+					->whereNotNull('first_approved_at');
+			})
+			->orWhere(function ($query) use ($user) {
+				$query->where('final_approver_sn', $user->staff_sn)
+					->whereNotNull('final_approved_at');
+			})
+			->orWhere(function ($query) use ($user) {
+				$query->where('rejecter_sn', $user->staff_sn)
+					->whereNotNull('rejected_at');
+			})
 			->latest('id')
-			->paginate($limit);
+			->paginate($pagesize);
 
 		return $this->response($items);
 	}
@@ -117,23 +127,23 @@ class EventLogRepository
 	 * @param  \Illuminate\Http\Request $request
 	 * @return mixed
 	 */
-	public function getCopyList(Request $request)
+	public function getAddresseeList(Request $request)
 	{
 		$user = $request->user();
-		$limit = $request->query('limit', 10);
+		$limit = $request->query('pagesize', 10);
 
-		$items = $this->eventlog
-			->whereHas('copy', function($query) use ($user) {
-				return $query->where('addressee_sn', $user->staff_sn);
+		$pagesize = $this->eventlog
+			->whereHas('addressees', function($query) use ($user) {
+				$query->where('addressee_sn', $user->staff_sn);
 			})
 			->latest('id')
-			->paginate($limit);
+			->paginate($pagesize);
 
 		return $this->response($items);
 	}
 
 	/**
-	 * 待审核的事件日志列表.
+	 * 待审核的事件日志列表. 初审当前 状态0 终审当前 状态1
 	 * 
 	 * @author 28youth
 	 * @param  \Illuminate\Http\Request $request
@@ -141,12 +151,18 @@ class EventLogRepository
 	 */
 	public function getProcessingList(Request $request)
 	{
-		$limit = $request->query('limit', 10);
+		$user = $request->user();
+		$pagesize = $request->query('pagesize', 10);
 
 		$items = $this->eventlog
-			->byAudit(0)
+			->where(function ($query) use ($user) {
+				$query->where('first_approver_sn', $user->staff_sn)->byAudit(0);
+			})
+			->orWhere(function ($query) use ($user) {
+				$query->where('final_approver_sn', $user->staff_sn)->byAudit(1);
+			})	
 			->latest('id')
-			->paginate($limit);
+			->paginate($pagesize);
 
 		return $this->response($items);
 	}
