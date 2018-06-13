@@ -10,6 +10,21 @@ class EventLog extends Model
     use Concerns\FormatFilter;
 
     /**
+     * 批量赋值的属性
+     * 
+     * @var array
+     */
+    protected $fillable = [
+        'event_id',
+        'description',
+        'first_approver_sn',
+        'first_approver_name',
+        'final_approver_sn',
+        'final_approver_name',
+        'executed_at'
+    ];
+
+    /**
      * 复用状态筛选.
      * 
      * @author 28youth
@@ -37,7 +52,7 @@ class EventLog extends Model
      * @author 28youth
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function addressees()
+    public function addressee()
     {
         return $this->hasMany(EventLogAddressee::class, 'event_log_id', 'id');
     }

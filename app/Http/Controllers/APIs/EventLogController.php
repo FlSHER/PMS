@@ -33,6 +33,7 @@ class EventLogController extends Controller
     public function index(Request $request)
     {
         $type = $request->query('type', 'all');
+
         switch ($type) {
             case 'participant':
                 $items = $this->eventLogRepository->getParticipantList($request);
@@ -67,37 +68,33 @@ class EventLogController extends Controller
      * @param  \App\Models\Events  $event
      * @return mixed
      */
-    public function store(StoreEventLogRequest $request, EventLogModel $eventlog, EventsModel $event)
+    public function store(StoreEventLogRequest $request, EventLogModel $eventlog)
     {
         $user = $request->user();
-        $datas = $this->getRequestOnly($request);
+        $datas = $request->all();
+        $event = EventsModel::find($request->event_id);
 
-        foreach ($datas as $key => $data) {
-            $eventlog->{$key} = $data;
-        }
-        $eventlog->create($request->all());
-
-        $eventlog->event_type_id = $event->type_id;
+        $eventlog->fill($datas);
         $eventlog->event_name = $event->name;
+        $eventlog->event_type_id = $event->type_id;
         $eventlog->recorder_sn = $user->staff_sn;
         $eventlog->recorder_name = $user->realname;
-        $eventlog->executed_at = $request->executed_at;
-        $event->logs()->save($eventlog);
+
+        $eventlog->getConnection()->transaction(function() use ($eventlog, $datas) {
+            $eventlog->save();
+            $participants = collect($datas['participant'])->map(function($item) use ($eventlog) {
+                $item['event_log_id'] = $eventlog->id;
+                return $item;
+            });
+            $addressees = collect($datas['addressee'])->map(function($item) use ($eventlog) {
+                $item['event_log_id'] = $eventlog->id;
+                return $item;
+            });
+            $eventlog->addressee()->create($addressees);
+            $eventlog->participant()->create($participants);
+        });
 
         return response()->json($eventlog, 201);
-    }
-
-    public function getRequestOnly(Request $request)
-    {
-        return $request->only(
-            'point_a',
-            'point_b',
-            'description',
-            'first_approver_sn',
-            'first_approver_name',
-            'final_approver_sn',
-            'final_approver_name'
-        );
     }
 
     /**

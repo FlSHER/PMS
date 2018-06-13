@@ -129,7 +129,7 @@ class EventLogRepository
 		$filters = $request->query('filters');
 
 		return $this->eventlog->formatFilter($filters)
-			->whereHas('addressees', function($query) use ($user) {
+			->whereHas('addressee', function($query) use ($user) {
 				$query->where('addressee_sn', $user->staff_sn);
 			})
 			->latest('id')
