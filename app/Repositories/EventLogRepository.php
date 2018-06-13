@@ -33,7 +33,8 @@ class EventLogRepository
 	 */
 	public function getPaginateList(Request $request)
 	{	
-		return $this->getFilteredPaginateList($request, $this->eventlog);
+		$filters = $request->query('filters');
+		return $this->eventlog->formatFilter($filters)->pagination();
 	}
 
 	/**
@@ -44,8 +45,9 @@ class EventLogRepository
 	 * @return mixed
 	 */
 	public function getList(Request $request)
-	{
-		return $this->getFilteredList($request, $this->eventlog);
+	{	
+		$filters = $request->query('filters');
+		return $this->eventlog->formatFilter($filters)->get();
 	}
 
 	/**
@@ -58,16 +60,14 @@ class EventLogRepository
 	public function getParticipantList(Request $request)
 	{
 		$user = $request->user();
-		$pagesize = $request->query('pagesize', 10);
+		$filters = $request->query('filters');
 
-		$items = $this->eventlog
+		return $this->eventlog->formatFilter($filters)
 			->whereHas('participant', function($query) use ($user) {
 				return $query->where('participant_sn', $user->staff_sn);
 			})
 			->latest('id')
-			->paginate($pagesize);
-
-		return $this->response($items);
+			->pagination();
 	}
 
 	/**
@@ -79,14 +79,12 @@ class EventLogRepository
 	public function getRecordedList(Request $request)
 	{
 		$user = $request->user();
-		$pagesize = $request->query('pagesize', 10);
+		$filters = $request->query('filters');
 
-		$items = $this->eventlog
+		return $this->eventlog->formatFilter($filters)
 			->where('recorder_sn', $user->staff_sn)
 			->latest('id')
-			->paginate($pagesize);
-
-		return $this->response($items);
+			->pagination();
 	}
 
 	/**
@@ -99,9 +97,9 @@ class EventLogRepository
 	public function getApprovedList(Request $request)
 	{
 		$user = $request->user();
-		$pagesize = $request->query('pagesize', 10);
+		$filters = $request->query('filters');
 
-		$items = $this->eventlog
+		return $this->eventlog->formatFilter($filters)
 			->where(function ($query) use ($user) {
 				$query->where('first_approver_sn', $user->staff_sn)
 					->whereNotNull('first_approved_at');
@@ -115,9 +113,7 @@ class EventLogRepository
 					->whereNotNull('rejected_at');
 			})
 			->latest('id')
-			->paginate($pagesize);
-
-		return $this->response($items);
+			->pagination();
 	}
 
 	/**
@@ -130,16 +126,14 @@ class EventLogRepository
 	public function getAddresseeList(Request $request)
 	{
 		$user = $request->user();
-		$limit = $request->query('pagesize', 10);
+		$filters = $request->query('filters');
 
-		$pagesize = $this->eventlog
+		return $this->eventlog->formatFilter($filters)
 			->whereHas('addressees', function($query) use ($user) {
 				$query->where('addressee_sn', $user->staff_sn);
 			})
 			->latest('id')
-			->paginate($pagesize);
-
-		return $this->response($items);
+			->pagination();
 	}
 
 	/**
@@ -152,9 +146,9 @@ class EventLogRepository
 	public function getProcessingList(Request $request)
 	{
 		$user = $request->user();
-		$pagesize = $request->query('pagesize', 10);
+		$filters = $request->query('filters');
 
-		$items = $this->eventlog
+		return $this->eventlog->formatFilter($filters)
 			->where(function ($query) use ($user) {
 				$query->where('first_approver_sn', $user->staff_sn)->byAudit(0);
 			})
@@ -162,20 +156,7 @@ class EventLogRepository
 				$query->where('final_approver_sn', $user->staff_sn)->byAudit(1);
 			})	
 			->latest('id')
-			->paginate($pagesize);
-
-		return $this->response($items);
-	}
-
-	protected function response($items)
-	{
-		return [
-			'data' => $items->items(),
-			'total' => $items->count(),
-			'page' => $items->currentPage(),
-			'pagesize' => $items->perPage(),
-			'totalpage' => $items->total(),
-		];
+			->pagination();
 	}
 
 	/**
