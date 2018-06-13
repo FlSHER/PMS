@@ -20,7 +20,7 @@ class OAUserProvider implements UserProvider
 
     protected function getBaseUri(): string
     {
-        return config('oa.host');
+        return config('sso.host');
     }
 
     public function retrieveById($identifier)
