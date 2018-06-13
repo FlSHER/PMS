@@ -17,6 +17,9 @@ class CreateEventLogParticipantTable extends Migration
             $table->unsignedInteger('event_log_id')->comment('事件日志ID');
             $table->unsignedMediumInteger('staff_sn')->comment('事件参与人编号');
             $table->char('staff_name', 10)->comment('事件参与人姓名');
+            $table->mediumInteger('point_a')->default(0)->comment('A分变化');
+            $table->mediumInteger('point_b')->default(0)->comment('B分变化');
+            $table->unsignedMediumInteger('count')->default(1)->comment('完成次数');
 
             $table->foreign('event_log_id')->references('id')->on('event_logs');
             $table->index('staff_sn');

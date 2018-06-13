@@ -19,9 +19,6 @@ class CreateEventLogTable extends Migration
             $table->unsignedSmallInteger('event_type_id')->comment('事件类型ID');
             $table->char('event_name', 50)->comment('事件名称');
             $table->char('description', 255)->default('')->comment('事件说明');
-            $table->mediumInteger('point_a')->default(0)->comment('A分变化');
-            $table->mediumInteger('point_b')->default(0)->comment('B分变化');
-            $table->unsignedMediumInteger('count')->default(1)->comment('完成次数');
             $table->unsignedMediumInteger('first_approver_sn')->comment('初审人编号');
             $table->char('first_approver_name', 10)->comment('初审人姓名');
             $table->char('first_approve_remark', 255)->default('')->comment('初审人备注');
