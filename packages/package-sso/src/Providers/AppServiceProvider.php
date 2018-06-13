@@ -25,17 +25,9 @@ class AppServiceProvider extends ServiceProvider
         // Register translations.
         $this->loadTranslationsFrom($this->app->make('path.package-sso.lang'), 'package-sso');
 
-        // Register view namespace.
-        $this->loadViewsFrom($this->app->make('path.package-sso.views'), 'package-sso');
-
-        // Publish public resource.
-        $this->publishes([
-            $this->app->make('path.package-sso.assets') => $this->app->publicPath().'/assets/package-sso',
-        ], 'package-sso-public');
-
         // Publish config.
         $this->publishes([
-            $this->app->make('path.package-sso.config').'/package-sso.php' => $this->app->configPath('package-sso.php'),
+            $this->app->make('path.package-sso.config') . '/sso.php' => $this->app->configPath('sso.php'),
         ], 'package-sso-config');
     }
 
@@ -48,12 +40,6 @@ class AppServiceProvider extends ServiceProvider
     {
         // Bind all of the package paths in the container.
         $this->bindPathsInContainer();
-
-        // Merge config.
-        $this->mergeConfigFrom(
-            $this->app->make('path.package-sso.config').'/package-sso.php',
-            'package-sso'
-        );
 
         // register cntainer aliases
         $this->registerCoreContainerAliases();
@@ -69,7 +55,7 @@ class AppServiceProvider extends ServiceProvider
 
     /**
      * register sso service.
-     * 
+     *
      * @return void
      */
     protected function registerSsoService()
@@ -91,16 +77,16 @@ class AppServiceProvider extends ServiceProvider
     protected function bindPathsInContainer()
     {
         foreach ([
-            'path.package-sso' => $root = dirname(dirname(__DIR__)),
-            'path.package-sso.assets' => $root.'/assets',
-            'path.package-sso.config' => $root.'/config',
-            'path.package-sso.database' => $database = $root.'/database',
-            'path.package-sso.resources' => $resources = $root.'/resources',
-            'path.package-sso.lang' => $resources.'/lang',
-            'path.package-sso.views' => $resources.'/views',
-            'path.package-sso.migrations' => $database.'/migrations',
-            'path.package-sso.seeds' => $database.'/seeds',
-        ] as $abstract => $instance) {
+                     'path.package-sso' => $root = dirname(dirname(__DIR__)),
+                     'path.package-sso.assets' => $root . '/assets',
+                     'path.package-sso.config' => $root . '/config',
+                     'path.package-sso.database' => $database = $root . '/database',
+                     'path.package-sso.resources' => $resources = $root . '/resources',
+                     'path.package-sso.lang' => $resources . '/lang',
+                     'path.package-sso.views' => $resources . '/views',
+                     'path.package-sso.migrations' => $database . '/migrations',
+                     'path.package-sso.seeds' => $database . '/seeds',
+                 ] as $abstract => $instance) {
             $this->app->instance($abstract, $instance);
         }
     }
@@ -131,13 +117,13 @@ class AppServiceProvider extends ServiceProvider
     protected function registerCoreContainerAliases()
     {
         foreach ([
-            'package-sso:handler' => [
-                \Fisher\SSO\Handlers\PackageHandler::class,
-            ],
-            'package-sso:dev-handler' => [
-                \Fisher\SSO\Handlers\DevPackageHandler::class,
-            ],
-        ] as $abstract => $aliases) {
+                     'package-sso:handler' => [
+                         \Fisher\SSO\Handlers\PackageHandler::class,
+                     ],
+                     'package-sso:dev-handler' => [
+                         \Fisher\SSO\Handlers\DevPackageHandler::class,
+                     ],
+                 ] as $abstract => $aliases) {
             foreach ($aliases as $alias) {
                 $this->app->alias($abstract, $alias);
             }

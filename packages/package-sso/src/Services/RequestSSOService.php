@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace Fisher\SSO\Services;
 
@@ -21,7 +21,7 @@ class RequestSSOService
 
 	protected function getBaseUri(): string
     {
-        return config('oa.host');
+        return config('sso.host');
     }
 
 	public function get($endpoint, $query = [], $header = [])
