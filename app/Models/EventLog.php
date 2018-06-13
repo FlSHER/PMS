@@ -36,8 +36,8 @@ class EventLog extends Model
      * @author 28youth
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function copy()
+    public function addressees()
     {
-        return $this->hasMany(EventCarbonCopyLog::class, 'event_log_id', 'id');
+        return $this->hasMany(EventLogAddressee::class, 'event_log_id', 'id');
     }
 }

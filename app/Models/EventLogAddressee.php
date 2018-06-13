@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class EventCarbonCopyLog extends Model
+class EventLogAddressee extends Model
 {
 	
     /**

@@ -46,8 +46,8 @@ class EventLogController extends Controller
                 $items = $this->eventLogRepository->getApprovedList($request);
                 break;
 
-            case 'carbon_copy':
-                $items = $this->eventLogRepository->getCopyList($request);
+            case 'addressee':
+                $items = $this->eventLogRepository->getAddresseeList($request);
                 break;
                   
             default:
@@ -75,11 +75,13 @@ class EventLogController extends Controller
         foreach ($datas as $key => $data) {
             $eventlog->{$key} = $data;
         }
+        $eventlog->create($request->all());
 
         $eventlog->event_type_id = $event->type_id;
         $eventlog->event_name = $event->name;
         $eventlog->recorder_sn = $user->staff_sn;
         $eventlog->recorder_name = $user->realname;
+        $eventlog->executed_at = $request->executed_at;
         $event->logs()->save($eventlog);
 
         return response()->json($eventlog, 201);
