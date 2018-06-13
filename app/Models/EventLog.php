@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class EventLog extends Model
 {
+    use Concerns\FormatFilter;
 
     /**
      * 复用状态筛选.
