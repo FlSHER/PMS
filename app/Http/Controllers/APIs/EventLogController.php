@@ -98,6 +98,21 @@ class EventLogController extends Controller
     }
 
     /**
+     * 获取事件详情.
+     * 
+     * @author 28youth
+     * @param  \\Illuminate\Http\Request $request
+     * @param  \App\Models\EventLog  $eventlog
+     * @return mixed
+     */
+    public function show(Request $request, EventLogModel $eventlog)
+    {
+        $eventlog->load('participant', 'addressee');
+
+        return response()->json($eventlog);
+    }
+
+    /**
      * 初审事件.
      * 
      * @author 28youth

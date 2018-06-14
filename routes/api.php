@@ -33,6 +33,10 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
 		// @post /api/event-logs/:event/event
 		$api->post('{event}/event', APIs\EventLogController::class.'@store');
 
+		// 奖扣事件详情
+		// @get /api/event-logs/:eventlog
+		$api->get('{eventlog}', APIs\EventLogController::class.'@show');
+
 		// 初审奖扣事件
 		// @put /api/event-logs/:eventlog/first-approve
 		$api->put('{eventlog}/first-approve', APIs\EventLogController::class.'@firstApprove');
