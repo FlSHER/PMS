@@ -29,4 +29,15 @@ class PointLog extends Model
         'final_approver_sn',
         'final_approver_name'
     ];
+
+    /**
+     * has credit source.
+     * 
+     * @author 28youth
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function source()
+    {
+        return $this->hasOne(PointLogSource::class, 'id', 'source_id');
+    }
 }
