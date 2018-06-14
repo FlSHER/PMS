@@ -101,12 +101,13 @@ class EventLogController extends Controller
      * 获取事件详情.
      * 
      * @author 28youth
-     * @param  \\Illuminate\Http\Request $request
+     * @param  \Illuminate\Http\Request $request
      * @param  \App\Models\EventLog  $eventlog
      * @return mixed
      */
     public function show(Request $request, EventLogModel $eventlog)
     {
+        $this->pointLoggerService->logEventPoint($eventlog);
         $eventlog->load('participant', 'addressee');
 
         return response()->json($eventlog);
@@ -160,12 +161,10 @@ class EventLogController extends Controller
         $eventlog->final_approved_at = Carbon::now();
         $eventlog->status_id = 2;
 
-        $participant = $this->eventLogRepository->getParticipant($eventlog);
-
         $eventlog->getConnection()->transaction(function () use ($eventlog, $participant) {
             $eventlog->save();
             // 事件参与者记录积分
-            $this->pointLoggerService->logEventPoint($participant, $eventlog);
+            $this->pointLoggerService->logEventPoint($eventlog);
         });
         
         return response()->json($eventlog, 201);
