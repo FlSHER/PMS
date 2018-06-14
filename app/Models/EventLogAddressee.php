@@ -8,6 +8,17 @@ class EventLogAddressee extends Model
 {
 	
     /**
+     * 批量赋值的属性
+     * 
+     * @var array
+     */
+    protected $fillable = [
+        'event_log_id',
+        'staff_sn',
+        'staff_name',
+    ];
+
+    /**
      * Indicates if the IDs are auto-incrementing.
      *
      * @var bool
