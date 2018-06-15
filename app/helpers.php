@@ -5,16 +5,16 @@ namespace App;
 use Carbon\Carbon;
 
 /**
- * 获取本月开始到结束时间.
+ * 获取某月开始结束.
  * 
  * @author 28youth
  * @return array
  */
-function curMonthBetween()
+function monthBetween($datetime = ''): array
 {
-	$time = Carbon::now();
-    $stime = Carbon::create(null, null, 01);
-    $etime = Carbon::create(null, null, $time->daysInMonth);
+	$time = $datetime ? Carbon::parse($datetime) : Carbon::now();
+    $stime = Carbon::create($time->year, $time->month, 01);
+	$etime = Carbon::create($time->year, $time->month, $time->daysInMonth);
 
     return [$stime, $etime];
 }
