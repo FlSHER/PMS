@@ -18,3 +18,24 @@ function monthBetween($datetime = ''): array
 
     return [$stime, $etime];
 }
+
+/**
+ * 获取阶段时间(默认半年内).
+ * 
+ * @author 28youth
+ * @param  string $start
+ * @param  string $end
+ * @return array
+ */
+function stageBetween($stime = '', $etime = ''): array
+{
+	$toStime = Carbon::parse($stime);
+	$toEtime = Carbon::parse($etime);
+
+	if (!$stime && !$etime) {
+		$toStime = Carbon::now()->subMonth(6);
+		$toEtime = Carbon::now();
+	}
+
+	return [$toStime, $toEtime];
+}

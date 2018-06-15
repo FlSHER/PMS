@@ -20,7 +20,7 @@ class AuthorityController extends Controller
 		$user = $request->user();
 
 		$items = $group->query()
-			->whereHas('hasStaff', function ($query) use ($user) {
+			->whereHas('staff', function ($query) use ($user) {
 			    $query->where('staff_sn', $user->staff_sn);
 			})
 			->get();
