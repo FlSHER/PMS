@@ -19,9 +19,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        // Register a database migration path.
-        $this->loadMigrationsFrom($this->app->make('path.package-sso.migrations'));
-
         // Register translations.
         $this->loadTranslationsFrom($this->app->make('path.package-sso.lang'), 'package-sso');
 
@@ -78,14 +75,9 @@ class AppServiceProvider extends ServiceProvider
     {
         foreach ([
                      'path.package-sso' => $root = dirname(dirname(__DIR__)),
-                     'path.package-sso.assets' => $root . '/assets',
                      'path.package-sso.config' => $root . '/config',
-                     'path.package-sso.database' => $database = $root . '/database',
                      'path.package-sso.resources' => $resources = $root . '/resources',
                      'path.package-sso.lang' => $resources . '/lang',
-                     'path.package-sso.views' => $resources . '/views',
-                     'path.package-sso.migrations' => $database . '/migrations',
-                     'path.package-sso.seeds' => $database . '/seeds',
                  ] as $abstract => $instance) {
             $this->app->instance($abstract, $instance);
         }

@@ -3,16 +3,20 @@
 namespace Fisher\SSO\Traits;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\ClientException;
+use Illuminate\Validation\ValidationException;
 use Psr\Http\Message\ResponseInterface;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 trait UserHelper
 {
 
     protected $headers;
+    protected $withRealException = false;
 
     /**
      * Set headers.
-     * 
+     *
      * @param  array $headers
      */
     public function setHeader($headers = [])
@@ -22,12 +26,12 @@ trait UserHelper
         return $this;
     }
 
-	/**
+    /**
      * Make a get request.
      *
      * @param string $endpoint
-     * @param array  $query
-     * @param array  $headers
+     * @param array $query
+     * @param array $headers
      *
      * @return array
      */
@@ -43,8 +47,8 @@ trait UserHelper
      * Make a post request.
      *
      * @param string $endpoint
-     * @param array  $params
-     * @param array  $headers
+     * @param array $params
+     * @param array $headers
      *
      * @return array
      */
@@ -61,13 +65,20 @@ trait UserHelper
      *
      * @param string $method
      * @param string $endpoint
-     * @param array  $options  http://docs.guzzlephp.org/en/latest/request-options.html
+     * @param array $options http://docs.guzzlephp.org/en/latest/request-options.html
      *
      * @return array
      */
     protected function request($method, $endpoint, $options = [])
     {
-        return $this->unwrapResponse($this->getHttpClient($this->getBaseOptions())->{$method}($endpoint, $options));
+        try {
+            return $this->unwrapResponse($this->getHttpClient($this->getBaseOptions())->{$method}($endpoint, $options));
+        } catch (ClientException $exception) {
+            if ($this->withRealException) {
+                throw $this->getApiException($exception);
+            }
+            throw $exception;
+        }
     }
 
     /**
@@ -117,5 +128,25 @@ trait UserHelper
         }
 
         return $contents;
+    }
+
+    public function withRealException()
+    {
+        $this->withRealException = true;
+        return $this;
+    }
+
+    public function getApiException(ClientException $exception): \Exception
+    {
+        $statusCode = $exception->getCode();
+        $body = json_decode($exception->getResponse()->getBody()->getContents(), true);
+        switch ($statusCode) {
+            case 422:
+                return ValidationException::withMessages($body['errors']);
+                break;
+            default:
+                return new HttpException($statusCode, $body['message']);
+                break;
+        }
     }
 }
