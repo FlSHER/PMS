@@ -47,7 +47,8 @@ class PointRankController extends Controller
         if (! in_array($type, ['month', 'stage', 'total'])) {
             $type = 'month';
         }
-        app()->call([$this, camel_case($type.'_rank')]);
+
+        return app()->call([$this, camel_case($type.'_rank')]);
     }
 
     /**
@@ -210,11 +211,10 @@ class PointRankController extends Controller
     protected function currentMonthCredit(Request $request, PointLogModel $pointlog)
     {
         $user = $request->user();
-        $between = monthBetween();
 
         $totalGroup = $pointlog->where('staff_sn', $user->staff_sn)
             ->select('source_id', \DB::raw('SUM(point_a) as total_a, SUM(point_b) as total_b'))
-            ->whereBetween('created_at', $between)
+            ->whereBetween('created_at', monthBetween())
             ->groupBy('source_id')
             ->get();
 
