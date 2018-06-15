@@ -25,7 +25,6 @@ class PointRankController extends Controller
     {
         $user = $request->user();
         $counts = $this->currentMonthCredit($request, $pointlog);
-        $totalPoint = StatisticModel::where('staff_sn', $user->staff_sn)->first(); 
 
         return response()->json([
             'staff_sn' => $user->staff_sn,
@@ -35,14 +34,14 @@ class PointRankController extends Controller
     }
 
     /**
-     * 获取部门排行信息.
+     * 获取员工排行榜信息.
      * 
      * @author 28youth
      * @param  \Illuminate\Http\Request $request
      * @param  string stage month:月度  stage:阶段 total:累计
      * @return mixed
      */
-    public function departments(Request $request)
+    public function staff(Request $request)
     {
         $type = $request->query('stage', 'month');
         if (! in_array($type, ['month', 'stage', 'total'])) {

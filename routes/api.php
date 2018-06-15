@@ -57,9 +57,9 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
     // route 积分制
     $api->group(['prefix' => 'points'], function (RouteContract $api) {
 
-        $api->get('ranking/staff', APIs\PointRankController::class.'@show');
+        $api->get('ranking/show', APIs\PointRankController::class.'@show');
 
-        $api->get('ranking/departments', APIs\PointRankController::class.'@departments');
+        $api->get('ranking/staff', APIs\PointRankController::class.'@staff');
     });
 
     // route 员工相关
