@@ -57,8 +57,12 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
     // route 积分制
     $api->group(['prefix' => 'points'], function (RouteContract $api) {
 
+        // 积分排行详情
+        // get /api/points/ranking/show
         $api->get('ranking/show', APIs\PointRankController::class.'@show');
 
+        // 员工分组排行榜
+        // get /api/points/ranking/staff
         $api->get('ranking/staff', APIs\PointRankController::class.'@staff');
     });
 

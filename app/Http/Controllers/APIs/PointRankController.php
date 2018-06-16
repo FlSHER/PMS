@@ -67,6 +67,7 @@ class PointRankController extends Controller
         // 本月
         if (Carbon::parse($datetime)->isCurrentMonth()) {
             $items = StatisticModel::query()
+                ->select('staff_sn', 'staff_name', 'point_b_total')
                 ->where(function ($query) use ($groups) {
                     $query->whereIn('staff_sn', $groups['staff_ids'])
                         ->orWhereIn('department_id', $groups['department_ids']);
@@ -77,6 +78,7 @@ class PointRankController extends Controller
         } else {
             // 历史月份
             $items = StatisticLogModel::query()
+                ->select('staff_sn', 'staff_name', 'point_b_total')
                 ->where(function ($query) use ($groups) {
                     $query->whereIn('staff_sn', $groups['staff_ids'])
                         ->orWhereIn('department_id', $groups['department_ids']);
@@ -118,14 +120,14 @@ class PointRankController extends Controller
         $groups = $this->getStaffGroup($request->query('group_id', 1));
 
         $items = StatisticLogModel::query()
-            ->select(\DB::raw('staff_sn, staff_name, SUM(point_b_monthly) as stage_b_total'))
+            ->select(\DB::raw('staff_sn, staff_name, SUM(point_b_monthly) as point_b_total'))
             ->whereBetween('date', stageBetween($stime, $etime))
             ->where(function ($query) use ($groups) {
                 $query->whereIn('staff_sn', $groups['staff_ids'])
                     ->orWhereIn('department_id', $groups['department_ids']);
             })
             ->groupBy(['staff_sn', 'staff_name'])
-            ->orderBy('stage_b_total', 'desc')
+            ->orderBy('point_b_total', 'desc')
             ->get();
 
         $items->map(function ($item, $key) use (&$user) {
@@ -158,13 +160,13 @@ class PointRankController extends Controller
         $groups = $this->getStaffGroup($request->query('group_id', 1));
 
         $items = StatisticLogModel::query()
-            ->select(\DB::raw('staff_sn, staff_name, SUM(point_b_monthly) as stage_b_total'))
+            ->select(\DB::raw('staff_sn, staff_name, SUM(point_b_monthly) as point_b_total'))
             ->where(function ($query) use ($groups) {
                 $query->whereIn('staff_sn', $groups['staff_ids'])
                     ->orWhereIn('department_id', $groups['department_ids']);
             })
             ->groupBy(['staff_sn', 'staff_name'])
-            ->orderBy('stage_b_total', 'desc')
+            ->orderBy('point_b_total', 'desc')
             ->get();
 
         $items->map(function ($item, $key) use (&$user) {
