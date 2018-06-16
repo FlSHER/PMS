@@ -64,12 +64,21 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
         // 员工分组排行榜
         // get /api/points/ranking/staff
         $api->get('ranking/staff', APIs\PointRankController::class.'@staff');
+
+        // 员工积分明细
+        // get /api/points/statistic/staff
+        $api->get('statistic/staff', APIs\StaffPointController::class.'@show');
     });
 
     // route 员工相关
     $api->group(['prefix' => 'staff'], function (RouteContract $api) {
 
+        // 我的积分详情
+        // get /api/staff/points
+        $api->get('points', APIs\StaffPointController::class.'@index');
+
         // 获取员工权限分组
+        // get /api/staff/authority-groups
         $api->get('authority-groups', APIs\AuthorityController::class.'@index');
     });
 
