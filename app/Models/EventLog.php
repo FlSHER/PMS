@@ -7,11 +7,11 @@ use Illuminate\Database\Eloquent\Builder;
 
 class EventLog extends Model
 {
-    use Concerns\FormatFilter;
+    use Traits\ListScopes;
 
     /**
      * 批量赋值的属性
-     * 
+     *
      * @var array
      */
     protected $fillable = [
@@ -26,7 +26,7 @@ class EventLog extends Model
 
     /**
      * 复用状态筛选.
-     * 
+     *
      * @author 28youth
      * @return \Illuminate\Database\Eloquent\Builder
      */
@@ -37,7 +37,7 @@ class EventLog extends Model
 
     /**
      * 事件参与者.
-     * 
+     *
      * @author 28youth
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
@@ -48,7 +48,7 @@ class EventLog extends Model
 
     /**
      * 事件抄送者.
-     * 
+     *
      * @author 28youth
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */

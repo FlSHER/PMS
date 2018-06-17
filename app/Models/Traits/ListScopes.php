@@ -1,20 +1,20 @@
-<?php 
+<?php
 
-namespace App\Models\Concerns;
+namespace App\Models\Traits;
 
 use Illuminate\Database\Eloquent\Builder;
 
-Trait FormatFilter
+Trait ListScopes
 {
     /**
-     * 格式化 filter 参数.
+     * 格式化 filter 参数，转换成sql
      *
      * @author 28youth
      * @return  \Illuminate\Database\Eloquent\Builder
      */
-    public function scopeFormatFilter(Builder $query, $filters): Builder
+    public function scopeFilterByQueryString(Builder $query): Builder
     {
-        $filters = array_filter(explode(';', $filters));
+        $filters = array_filter(explode(';', request('filters', '')));
         return $query->when($filters, function ($query) use ($filters) {
             foreach ($filters as $key => $value) {
                 preg_match('/(?<mark>=|~|>=|>|<=|<)/', $value, $match);
@@ -43,14 +43,14 @@ Trait FormatFilter
     }
 
     /**
-     * 获取分页数据.
-     * 
+     * 返回带分页信息的数据
+     *
      * @author 28youth
      * @param  \Illuminate\Database\Eloquent\Builder
      * @param  integer $pagesieze
      * @return mixed
      */
-    public function scopePagination(Builder $query, int $pagesieze = 10)
+    public function scopeWithPagination(Builder $query, int $pagesieze = 10): array
     {
         $items = $query->paginate($pagesieze);
 
