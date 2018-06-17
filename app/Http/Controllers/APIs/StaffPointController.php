@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App\Http\Controllers\APIs;
 
@@ -13,7 +13,7 @@ class StaffPointController extends Controller
 {
     /**
      * 积分分类统计列表.
-     * 
+     *
      * @author 28youth
      * @param  \Illuminate\Http\Request $request
      * @return mixed
@@ -36,7 +36,7 @@ class StaffPointController extends Controller
                 ->first();
 
             $items['source_b_total'] = collect($items['source_b_monthly'])
-                ->reduce(function($carry, $item){
+                ->reduce(function ($carry, $item) {
                     return $carry + $item['total_b'];
                 });
         }
@@ -49,7 +49,7 @@ class StaffPointController extends Controller
 
     /**
      * 获取积分明细.
-     * 
+     *
      * @author 28youth
      * @param  \Illuminate\Http\Request $request
      * @return mixed
@@ -66,19 +66,19 @@ class StaffPointController extends Controller
             'all' => function ($query) {
                 $query->orderBy('created_at', 'desc');
             },
-            'static' => function ($query){
+            'static' => function ($query) {
                 $query->where('source_id', 1)
                     ->orderBy('created_at', 'desc');
             },
-            'event' => function ($query){
+            'event' => function ($query) {
                 $query->where('source_id', 2)
                     ->orderBy('created_at', 'desc');
             },
-            'task' => function ($query){
+            'task' => function ($query) {
                 $query->where('source_id', 3)
                     ->orderBy('created_at', 'desc');
             },
-            'system' => function ($query){
+            'system' => function ($query) {
                 $query->where('source_id', 4)
                     ->orderBy('created_at', 'desc');
             }
@@ -86,16 +86,16 @@ class StaffPointController extends Controller
         $type = in_array($type = $request->query('type', 'all'), array_keys($map)) ? $type : 'all';
 
         call_user_func($map[$type], $query = $pointLogModel
-            ->when(($point_type && $section), function($query) use ($point_type, $section) {
+            ->when(($point_type && $section), function ($query) use ($point_type, $section) {
                 $query->whereBetween($point_type, [$section]);
             })
-            ->when($datetime, function($query) use ($datetime) {
+            ->when($datetime, function ($query) use ($datetime) {
                 $query->whereBetween('created_at', [$datetime]);
             })
-            ->when($brand_id, function($query) use ($brand_id) {
+            ->when($brand_id, function ($query) use ($brand_id) {
                 $query->where('brand_id', $brand_id);
             })
-            ->formatSort($request->sort));
+            ->sortByQueryString());
         $items = $query->pagination();
 
         return response()->json($items);
@@ -103,7 +103,7 @@ class StaffPointController extends Controller
 
     /**
      * 统计员工分类积分数.
-     * 
+     *
      * @author 28youth
      * @param  $user
      * @return array
@@ -132,12 +132,13 @@ class StaffPointController extends Controller
             }
             return $item;
         });
-        
+
         return $total;
     }
+
     /**
      * 统计员工当月积分情况.
-     * 
+     *
      * @author 28youth
      * @param  Request $request
      * @return mixed
@@ -150,7 +151,7 @@ class StaffPointController extends Controller
             ->groupBy('source_id')
             ->get();
 
-        $totalB = $curMonth->reduce(function($carry, $item){
+        $totalB = $curMonth->reduce(function ($carry, $item) {
             return $carry + $item['total_b'];
         });
 

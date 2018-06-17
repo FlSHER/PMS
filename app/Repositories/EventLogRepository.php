@@ -34,7 +34,7 @@ class EventLogRepository
     public function getPaginateList(Request $request)
     {
         $filters = $request->query('filters');
-        return $this->eventlog->filterByQueryString($filters)->withPagination();
+        return $this->eventlog->filterByQueryString()->withPagination();
     }
 
     /**
@@ -47,7 +47,7 @@ class EventLogRepository
     public function getList(Request $request)
     {
         $filters = $request->query('filters');
-        return $this->eventlog->filterByQueryString($filters)->get();
+        return $this->eventlog->filterByQueryString()->get();
     }
 
     /**
@@ -62,7 +62,7 @@ class EventLogRepository
         $user = $request->user();
         $filters = $request->query('filters');
 
-        return $this->eventlog->filterByQueryString($filters)
+        return $this->eventlog->filterByQueryString()
             ->whereHas('participant', function ($query) use ($user) {
                 return $query->where('participant_sn', $user->staff_sn);
             })
@@ -81,7 +81,7 @@ class EventLogRepository
         $user = $request->user();
         $filters = $request->query('filters');
 
-        return $this->eventlog->filterByQueryString($filters)
+        return $this->eventlog->filterByQueryString()
             ->where('recorder_sn', $user->staff_sn)
             ->latest('id')
             ->withPagination();
@@ -99,7 +99,7 @@ class EventLogRepository
         $user = $request->user();
         $filters = $request->query('filters');
 
-        return $this->eventlog->filterByQueryString($filters)
+        return $this->eventlog->filterByQueryString()
             ->where(function ($query) use ($user) {
                 $query->where('first_approver_sn', $user->staff_sn)
                     ->whereNotNull('first_approved_at');
@@ -128,7 +128,7 @@ class EventLogRepository
         $user = $request->user();
         $filters = $request->query('filters');
 
-        return $this->eventlog->filterByQueryString($filters)
+        return $this->eventlog->filterByQueryString()
             ->whereHas('addressee', function ($query) use ($user) {
                 $query->where('addressee_sn', $user->staff_sn);
             })
@@ -148,7 +148,7 @@ class EventLogRepository
         $user = $request->user();
         $filters = $request->query('filters');
 
-        return $this->eventlog->filterByQueryString($filters)
+        return $this->eventlog->filterByQueryString()
             ->where(function ($query) use ($user) {
                 $query->where('first_approver_sn', $user->staff_sn)->byAudit(0);
             })

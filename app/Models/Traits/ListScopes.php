@@ -48,8 +48,9 @@ Trait ListScopes
      * @author 28youth
      * @param  @return  \Illuminate\Database\Eloquent\Builder
      */
-    public function scopeFormatSort(Builder $query, $sort): Builder
+    public function scopeSortByQueryString(Builder $query): Builder
     {
+        $sort = request()->get('sort', '');
         $sortby = array_filter(explode('-', $sort));
         return $query->when($sortby, function ($query) use ($sortby) {
             $query->orderBy($sortby[0], $sortby[1]);
