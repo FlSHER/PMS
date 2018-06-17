@@ -60,10 +60,10 @@ Trait ListScopes
 
             return [
                 'data' => $items->items(),
-                'total' => $items->count(),
+                'total' => $items->total(),
                 'page' => $items->currentPage(),
                 'pagesize' => $items->perPage(),
-                'totalpage' => $items->total(),
+                'totalpage' => ceil($items->total()/$items->perPage()),
             ];
         } else {
             return $query->get();
