@@ -50,20 +50,24 @@ Trait ListScopes
      *
      * @author 28youth
      * @param  \Illuminate\Database\Eloquent\Builder
-     * @param  integer $pagesieze
+     * @param  integer $pagesize
      * @return mixed
      */
-    public function scopeWithPagination(Builder $query, int $pagesieze = 10): array
+    public function scopeWithPagination(Builder $query, int $pagesize = 10): array
     {
-        $items = $query->paginate($pagesieze);
+        if (request()->has('page') && is_numeric(request('page'))) {
+            $items = $query->paginate($pagesize);
 
-        return [
-            'data' => $items->items(),
-            'total' => $items->count(),
-            'page' => $items->currentPage(),
-            'pagesize' => $items->perPage(),
-            'totalpage' => $items->total(),
-        ];
+            return [
+                'data' => $items->items(),
+                'total' => $items->count(),
+                'page' => $items->currentPage(),
+                'pagesize' => $items->perPage(),
+                'totalpage' => $items->total(),
+            ];
+        } else {
+            return $query->get();
+        }
     }
 
     protected function filterBuilder(Builder $query, $filter)
