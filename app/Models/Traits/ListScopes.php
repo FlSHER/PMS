@@ -16,27 +16,15 @@ Trait ListScopes
     {
         $filters = array_filter(explode(';', request('filters', '')));
         return $query->when($filters, function ($query) use ($filters) {
-            foreach ($filters as $key => $value) {
-                preg_match('/(?<mark>=|~|>=|>|<=|<)/', $value, $match);
-                $filter = explode($match['mark'], $value);
-                switch ($match['mark']) {
-                    case '=':
-                        if (strpos($filter[1], '[', 0) !== false) {
-                            $toArr = explode(',', trim($filter[1], '[]'));
-                            $query->whereIn($filter[0], $toArr);
-
-                            continue;
-                        }
-                        $query->where($filter[0], $filter[1]);
-                        break;
-
-                    case '~':
-                        $query->where($filter[0], 'like', "%{$filter[1]}%");
-                        break;
-
-                    default:
-                        $query->where($filter[0], $match['mark'], $filter[1]);
-                        break;
+            foreach ($filters as $filter) {
+                preg_match('/((?<relation>.*)\.|^)(?<key>.+?)(?<mark>=|~|>=|>|<=|<)(?<value>.+?)$/', $filter, $match);
+                $relation = trim($match['relation']);
+                if ($relation) {
+                    $query->whereHas($relation, function ($query) use ($match) {
+                        $this->filterBuilder($query, $match);
+                    });
+                } else {
+                    $this->filterBuilder($query, $match);
                 }
             }
         });
@@ -76,5 +64,30 @@ Trait ListScopes
             'pagesize' => $items->perPage(),
             'totalpage' => $items->total(),
         ];
+    }
+
+    protected function filterBuilder(Builder $query, $filter)
+    {
+        $mark = $filter['mark'];
+        $key = trim($filter['key']);
+        $value = trim($filter['value']);
+        switch ($mark) {
+            case '=':
+                if (strpos($value, '[') !== false) {
+                    $toArr = explode(',', trim($value, '[]'));
+                    $query->whereIn($key, $toArr);
+                    continue;
+                }
+                $query->where($key, $value);
+                break;
+
+            case '~':
+                $query->where($key, 'like', "%{$value}%");
+                break;
+
+            default:
+                $query->where($key, $mark, $value);
+                break;
+        }
     }
 }
