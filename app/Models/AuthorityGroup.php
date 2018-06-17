@@ -19,7 +19,7 @@ class AuthorityGroup extends Model
      * @author 28youth
      * @return \Illuminate\Database\Eloquent\Relations\hasOne
      */
-    public function hasDepartment()
+    public function department()
     {
     	return $this->hasOne(AuthorityGroupHasDepartment::class, 'authority_group_id', 'id');
     }
@@ -30,7 +30,7 @@ class AuthorityGroup extends Model
      * @author 28youth
      * @return \Illuminate\Database\Eloquent\Relations\hasOne
      */
-    public function hasStaff()
+    public function staff()
     {
     	return $this->hasOne(AuthorityGroupHasStaff::class, 'authority_group_id', 'id');
     }
