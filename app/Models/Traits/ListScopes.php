@@ -53,7 +53,7 @@ Trait ListScopes
      * @param  integer $pagesize
      * @return mixed
      */
-    public function scopeWithPagination(Builder $query, int $pagesize = 10): array
+    public function scopeWithPagination(Builder $query, int $pagesize = 10)
     {
         if (request()->has('page') && is_numeric(request('page'))) {
             $items = $query->paginate($pagesize);
