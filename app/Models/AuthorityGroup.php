@@ -11,8 +11,13 @@ class AuthorityGroup extends Model
      *
      * @var bool
      */
-    public $timestamps = false;
+    public $timestamps = true;
+    protected $table='authority_groups';
 
+
+    protected $fillable = [
+        'name', 'created_at', 'updated_at',
+    ];
     /**
      * has department.
      * 

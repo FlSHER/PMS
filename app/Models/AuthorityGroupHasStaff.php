@@ -15,4 +15,9 @@ class AuthorityGroupHasStaff extends Model
      * @var bool
      */
     public $timestamps = false;
+    protected $fillable = [
+        'authority_group_id', 'staff_sn', 'staff_name',
+    ];
+
+    protected $primaryKey  = 'authority_group_id';
 }
