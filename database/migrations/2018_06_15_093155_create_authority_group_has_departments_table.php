@@ -17,7 +17,7 @@ class CreateAuthorityGroupHasDepartmentsTable extends Migration
             $table->unsignedInteger('authority_group_id');
             $table->unsignedSmallInteger('department_id')->comment('部门id');
             $table->primary(['authority_group_id', 'department_id'], 'authority_group_id_department_id');
-
+            $table->char('department_full_name',100)->comment('部门名字');
             $table->foreign('authority_group_id')->references('id')->on('authority_groups');
         });
     }
