@@ -11,9 +11,13 @@ class AuthorityGroup extends Model
      *
      * @var bool
      */
+    public $timestamps = true;
     protected $table='authority_groups';
 
-    protected $fillable = ['name'];
+
+    protected $fillable = [
+        'name', 'created_at', 'updated_at',
+    ];
     /**
      * has department.
      * 
@@ -35,14 +39,5 @@ class AuthorityGroup extends Model
     {
     	return $this->hasOne(AuthorityGroupHasStaff::class, 'authority_group_id', 'id');
     }
-
-    public function departmentMany()
-    {
-        return $this->hasMany(AuthorityGroupHasDepartment::class,'authority_group_id','id');
-    }
-
-    public function staffMany()
-    {
-        return $this->hasMany(AuthorityGroupHasStaff::class,'authority_group_id','id');
-    }
+    
 }

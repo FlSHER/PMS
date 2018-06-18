@@ -7,7 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Services\PointLogger;
 use App\Repositories\EventLogRepository;
-use App\Models\Event as EventsModel;
+use App\Models\Events as EventsModel;
 use App\Models\EventLog as EventLogModel;
 use App\Http\Requests\API\StoreEventLogRequest;
 
@@ -65,7 +65,7 @@ class EventLogController extends Controller
      * @author 28youth
      * @param  \App\Http\Requests\API\StoreEventLogRequest $request
      * @param  \App\Models\EventLog  $eventlog
-     * @param  \App\Models\Event  $event
+     * @param  \App\Models\Events  $event
      * @return mixed
      */
     public function store(StoreEventLogRequest $request, EventLogModel $eventlog)

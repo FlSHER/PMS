@@ -19,4 +19,5 @@ class AuthorityGroupHasStaff extends Model
         'authority_group_id', 'staff_sn', 'staff_name',
     ];
 
+    protected $primaryKey  = 'authority_group_id';
 }

@@ -12,7 +12,7 @@ class AuthorityGroupHasDepartment extends Model
      * @var bool
      */
     public $timestamps = false;
-
+    protected $primaryKey  = 'authority_group_id';
     protected $fillable = [
         'authority_group_id', 'department_id', 'department_full_name',
     ];
