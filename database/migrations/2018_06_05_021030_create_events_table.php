@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateEventTable extends Migration
+class CreateEventsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -24,7 +24,7 @@ class CreateEventTable extends Migration
             $table->foreign('parent_id')->references('id')->on('event_types');
         });
 
-        Schema::create('event', function (Blueprint $table) {
+        Schema::create('events', function (Blueprint $table) {
             $table->increments('id');
             $table->char('name', 50)->comment('事件名称');
             $table->unsignedSmallInteger('type_id')->comment('事件分类ID');
@@ -58,7 +58,7 @@ class CreateEventTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('event');
+        Schema::dropIfExists('events');
         Schema::dropIfExists('event_types');
     }
 }
