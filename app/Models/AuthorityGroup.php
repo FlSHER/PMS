@@ -1,11 +1,12 @@
 <?php
 
 namespace App\Models;
-
+use App\Models\Traits\ListScopes;
 use Illuminate\Database\Eloquent\Model;
 
 class AuthorityGroup extends Model
 {
+    use ListScopes;
     /**
      * Indicates if the model should be timestamped.
      *
@@ -18,30 +19,20 @@ class AuthorityGroup extends Model
      * has department.
      * 
      * @author 28youth
-     * @return \Illuminate\Database\Eloquent\Relations\hasOne
+     * @return \Illuminate\Database\Eloquent\Relations\hasmany
      */
-    public function department()
-    {
-    	return $this->hasOne(AuthorityGroupHasDepartment::class, 'authority_group_id', 'id');
-    }
 
-    /**
-     * has staff.
-     * 
-     * @author 28youth
-     * @return \Illuminate\Database\Eloquent\Relations\hasOne
-     */
-    public function staff()
-    {
-    	return $this->hasOne(AuthorityGroupHasStaff::class, 'authority_group_id', 'id');
-    }
-
-    public function departmentMany()
+    public function departments()
     {
         return $this->hasMany(AuthorityGroupHasDepartment::class,'authority_group_id','id');
     }
 
-    public function staffMany()
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+
+
+    public function staff()
     {
         return $this->hasMany(AuthorityGroupHasStaff::class,'authority_group_id','id');
     }
