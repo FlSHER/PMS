@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class PointLog extends Model
 {
-    use Concerns\FormatFilter;
+    use Traits\ListScopes;
     
     /**
      * 批量赋值的属性

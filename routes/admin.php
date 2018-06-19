@@ -40,4 +40,13 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $admin) {
     $admin->post('auth/groups',Admin\AuthorityController::class.'@storeGroup');//添加权限分组 ok
     $admin->put('auth/groups/{id}',Admin\AuthorityController::class.'@editGroup');//编辑权限分组
     $admin->delete('auth/groups/{id}',Admin\AuthorityController::class.'@deleteGroup');//删除分组
+
+    // 获取基础分配置
+    // @get /admin/base-points/setting
+    $admin->get('base-points/setting', Admin\BasePointController::class.'@index');
+    
+    // 存储基础分配置
+    // @patch /admin/base-points/setting
+    $admin->patch('base-points/setting', Admin\BasePointController::class.'@store');
+
 });
