@@ -40,4 +40,34 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $admin) {
     $admin->post('auth/groups',Admin\AuthorityController::class.'@storeGroup');//添加权限分组 ok
     $admin->put('auth/groups/{id}',Admin\AuthorityController::class.'@editGroup');//编辑权限分组
     $admin->delete('auth/groups/{id}',Admin\AuthorityController::class.'@deleteGroup');//删除分组
+
+    // 获取基础分配置
+    // @get /admin/base-points/setting
+    $admin->get('base-points/setting', Admin\BasePointController::class.'@index');
+    
+    // 存储基础分配置
+    // @patch /admin/base-points/setting
+    $admin->patch('base-points/setting', Admin\BasePointController::class.'@store');
+
+    // route 证书配置
+    $admin->group(['prefix' => 'certificates'], function (RouteContract $admin) {
+
+        // 获取全部证书
+        // @get /admin/certificates
+        $admin->get('/', Admin\CertificateController::class.'@index');
+
+        // 添加一个证书
+        // @post /admin/certificates
+        $admin->post('/', Admin\CertificateController::class.'@store');
+
+        // 修改一个证书
+        // @patch /admin/certificates/:certificate
+        $admin->patch('{certificate}', Admin\CertificateController::class.'@update');
+
+        // 获取一个证书
+        // @get /admin/certificates/:certificate
+        $admin->get('{certificate}', Admin\CertificateController::class.'@show');
+
+    });
+
 });
