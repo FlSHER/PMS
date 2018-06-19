@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\Traits\ListScopes;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 class Event extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes,ListScopes;
     /**
      * Indicates if the model should be timestamped.
      *
