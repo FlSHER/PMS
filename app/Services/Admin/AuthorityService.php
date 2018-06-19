@@ -40,32 +40,31 @@ class AuthorityService
         $authorityId = implode($arrayId);
         if ($request->staff != null) {
             foreach ($request->staff as $k=>$v){
-                $bool = $this->authRepository->staffOnly($authorityId,$v->staff_sn);
+                $bool = $this->authRepository->staffOnly($authorityId,$v['staff_sn']);
                 if(true==(bool)$bool){
-                    abort(400,$v->staff_sn.'员工编号已存在');
+                    abort(400,$v['staff_sn'].'员工编号已存在');
                 }
-                $staffData['authority_group_id'] = $authorityId;
-                $staffData['staff_sn'] = $v->staff_sn;
-                $staffData['staff_name'] = $v->staff_name;
-                $this->authRepository->addStaff($staffData);
+                $this->authRepository->editStaffGroup($authorityId,$v);
             }
         }
-        if ($request->department != null) {
-            foreach ($request->department as $k=>$v){
-                $departmentBool = $this->authRepository->departmentOnly($authorityId,$v->department_id);
+        if ($request->departments != null) {
+            foreach ($request->departments as $key=>$val){
+                $departmentBool = $this->authRepository->departmentOnly($authorityId,$val['department_id']);
                 if(true==(bool)$departmentBool){
-                    abort(400,$v->department_id.'部门已存在');
+                    abort(400,$val['department_id'].'部门已存在');
                 }
-                $departmentData['group_id'] = $authorityId;
-                $departmentData['department_id'] = $v->department_id;
-                $departmentData['department_full_name'] = $v->department_fill_name;
-                $this->authRepository->addDepartment($departmentData);
+                $this->authRepository->editDepartmentGroup($authorityId,$val);
             }
         }
         $authId = ['id' => $authorityId];
         return response($this->authRepository->getIdAuthGroup($authId), 201);
     }
 
+    /**
+     * @param $request
+     * @return \Illuminate\Contracts\Routing\ResponseFactory|\Symfony\Component\HttpFoundation\Response
+     * 编辑权限分组
+     */
     public function editAuthGroup($request)
     {
         $id=$request->route('id');
@@ -79,6 +78,7 @@ class AuthorityService
             }
         }
         if($request->staff != null){
+            $this->authRepository->deleteStaffGroup($id);
             foreach ($request->staff as $k=>$v){
                 $staffGroup=$this->authRepository->editStaffGroup($id,$v);
                 if(false == (bool)$staffGroup){
@@ -86,8 +86,9 @@ class AuthorityService
                 }
             }
         }
-        if($request->department != null){
-            foreach ($request->department as $key=>$val){
+        if($request->departments != null){
+            $this->authRepository->deleteDepartmentGroup($id);
+            foreach ($request->departments as $key=>$val){
                 $department=$this->authRepository->editDepartmentGroup($id,$val);
                 if(false == (bool)$department){
                     abort(404,'分组部门操作失败');
@@ -97,6 +98,11 @@ class AuthorityService
         return response($this->authRepository->getIdAuthGroup($request->route('id')), 201);
     }
 
+    /**
+     * @param $request
+     * @return \Illuminate\Contracts\Routing\ResponseFactory|\Symfony\Component\HttpFoundation\Response
+     * 删除权限分组
+     */
     public function deleteAuthGroup($request)
     {
         $status=$this->authRepository->deleteAuthGroup($request);
