@@ -49,4 +49,25 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $admin) {
     // @patch /admin/base-points/setting
     $admin->patch('base-points/setting', Admin\BasePointController::class.'@store');
 
+    // route 证书配置
+    $admin->group(['prefix' => 'certificates'], function (RouteContract $admin) {
+
+        // 获取全部证书
+        // @get /admin/certificates
+        $admin->get('/', Admin\CertificateController::class.'@index');
+
+        // 添加一个证书
+        // @post /admin/certificates
+        $admin->post('/', Admin\CertificateController::class.'@store');
+
+        // 修改一个证书
+        // @patch /admin/certificates/:certificate
+        $admin->patch('{certificate}', Admin\CertificateController::class.'@update');
+
+        // 获取一个证书
+        // @get /admin/certificates/:certificate
+        $admin->get('{certificate}', Admin\CertificateController::class.'@show');
+
+    });
+
 });
