@@ -28,32 +28,12 @@ class AuthorityRepository
     /**
      * @param Request $request
      * @return array
-     *  todo 待大改   用filters 方式筛选关联   前面是model.fields;
+     * 分组list页面
+     *
      */
-    public function getAuthGroupList(Request $request):array
+    public function getAuthGroupList($request)
     {
-        $builder = ($this->authModel instanceof Model) ? $this->authModel->query() : $this->authModel;
-        $department = $request->query('department_id');
-        $staff_id = $request->query('staff_id');
-
-        $builder->when($department, function ($query) use ($department) {
-            $query->whereHas('department', function ($query) use ($department) {
-                $query->whereIn('department_id', $department);
-            });
-        });
-        $builder->when($staff_id, function ($query) use ($staff_id) {
-            $query->whereHas('staff', function ($query) use ($staff_id) {
-                $query->where('staff_sn', $staff_id);
-            });
-        });
-        $items = $builder->with('department')->with('staff')->paginate();
-        return [
-            'data' => $items->items(),
-            'total' => $items->count(),
-            'page' => $items->currentPage(),
-            'pagesize' => $items->perPage(),
-            'totalpage' => $items->total(),
-        ];
+        return $this->authModel->with('departments')->with('staff')->filterByQueryString()->withPagination($request->get('pagesize', 10));
     }
 
     public function firstAuthGroup($name)
@@ -69,25 +49,9 @@ class AuthorityRepository
         return $auth->id;
     }
 
-    public function addStaff($data)
-    {
-        $this->staffModel->authority_group_id=$data['authority_group_id'];
-        $this->staffModel->staff_sn=$data['staff_sn'];
-        $this->staffModel->staff_name=$data['staff_name'];
-        return $this->staffModel->save();
-    }
-
-    public function addDepartment($departmentData)
-    {
-        $this->departmentModel->authority_group_id=$departmentData['group_id'];
-        $this->departmentModel->department_id=$departmentData['department_id'];
-        $this->departmentModel->department_name=$departmentData['department_full_name'];
-        return $this->departmentModel->save();
-    }
-
     public function getIdAuthGroup($id)
     {
-        return $this->authModel->where('id',$id)->with('departmentMany')->with('staffMany')->get();
+        return $this->authModel->where('id',$id)->with('departments')->with('staff')->get();
     }
 
     public function staffOnly($id,$staff)
@@ -113,22 +77,37 @@ class AuthorityRepository
         return $authModel->update($request->all());
     }
 
+    public function deleteStaffGroup($id)
+    {
+        if(true == (bool)$this->staffModel->where('authority_group_id',$id)->get()->all()){
+            $this->staffModel->where('authority_group_id',$id)->delete();
+        }
+    }
     public function editStaffGroup($id,$v)
     {
-        $this->staffModel->where('authority_group_id',$id)->delete();
-        $this->staffModel->authority_group_id=$id;
-        $this->staffModel->staff_sn=$v['staff_sn'];
-        $this->staffModel->staff_name=$v['staff_name'];
-        return $this->staffModel->save();
+
+        $sql=[
+            'authority_group_id'=>$id,
+            'staff_sn'=>$v['staff_sn'],
+            'staff_name'=>$v['staff_name']
+            ];
+        return AuthorityGroupHasStaff::insert($sql);
     }
 
+    public function deleteDepartmentGroup($id)
+    {
+        if(true == (bool)$this->departmentModel->where('authority_group_id',$id)->get()->all()){
+            $this->departmentModel->where('authority_group_id',$id)->delete();
+        }
+    }
     public function editDepartmentGroup($id,$val)
     {
-        $this->departmentModel->where('authority_group_id',$id)->delete();
-        $this->departmentModel->authority_group_id=$id;
-        $this->departmentModel->department_id=$val['department_id'];
-        $this->departmentModel->department_full_name=$val['department_full_name'];
-        return $this->departmentModel->save();
+        $sql=[
+            'authority_group_id'=>$id,
+            'department_id'=>$val['department_id'],
+            'department_full_name'=>$val['department_full_name'],
+        ];
+        return AuthorityGroupHasDepartment::insert($sql);
     }
 
     public function deleteAuthGroup($request)

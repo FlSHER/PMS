@@ -3,7 +3,7 @@
 namespace App\Repositories;
 
 use Illuminate\Http\Request;
-use App\Models\Event as EventModel;
+use App\Models\Event;
 use Illuminate\Database\Eloquent\Model;
 
 class EventRepository
@@ -11,15 +11,15 @@ class EventRepository
     use Traits\Filterable;
 
     /**
-     * EventModel model
+     * Event model
      */
     protected $event;
 
     /**
      * EventRepository constructor.
-     * @param EventModel $event
+     * @param Event $event
      */
-    public function __construct(EventModel $event)
+    public function __construct(Event $event)
     {
         $this->event = $event;
     }
@@ -33,28 +33,29 @@ class EventRepository
      */
     public function getPaginateList(Request $request)
     {
-        $builder = ($this->event instanceof Model) ? $this->event->query() : $this->event;
-        $sort = explode('-', $request->sort);
-        $limit = $request->query('limit', 20);
-        $filters = $request->query('filters', '');
-        if ($filters && $filters !== null) {
-            $maps = $this->formatFilter($filters);
-            foreach ($maps['maps'] as $k => $map) {
-                $curKey = $maps['fields'][$k];
-                $builder->when($curKey, $map[$curKey]);
-            }
-        }
-        $builder->when(($sort && !$sort), function ($query) use ($sort) {
-            $query->orderBy($sort[0], $sort[1]);
-        });
-        $items = $builder->paginate($limit);
-        return [
-            'data' => $items->items(),
-            'total' => $items->count(),
-            'page' => $items->currentPage(),
-            'pagesize' => $limit,
-            'totalpage' => $items->total(),
-        ];
+        return $this->event->filterByQueryString()->withPagination($request->get('pagesize', 10));
+//        $builder = ($this->event instanceof Model) ? $this->event->query() : $this->event;
+//        $sort = explode('-', $request->sort);
+//        $limit = $request->query('limit', 20);
+//        $filters = $request->query('filters', '');
+//        if ($filters && $filters !== null) {
+//            $maps = $this->formatFilter($filters);
+//            foreach ($maps['maps'] as $k => $map) {
+//                $curKey = $maps['fields'][$k];
+//                $builder->when($curKey, $map[$curKey]);
+//            }
+//        }
+//        $builder->when(($sort && !$sort), function ($query) use ($sort) {
+//            $query->orderBy($sort[0], $sort[1]);
+//        });
+//        $items = $builder->paginate($limit);
+//        return [
+//            'data' => $items->items(),
+//            'total' => $items->count(),
+//            'page' => $items->currentPage(),
+//            'pagesize' => $limit,
+//            'totalpage' => $items->total(),
+//        ];
     }
 
     /**
@@ -91,7 +92,7 @@ class EventRepository
      */
     public function getEventData($id)
     {
-        return EventModel::where('id', $id)->first()->toArray();
+        return Event::where('id', $id)->first()->toArray();
     }
 
     /**
@@ -101,7 +102,7 @@ class EventRepository
      */
     public function addEventData($request)
     {
-        $event=$this->event;
+        $event = $this->event;
         $event->name = $request->name;
         $event->type_id = $request->type_id;
         $event->point_a_min = $request->point_a_min;
@@ -132,7 +133,7 @@ class EventRepository
         $id = $request->route('id');
         $event = $this->event->find($id);
         if (empty($event)) {
-            abort(404,'未找到原始数据');
+            abort(404, '未找到原始数据');
         }
         $event->update($request->all());
         return $event;
@@ -158,11 +159,11 @@ class EventRepository
 
     public function nameWhereGetData($name)
     {
-        return EventModel::where('name',$name)->first();
+        return Event::where('name', $name)->first();
     }
 
-    public function updateGetOnly($id,$name)
+    public function updateGetOnly($id, $name)
     {
-        return EventModel::whereNotIn('id',explode(',',$id))->where('name',$name)->first();
+        return Event::whereNotIn('id', explode(',', $id))->where('name', $name)->first();
     }
 }
