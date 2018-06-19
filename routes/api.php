@@ -65,17 +65,21 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
         // get /api/points/ranking/staff
         $api->get('ranking/staff', APIs\PointRankController::class.'@staff');
 
-        // 员工积分明细
-        // get /api/points/statistic/staff
-        $api->get('statistic/staff', APIs\StaffPointController::class.'@show');
+        // 我的积分首页
+        // get /api/points/statistic/mine
+        $api->get('statistic/mine', APIs\StaffPointController::class.'@index');
+
+        // 积分列表
+        // get /api/points/statistic/log
+        $api->get('statistic/log', APIs\StaffPointController::class.'@show');
+
+        // 积分详情
+        // get /api/points/statistic/:pointlog
+        $api->get('statistic/{pointlog}', APIs\StaffPointController::class.'@detail');
     });
 
     // route 员工相关
     $api->group(['prefix' => 'staff'], function (RouteContract $api) {
-
-        // 我的积分详情
-        // get /api/staff/points
-        $api->get('points', APIs\StaffPointController::class.'@index');
 
         // 获取员工权限分组
         // get /api/staff/authority-groups

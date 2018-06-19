@@ -23,82 +23,70 @@ class StaffPointController extends Controller
         $user = $request->user();
         $totalSource = $this->totalSource($user);
         $datetime = $request->query('datetime');
-
         // 当前月统计
         if (Carbon::parse($datetime)->isCurrentMonth()) {
 
             $items = $this->currentMonthCredit($user);
         } else {
-            $items = StatisticLogModel::query()
+            $monthly = StatisticLogModel::query()
                 ->select('source_b_monthly')
                 ->where('staff_sn', $user->staff_sn)
                 ->whereBetween('date', monthBetween($datetime))
                 ->first();
 
-            $items['source_b_total'] = collect($items['source_b_monthly'])
+            $source_b_total = collect($monthly['source_b_monthly'])
                 ->reduce(function ($carry, $item) {
                     return $carry + $item['total_b'];
                 });
-        }
 
-        return response()->json([
-            'source_b_total' => $totalSource,
-            'source_b_monthly' => $items
+            $items = [
+                'point_b_total' => $source_b_total,
+                'source_b_monthly' => $monthly['source_b_monthly']
+            ];
+        }
+        $items['source_b_total'] = $totalSource;
+
+        $datas = array_merge($items, [
+            'department' => $user->department,
+            'realname' => $user->realname,
+            'staff_sn' => $user->staff_sn,
+            'brand' => $user->brand
         ]);
+
+        return response()->json($datas);
     }
 
     /**
-     * 获取积分明细.
+     * 获取积分列表.
      *
      * @author 28youth
      * @param  \Illuminate\Http\Request $request
      * @return mixed
      */
-    public function show(Request $request, PointLogModel $pointLogModel)
+    public function show(Request $request)
     {
         $user = $request->user();
-        $brand_id = $request->query('brand_id');
-        $point_type = $request->query('point_type');
-        $section = array_filter(explode('-', $request->query('section')));
-        $datetime = array_filter(explode('~', $request->query('datetime')));
 
-        $map = [
-            'all' => function ($query) {
-                $query->orderBy('created_at', 'desc');
-            },
-            'static' => function ($query) {
-                $query->where('source_id', 1)
-                    ->orderBy('created_at', 'desc');
-            },
-            'event' => function ($query) {
-                $query->where('source_id', 2)
-                    ->orderBy('created_at', 'desc');
-            },
-            'task' => function ($query) {
-                $query->where('source_id', 3)
-                    ->orderBy('created_at', 'desc');
-            },
-            'system' => function ($query) {
-                $query->where('source_id', 4)
-                    ->orderBy('created_at', 'desc');
-            }
-        ];
-        $type = in_array($type = $request->query('type', 'all'), array_keys($map)) ? $type : 'all';
-
-        call_user_func($map[$type], $query = $pointLogModel
-            ->when(($point_type && $section), function ($query) use ($point_type, $section) {
-                $query->whereBetween($point_type, [$section]);
-            })
-            ->when($datetime, function ($query) use ($datetime) {
-                $query->whereBetween('created_at', [$datetime]);
-            })
-            ->when($brand_id, function ($query) use ($brand_id) {
-                $query->where('brand_id', $brand_id);
-            })
-            ->sortByQueryString());
-        $items = $query->pagination();
+        $items = PointLogModel::query()
+            ->where('staff_sn', $user->staff_sn)
+            ->filterByQueryString()
+            ->withPagination();
 
         return response()->json($items);
+    }
+
+    /**
+     * 积分详情.
+     * 
+     * @author 28youth
+     * @param  \App\Models\PointLog $pointlog
+     * @return mixed
+     */
+    public function detail(PointLogModel $pointlog)
+    {
+        $pointlog->load('source');
+
+        return response()->json($pointlog);
     }
 
     /**
@@ -157,7 +145,7 @@ class StaffPointController extends Controller
 
         return [
             'source_b_monthly' => $curMonth->toArray(),
-            'source_b_total' => $totalB
+            'point_b_total' => $totalB
         ];
     }
 }
