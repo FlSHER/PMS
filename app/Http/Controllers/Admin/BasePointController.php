@@ -21,9 +21,9 @@ class BasePointController extends Controller
 
 		$datas = CommonConfig::byNamespace('basepoint')
 			->where('name', sprintf('basepoint:%s', $type))
-			->first() ? json_decode($datas->value) : [];
+			->first();
 
-		return response()->json($datas);
+		return response()->json($datas ? json_decode($datas->value) : []);
 	}
 
 	/**
