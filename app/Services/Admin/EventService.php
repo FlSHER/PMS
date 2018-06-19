@@ -99,12 +99,13 @@ class EventService
     public function excelExample()
     {
         $cellData[] = ['事件名字', '事件分类全称', 'A分最小值', 'A分最大值', 'B分最小值', 'B分最大值', 'A分默认值', 'B分默认值', '初审人编号（一个人）', '终审人编号（一个人）', '是否锁定初审人', '是否锁定终审人', '默认抄送人编号（可以选择多个人）', '是否激活'];
-        $cellData[] = ['例：迟到', '例：工作类事件（此名称不能和以前重复）', '例：10', '例：20', '例：5', '例：10', '例：15', '8', '例：100000', '例：100001', '例：1（1：锁定，0：未锁定）', '例：1（1：锁定，0：未锁定）', '例：（编号=名字）100000=张三,100001=李四,1000002=王五', '例：1（1：激活，0未激活）'];
-        Excel::create('积分制事件倒入范例文件', function ($excel) use ($cellData) {
+        $cellData[] = ['例：迟到', '例：工作类事件（此名称不能和以前重复）', '例：10', '例：20', '例：5', '例：10', '例：15', '8', '例：100000(可为空)', '例：100001(可为空)', '例：1（1：锁定，0：未锁定）', '例：1（1：锁定，0：未锁定）', '例：（编号=名字）100000=张三,100001=李四,1000002=王五(可为空)', '例：1（1：激活，0未激活）'];
+        $fileName = '积分制事件导入范例文件';
+        Excel::create($fileName, function ($excel) use ($cellData) {
             $excel->sheet('score', function ($sheet) use ($cellData) {
                 $sheet->rows($cellData);
             });
-        })->export('xls');
+        })->export('xlsx');
     }
 
     /**
@@ -121,8 +122,8 @@ class EventService
         });
         for ($i = 1; $i < count($res); $i++) {
             $x = $i + 1;
-            $errorInfo=[];
-            $dataInfo=[];
+            $errorInfo = [];
+            $dataInfo = [];
             if (count($res[$i]) != 14) {
                 $errorInfo[] = ['序号：第' . $x . '条信息添加失败，错误：文件布局错误'];
             }
@@ -157,9 +158,9 @@ class EventService
                 }
             }
             if ($res[$i][9] != '') {
-                try{
+                try {
                     $finalOa = app('api')->withRealException()->getStaff((int)$res[$i][9]);//todo 终审人里面找   待改
-                }catch (\Exception $e){
+                } catch (\Exception $e) {
                     $errorInfo[] = ['序号：第' . $x . '条信息添加失败，错误：终审人编号错误'];
                     $dataInfo[] = $res[$i][9];
                 }
@@ -176,13 +177,10 @@ class EventService
                 $errorInfo[] = ['序号：第' . $x . '条信息添加失败，错误：默认值不在AB分之间'];
                 $dataInfo[] = $res[$i][2] . '>' . $res[$i][6] . '>' . $res[$i][3];
             }
-            if (!isset($res[$i][12])) {
-                $errorInfo[] = ['序号：第' . $x . '条信息添加失败，错误：默认抄送人错误'];
-                $dataInfo[] = $res[$i][12];
-            }else{
+            if (isset($res[$i][12])) {
                 $arr = explode(',', $res[$i][12]);
                 $t = 0;
-                $errorInfo1=[];
+                $errorInfo1 = [];
                 foreach ($arr as $k => $v) {
                     $t++;
                     $array = explode('=', $v);
@@ -195,12 +193,12 @@ class EventService
                         $errorInfo1[] = '抄送人第' . $t . '个编号和名字不匹配';
                     }
                 }
-                if ($errorInfo1!=[]) {
+                if ($errorInfo1 != []) {
                     $errorInfo[] = ['序号：第' . $x . '条信息添加失败，错误：' . implode('、', $errorInfo1)];
                     $dataInfo[] = $res[$i][12];
                 }
             }
-            if ($errorInfo!=[]) {
+            if ($errorInfo != []) {
                 $err[] = [
                     'data' => (object)$dataInfo,
                     'message' => (object)$errorInfo
@@ -217,12 +215,12 @@ class EventService
             $model->point_a_default = $res[$i][6];//A分默认
             $model->point_b_default = $res[$i][7];//B分默认
             $model->first_approver_sn = $res[$i][8];//初审编号
-            $model->first_approver_name = $firstOa->realname==true ? $firstOa->realname : "";//初审姓名
+            $model->first_approver_name = $firstOa->realname == true ? $firstOa->realname : "";//初审姓名
             $model->final_approver_sn = $res[$i][9];//终审编号
-            $model->final_approver_name = $firstOa->realname==true ? $finalOa->realname : "";//终审姓名   //todo  终审人去列表查
+            $model->final_approver_name = $firstOa->realname == true ? $finalOa->realname : "";//终审姓名   //todo  终审人去列表查
             $model->first_approver_locked = $res[$i][8] == true ? $res[$i][10] : 0;//初审锁定
             $model->final_approver_locked = $res[$i][9] == true ? $res[$i][11] : 0;//终审锁定
-            $model->default_cc_addressees = $arr;//默认抄送
+            $model->default_cc_addressees = isset($arr) ? $arr : '';//默认抄送
             $model->is_active = $res[$i][13] == 1 ? 1 : 0;//激活
             $success = $model->save();
             if ($success == true) {
@@ -259,6 +257,6 @@ class EventService
             $excel->sheet('score', function ($query) use ($eventTop) {
                 $query->rows($eventTop);
             });
-        })->export('xls');
+        })->export('xlsx');
     }
 }
