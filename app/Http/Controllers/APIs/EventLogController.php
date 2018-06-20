@@ -82,11 +82,11 @@ class EventLogController extends Controller
 
         $eventlog->getConnection()->transaction(function() use ($eventlog, $datas) {
             $eventlog->save();
-            $participants = collect($datas['participant'])->map(function($item) use ($eventlog) {
+            $participants = collect($datas['participants'])->map(function($item) use ($eventlog) {
                 $item['event_log_id'] = $eventlog->id;
                 return $item;
             });
-            $addressees = collect($datas['addressee'])->map(function($item) use ($eventlog) {
+            $addressees = collect($datas['addressees'])->map(function($item) use ($eventlog) {
                 $item['event_log_id'] = $eventlog->id;
                 return $item;
             });
