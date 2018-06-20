@@ -98,6 +98,7 @@ class EventService
      */
     public function excelExample()
     {
+        dd($finalOa = app('api')->withRealException()->getStaff(110883));
         $cellData[] = ['事件名字', '事件分类全称', 'A分最小值', 'A分最大值', 'B分最小值', 'B分最大值', 'A分默认值', 'B分默认值', '初审人编号（一个人）', '终审人编号（一个人）', '是否锁定初审人', '是否锁定终审人', '默认抄送人编号（可以选择多个人）', '是否激活'];
         $cellData[] = ['例：迟到', '例：工作类事件（此名称不能和以前重复）', '例：10', '例：20', '例：5', '例：10', '例：15', '8', '例：100000(可为空)', '例：100001(可为空)', '例：1（1：锁定，0：未锁定）', '例：1（1：锁定，0：未锁定）', '例：（编号=名字）100000=张三,100001=李四,1000002=王五(可为空)', '例：1（1：激活，0未激活）'];
         $fileName = '积分制事件导入范例文件';
@@ -114,6 +115,7 @@ class EventService
      */
     public function excelImport()
     {
+        $str=explode('.',$_FILES['file']['name'])[0];
         $excelPath = $_FILES['file']['tmp_name'];
         $res = [];
         Excel::load($excelPath, function ($matter) use (&$res) {
@@ -125,35 +127,35 @@ class EventService
             $errorInfo = [];
             $dataInfo = [];
             if (count($res[$i]) != 14) {
-                $errorInfo[] = ['序号：第' . $x . '条信息添加失败，错误：文件布局错误'];
+                $errorInfo[$str] = ['序号：第' . $x . '条信息添加失败，错误：文件布局错误'];
             }
             if (!is_numeric($res[$i][2]) || !is_numeric($res[$i][3]) || !is_numeric($res[$i][4]) || !is_numeric($res[$i][5]) ||
                 !is_numeric($res[$i][6]) || !is_numeric($res[$i][7]) || !is_numeric($res[$i][13])) {
-                $errorInfo[] = ['序号：第' . $x . '条信息添加失败，错误：数字被文字代替'];
+                $errorInfo[$str] = ['序号：第' . $x . '条信息添加失败，错误：数字被文字代替'];
             }
             if (strlen($res[$i][0]) >= 147) {//数据库长度是50
-                $errorInfo[] = ['序号：第' . $x . '条信息添加失败，错误：事件名称过长'];
+                $errorInfo[$str] = ['序号：第' . $x . '条信息添加失败，错误：事件名称过长'];
                 $dataInfo[] = $res[$i][0];
             }
             $onlyType = Event::where('name', $res[$i][0])->value('name');
             if ($onlyType == true) {
-                $errorInfo[] = ['序号：第' . $x . '条信息添加失败，错误：事件名字重复 '];
+                $errorInfo[$str] = ['序号：第' . $x . '条信息添加失败，错误：事件名字重复 '];
                 $dataInfo[] = $res[$i][0];
             }
             $eventTypeId = EventType::where('name', $res[$i][1])->value('id');
             if (false == (bool)$eventTypeId) {
-                $errorInfo[] = ['序号：第' . $x . '条信息添加失败，错误：事件分类错误'];
+                $errorInfo[$str] = ['序号：第' . $x . '条信息添加失败，错误：事件分类错误'];
                 $dataInfo[] = $res[$i][1];
             }
             if ($res[$i][8] != '') {
                 if (strlen($res[$i][8]) != 6 || !is_numeric($res[$i][8])) {
-                    $errorInfo[] = ['序号：第' . $x . '条信息添加失败，错误：初审人编号长度错误'];
+                    $errorInfo[$str] = ['序号：第' . $x . '条信息添加失败，错误：初审人编号长度错误'];
                     $dataInfo[] = $res[$i][8];
                 }
                 try {
                     $firstOa = app('api')->withRealException()->getStaff((int)$res[$i][8]);
                 } catch (\Exception $e) {
-                    $errorInfo[] = ['序号：第' . $x . '条信息添加失败，错误：初审人编号错误'];
+                    $errorInfo[$str] = ['序号：第' . $x . '条信息添加失败，错误：初审人编号错误'];
                     $dataInfo[] = $res[$i][8];
                 }
             }
@@ -161,20 +163,20 @@ class EventService
                 try {
                     $finalOa = app('api')->withRealException()->getStaff((int)$res[$i][9]);//todo 终审人里面找   待改
                 } catch (\Exception $e) {
-                    $errorInfo[] = ['序号：第' . $x . '条信息添加失败，错误：终审人编号错误'];
+                    $errorInfo[$str] = ['序号：第' . $x . '条信息添加失败，错误：终审人编号错误'];
                     $dataInfo[] = $res[$i][9];
                 }
             }
             if ($res[$i][2] >= $res[$i][3]) {
-                $errorInfo[] = ['序号：第' . $x . '条信息添加失败，错误：A分最大值小于A分最小值'];
+                $errorInfo[$str] = ['序号：第' . $x . '条信息添加失败，错误：A分最大值小于A分最小值'];
                 $dataInfo[] = $res[$i][2] . '>' . $res[$i][3];;
             }
             if ($res[$i][4] >= $res[$i][5]) {
-                $errorInfo[] = ['序号：第' . $x . '条信息添加失败，错误：B分最大值小于B分最小值'];
+                $errorInfo[$str] = ['序号：第' . $x . '条信息添加失败，错误：B分最大值小于B分最小值'];
                 $dataInfo[] = $res[$i][4] . '>' . $res[$i][5];
             }
             if ($res[$i][2] > $res[$i][6] || $res[$i][3] < $res[$i][6]) {
-                $errorInfo[] = ['序号：第' . $x . '条信息添加失败，错误：默认值不在AB分之间'];
+                $errorInfo[$str] = ['序号：第' . $x . '条信息添加失败，错误：默认值不在AB分之间'];
                 $dataInfo[] = $res[$i][2] . '>' . $res[$i][6] . '>' . $res[$i][3];
             }
             if (isset($res[$i][12])) {
@@ -194,13 +196,13 @@ class EventService
                     }
                 }
                 if ($errorInfo1 != []) {
-                    $errorInfo[] = ['序号：第' . $x . '条信息添加失败，错误：' . implode('、', $errorInfo1)];
+                    $errorInfo[$str] = ['序号：第' . $x . '条信息添加失败，错误：' . implode('、', $errorInfo1)];
                     $dataInfo[] = $res[$i][12];
                 }
             }
             if ($errorInfo != []) {
                 $err[] = [
-                    'data' => (object)$dataInfo,
+                    'data' => (object)[$str=>implode('、',$res[$i])] ,//$dataInfo,
                     'message' => (object)$errorInfo
                 ];
                 continue;
@@ -224,7 +226,8 @@ class EventService
             $model->is_active = $res[$i][13] == 1 ? 1 : 0;//激活
             $success = $model->save();
             if ($success == true) {
-                $successInfo[] = '序号：第' . $x . '条导入成功';
+                $successInfo[]=$success->find($success->id);
+//                $successInfo[] = $res[$i] . '导入成功';
             }
         }
         $data['data'] = isset($successInfo) ? (object)$successInfo : [];
