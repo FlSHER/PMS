@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Services\PointLogger;
 use App\Repositories\EventLogRepository;
+use App\Models\EventType as EventTypeMdel;
 use App\Models\Events as EventsModel;
 use App\Models\EventLog as EventLogModel;
 use App\Http\Requests\API\StoreEventLogRequest;
@@ -57,6 +58,20 @@ class EventLogController extends Controller
         }
 
         return response()->json($items, 200);
+    }
+
+    /**
+     * 获取事件分类列表.
+     * 
+     * @author 28youth
+     * @param  \App\Models\EventType $category
+     * @return mixed　
+     */
+    public function cates(EventTypeMdel $category)
+    {
+        $cates = $category->orderBy('sort', 'asc')->get();
+
+        return response()->json($cates);
     }
 
     /**
