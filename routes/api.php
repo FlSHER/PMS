@@ -20,7 +20,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
+Route::group([/*'middleware' => 'auth:api'*/], function (RouteContract $api) {
 
     // @route 事件奖扣
     $api->group(['prefix' => 'event-logs'], function (RouteContract $api) {

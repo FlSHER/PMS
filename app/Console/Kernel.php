@@ -28,6 +28,9 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('inspire')
                  ->hourly();
+
+        // Monthly statistics of employees' points
+        $schedule->command('pms:calculate-user-point')->monthlyOn(1, '1:30');
     }
 
     /**
