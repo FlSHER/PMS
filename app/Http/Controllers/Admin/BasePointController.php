@@ -37,7 +37,7 @@ class BasePointController extends Controller
 	{
 		$rules = [
             'datas' => 'required|array',
-            'type' => 'required|string'
+            'type' => 'required|string|in:type,education,position,speciality'
         ];
         $messages = [
             'datas.required' => '输入的选项内容不能为空',
