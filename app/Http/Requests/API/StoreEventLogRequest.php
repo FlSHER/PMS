@@ -25,8 +25,6 @@ class StoreEventLogRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'event_name' => 'required|string',
-            'description' => 'required|string',
             'first_approver_sn' => 'required|integer',
             'first_approver_name' => 'required|string',
             'final_approver_sn' => 'required|integer',
@@ -42,8 +40,6 @@ class StoreEventLogRequest extends FormRequest
     public function messages(): array
     {
         return [
-        	'event_name.required' => '事件名称不能为空',
-        	'description.required' => '事件描述不能为空',
         	'first_approver_sn.required' => '初审人编号不能为空',
         	'first_approver_name.required' => '初审人姓名不能为空',
         	'final_approver_sn.required' => '终审人编号不能为空',

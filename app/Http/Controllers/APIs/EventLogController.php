@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Services\PointLogger;
 use App\Repositories\EventLogRepository;
 use App\Models\EventType as EventTypeMdel;
-use App\Models\Event as EventsModel;
+use App\Models\Event as EventModel;
 use App\Models\EventLog as EventLogModel;
 use App\Http\Requests\API\StoreEventLogRequest;
 
@@ -87,7 +87,7 @@ class EventLogController extends Controller
     {
         $user = $request->user();
         $datas = $request->all();
-        $event = EventsModel::find($request->event_id);
+        $event = EventModel::find($request->event_id);
 
         $eventlog->fill($datas);
         $eventlog->event_name = $event->name;
@@ -97,19 +97,11 @@ class EventLogController extends Controller
 
         $eventlog->getConnection()->transaction(function() use ($eventlog, $datas) {
             $eventlog->save();
-            $participants = collect($datas['participants'])->map(function($item) use ($eventlog) {
-                $item['event_log_id'] = $eventlog->id;
-                return $item;
-            });
-            $addressees = collect($datas['addressees'])->map(function($item) use ($eventlog) {
-                $item['event_log_id'] = $eventlog->id;
-                return $item;
-            });
-            $eventlog->addressee()->create($addressees);
-            $eventlog->participant()->create($participants);
+            $eventlog->addressee()->createMany($datas['addressees']);
+            $eventlog->participant()->createMany($datas['participants']);
         });
 
-        return response()->json($eventlog, 201);
+        return response()->json(['message' => '添加成功'], 201);
     }
 
     /**
