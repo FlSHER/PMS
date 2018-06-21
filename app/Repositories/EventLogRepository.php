@@ -64,7 +64,7 @@ class EventLogRepository
 
         return $this->eventlog->filterByQueryString()
             ->whereHas('participant', function ($query) use ($user) {
-                return $query->where('participant_sn', $user->staff_sn);
+                return $query->where('staff_sn', $user->staff_sn);
             })
             ->latest('id')
             ->withPagination();
@@ -130,7 +130,7 @@ class EventLogRepository
 
         return $this->eventlog->filterByQueryString()
             ->whereHas('addressee', function ($query) use ($user) {
-                $query->where('addressee_sn', $user->staff_sn);
+                $query->where('staff_sn', $user->staff_sn);
             })
             ->latest('id')
             ->withPagination();
