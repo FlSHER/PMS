@@ -51,7 +51,7 @@ class AuthorityRepository
 
     public function getIdAuthGroup($id)
     {
-        return $this->authModel->where('id',$id)->with('departments')->with('staff')->get();
+        return $this->authModel->where('id',$id)->with('departments')->with('staff')->first();
     }
 
     public function staffOnly($id,$staff)
@@ -85,7 +85,6 @@ class AuthorityRepository
     }
     public function editStaffGroup($id,$v)
     {
-
         $sql=[
             'authority_group_id'=>$id,
             'staff_sn'=>$v['staff_sn'],
