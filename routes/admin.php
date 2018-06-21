@@ -44,6 +44,7 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $admin) {
 
     //积分变动日志
     $admin->get('point',Admin\PointController::class.'$index');//积分变动列表
+    $admin->get('point/export',Admin\pointController::class.'export');//积分变动导出
 
     // 获取基础分配置
     // @get /admin/base-points/setting
