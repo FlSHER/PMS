@@ -25,7 +25,7 @@ class EventLogController extends Controller
     }
 
     /**
-     * 获取事件日志列表.
+     * 获取事件日志分类列表.
      * 
      * @author 28youth
      * @param  \Illuminate\Http\Request  $request
@@ -58,6 +58,20 @@ class EventLogController extends Controller
         }
 
         return response()->json($items, 200);
+    }
+
+    /**
+     * 获取奖扣审核列表.
+     * 
+     * @author 28youth
+     * @param  \Illuminate\Http\Request  $request
+     * @return mixed
+     */
+    public function audit(Request $request)
+    {
+        $items = $this->eventLogRepository->getProcessingList($request);
+
+        return response()->json($items);
     }
 
     /**

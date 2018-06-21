@@ -137,7 +137,7 @@ class EventLogRepository
     }
 
     /**
-     * 待审核的事件日志列表. 初审当前 状态0 终审当前 状态1
+     * 审核的事件日志列表.
      *
      * @author 28youth
      * @param  \Illuminate\Http\Request $request
@@ -146,16 +146,26 @@ class EventLogRepository
     public function getProcessingList(Request $request)
     {
         $user = $request->user();
-        $filters = $request->query('filters');
+        $type = $request->query('type', 0);
 
         return $this->eventlog->filterByQueryString()
-            ->where(function ($query) use ($user) {
-                $query->where('first_approver_sn', $user->staff_sn)->byAudit(0);
+            ->when(($type == 0), function ($query) use ($user) {
+                $query->where(function ($query) use ($user) {
+                    $query->where('first_approver_sn', $user->staff_sn)->byAudit(0);
+
+                })->orWhere(function ($query) use ($user) {
+                    $query->where('final_approver_sn', $user->staff_sn)->byAudit(1);
+                });
             })
-            ->orWhere(function ($query) use ($user) {
-                $query->where('final_approver_sn', $user->staff_sn)->byAudit(1);
+            ->when(($type == 1), function ($query) use ($user) {
+                $query->where(function ($query) use ($user) {
+                    $query->where('final_approver_sn', $user->staff_sn)->byAudit(2);
+
+                })->orWhere(function ($query) use ($user) {
+                    $query->where('rejecter_sn', $user->staff_sn)->byAudit(-1);
+                });
             })
-            ->latest('id')
+            ->sortByQueryString()
             ->withPagination();
     }
 }
