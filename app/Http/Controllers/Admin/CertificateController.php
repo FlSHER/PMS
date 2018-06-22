@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use App\Models\CertificateStaff;
 use App\Models\Certificate as CertificateModel;
 
 class CertificateController extends Controller
@@ -91,5 +92,31 @@ class CertificateController extends Controller
 		return response()->json(['message' => '编辑成功'], 201);
 	}
 
+	/**
+	 * [award description]
+	 * @author 28youth
+	 * @param  Request          $request [description]
+	 * @param  CertificateStaff $model   [description]
+	 * @return [type]                    [description]
+	 */
+	public function award(Request $request, CertificateStaff $model)
+	{
+		$rules = [
+			'staff_sn' => 'required|integer',
+			'certificate_id' => 'required|integer|exists:certificates,id'
+		];
+		$messages = [
+			'staff_sn.required' => '员工编号不能为空',
+			'certificate_id.required' => '证书编号不能为空',
+			'certificate_id.exists' => '证书编号错误'
+		];
 
+		$this->validate($request, $rules, $messages);
+
+		$model->staff_sn = $request->staff_sn;
+		$model->certificate_id = $request->certificate_id;
+		$model->save();
+
+		return response()->json($model, 201);
+	}
 }

@@ -150,10 +150,10 @@ class EventLogRepository
     public function getProcessingList(Request $request)
     {
         $user = $request->user();
-        $type = $request->query('type', 0);
+        $type = $request->query('type', 'processing');
 
         return $this->eventlog->filterByQueryString()
-            ->when(($type == 0), function ($query) use ($user) {
+            ->when(($type == 'processing'), function ($query) use ($user) {
                 $query->where(function ($query) use ($user) {
                     $query->where('first_approver_sn', $user->staff_sn)->byAudit(0);
 
@@ -161,7 +161,7 @@ class EventLogRepository
                     $query->where('final_approver_sn', $user->staff_sn)->byAudit(1);
                 });
             })
-            ->when(($type == 1), function ($query) use ($user) {
+            ->when(($type == 'dealt'), function ($query) use ($user) {
                 $query->where(function ($query) use ($user) {
                     $query->where('final_approver_sn', $user->staff_sn)->byAudit(2);
 

@@ -73,6 +73,9 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $admin) {
         // @get /admin/certificates/:certificate
         $admin->get('{certificate}', Admin\CertificateController::class . '@show');
 
+        // 颁发一个证书
+        // @post /admin/certificates/award
+        $admin->post('award', Admin\CertificateController::class . '@award');
     });
 
 });

@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Console\Command;
 use function App\monthBetween;
 use App\Models\PointLogSource;
 use App\Models\PointLog as PointLogModel;
