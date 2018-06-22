@@ -41,10 +41,10 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $admin) {
     $admin->post('auth/groups', Admin\AuthorityController::class . '@storeGroup');//添加权限分组 ok
     $admin->put('auth/groups/{id}', Admin\AuthorityController::class . '@editGroup');//编辑权限分组
     $admin->delete('auth/groups/{id}', Admin\AuthorityController::class . '@deleteGroup');//删除分组
-
     //积分变动日志
-    $admin->get('point', Admin\PointController::class . '@index');//积分变动列表
-    $admin->get('point/export', Admin\pointController::class . '@export');//积分变动导出
+    $admin->get('point-log', Admin\PointController::class . '@index');//积分变动列表
+    $admin->get('point-log/{id}', Admin\PointController::class . '@details');//积分变动详情页面
+    $admin->get('point/export', Admin\PointController::class . '@export');//积分变动导出 暂时不用
 
     // 获取基础分配置
     // @get /admin/base-points/setting
