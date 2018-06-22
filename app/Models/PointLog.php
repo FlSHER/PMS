@@ -21,6 +21,7 @@ class PointLog extends Model
         'shop_name',
 		'staff_sn',
         'staff_name',
+        'source_id',
         'brand_id',
         'brand_name',
         'department_id',

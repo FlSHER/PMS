@@ -4,23 +4,19 @@ namespace App\Http\Controllers\APIs;
 
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use App\Services\PointLogger;
-use App\Repositories\EventLogRepository;
 use App\Models\EventType as EventTypeMdel;
 use App\Models\Event as EventModel;
 use App\Models\EventLog as EventLogModel;
+use App\Services\Point\Types\Event;
+use App\Repositories\EventLogRepository;
 use App\Http\Requests\API\StoreEventLogRequest;
 
 class EventLogController extends Controller
 {
-    protected $pointLoggerService;
-
     protected $eventLogRepository;
 
-    public function __construct(PointLogger $pointLogger, EventLogRepository $eventlog)
+    public function __construct(EventLogRepository $eventlog)
     {
-        $this->pointLoggerService = $pointLogger;
         $this->eventLogRepository = $eventlog;
     }
 
@@ -128,7 +124,6 @@ class EventLogController extends Controller
      */
     public function show(Request $request, EventLogModel $eventlog)
     {
-        $this->pointLoggerService->logEventPoint($eventlog);
         $eventlog->load('participant', 'addressee');
 
         return response()->json($eventlog);
@@ -182,13 +177,13 @@ class EventLogController extends Controller
         $eventlog->final_approved_at = Carbon::now();
         $eventlog->status_id = 2;
 
-        $eventlog->getConnection()->transaction(function () use ($eventlog, $participant) {
+        $eventlog->getConnection()->transaction(function () use ($eventlog) {
             $eventlog->save();
             // 事件参与者记录积分
-            $this->pointLoggerService->logEventPoint($eventlog);
+            app(Event::class)->record($eventlog);
         });
         
-        return response()->json($eventlog, 201);
+        return response()->json(['message' => '操作成功'], 201);
     }
 
     /**
