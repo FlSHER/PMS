@@ -28,11 +28,7 @@ class PointRankController extends Controller
                 ->orderBy('calculated_at', 'desc')
                 ->first();
 
-        return response()->json([
-            'staff_sn' => $user->staff_sn,
-            'staff_name' => $user->realname,
-            'statistic' => $monthly
-        ]);
+        return response()->json($monthly);
     }
 
     /**
