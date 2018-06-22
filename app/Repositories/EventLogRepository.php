@@ -34,7 +34,9 @@ class EventLogRepository
     public function getPaginateList(Request $request)
     {
         $filters = $request->query('filters');
-        return $this->eventlog->filterByQueryString()->withPagination();
+        return $this->eventlog->filterByQueryString()
+            ->sortByQueryString()
+            ->withPagination();
     }
 
     /**
@@ -47,7 +49,9 @@ class EventLogRepository
     public function getList(Request $request)
     {
         $filters = $request->query('filters');
-        return $this->eventlog->filterByQueryString()->get();
+        return $this->eventlog->filterByQueryString()
+            ->sortByQueryString()
+            ->get();
     }
 
     /**
@@ -66,7 +70,7 @@ class EventLogRepository
             ->whereHas('participant', function ($query) use ($user) {
                 return $query->where('staff_sn', $user->staff_sn);
             })
-            ->latest('id')
+            ->sortByQueryString()
             ->withPagination();
     }
 
@@ -83,7 +87,7 @@ class EventLogRepository
 
         return $this->eventlog->filterByQueryString()
             ->where('recorder_sn', $user->staff_sn)
-            ->latest('id')
+            ->sortByQueryString()
             ->withPagination();
     }
 
@@ -112,7 +116,7 @@ class EventLogRepository
                 $query->where('rejecter_sn', $user->staff_sn)
                     ->whereNotNull('rejected_at');
             })
-            ->latest('id')
+            ->sortByQueryString()
             ->withPagination();
     }
 
@@ -132,7 +136,7 @@ class EventLogRepository
             ->whereHas('addressee', function ($query) use ($user) {
                 $query->where('staff_sn', $user->staff_sn);
             })
-            ->latest('id')
+            ->sortByQueryString()
             ->withPagination();
     }
 
