@@ -23,7 +23,7 @@ class BasePointController extends Controller
 			->where('name', sprintf('basepoint:%s', $type))
 			->first();
 
-		return response()->json($datas ? json_decode($datas->value) : []);
+		return response()->json($datas ? json_decode($datas->value) : [], 200);
 	}
 
 	/**
@@ -37,11 +37,15 @@ class BasePointController extends Controller
 	{
 		$rules = [
             'datas' => 'required|array',
-            'type' => 'required|string|in:type,education,position,speciality'
+            'type' => 'required|string|in:type,education,position,speciality',
+            'datas.*.point' => 'required|integer|min:0'
         ];
         $messages = [
             'datas.required' => '输入的选项内容不能为空',
             'type.required' => '输入的选项类型不能为空', 
+            'datas.*.required' => '输入的配置分不能为空',
+            'datas.*.integer' => '输入的配置分必须为一个数字',
+            'datas.*.min' => '输入的配置分不能小于0'
         ];
         $this->validate($request, $rules, $messages);
 
@@ -53,6 +57,6 @@ class BasePointController extends Controller
             ['value' => json_encode($datas)]
         );
 
-        return response()->json(['message' => '更新成功'], 201);
+        return response()->json(null, 201);
 	}
 }
