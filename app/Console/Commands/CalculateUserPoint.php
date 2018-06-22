@@ -3,11 +3,11 @@
 namespace App\Console\Commands;
 
 use Carbon\Carbon;
-use Illuminate\Console\Command;
+use Illuminate\Http\Request;
 use function App\monthBetween;
 use App\Models\PointLogSource;
-use App\Models\ArtisanCommandLog;
 use App\Models\PointLog as PointLogModel;
+use App\Models\ArtisanCommandLog as CommandLogModel;
 use App\Models\PersonalPointStatistic as StatisticModel;
 use App\Models\PersonalPointStatisticLog as StatisticLogModel;
 

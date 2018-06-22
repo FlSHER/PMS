@@ -18,18 +18,20 @@ class PointRankController extends Controller
      * 
      * @author 28youth
      * @param  \Illuminate\Http\Request $request
-     * @param  \App\Models\PointLog $pointlog
      * @return mixed
      */
-    public function show(Request $request, PointLogModel $pointlog)
+    public function show(Request $request)
     {
         $user = $request->user();
-        $counts = $this->currentMonthCredit($request, $pointlog);
+        $monthly = StatisticModel::query()
+                ->where('staff_sn', $user->staff_sn)
+                ->orderBy('calculated_at', 'desc')
+                ->first();
 
         return response()->json([
             'staff_sn' => $user->staff_sn,
             'staff_name' => $user->realname,
-            'point_statistic' => $counts
+            'statistic' => $monthly
         ]);
     }
 
@@ -200,37 +202,6 @@ class PointRankController extends Controller
         return [
             'staff_ids' => $group->staff()->pluck('staff_sn'),
             'department_ids' => $group->department()->pluck('department_id')
-        ];
-    }
-
-    /**
-     * 统计员工当月积分情况.
-     * 
-     * @author 28youth
-     * @param  Request $request
-     * @return mixed
-     */
-    protected function currentMonthCredit(Request $request, PointLogModel $pointlog)
-    {
-        $user = $request->user();
-
-        $totalGroup = $pointlog->where('staff_sn', $user->staff_sn)
-            ->select('source_id', \DB::raw('SUM(point_a) as total_a, SUM(point_b) as total_b'))
-            ->whereBetween('created_at', monthBetween())
-            ->groupBy('source_id')
-            ->get();
-
-        $totalA = $totalGroup->reduce(function($carry, $item){
-            return $carry + $item['total_a'];
-        });
-        $totalB = $totalGroup->reduce(function($carry, $item){
-            return $carry + $item['total_b'];
-        });
-
-        return [
-            'total_group' => $totalGroup->toArray(),
-            'total_point_a' => $totalA,
-            'total_point_b' => $totalB
         ];
     }
 }
