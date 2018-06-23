@@ -66,8 +66,8 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $admin) {
         $admin->post('/', Admin\CertificateController::class . '@store');
 
         // 修改一个证书
-        // @patch /admin/certificates/:certificate
-        $admin->patch('{certificate}', Admin\CertificateController::class . '@update');
+        // @put /admin/certificates/:certificate
+        $admin->put('{certificate}', Admin\CertificateController::class . '@update');
 
         // 获取一个证书
         // @get /admin/certificates/:certificate
@@ -76,6 +76,10 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $admin) {
         // 颁发一个证书
         // @post /admin/certificates/award
         $admin->post('award', Admin\CertificateController::class . '@award');
+
+        // 删除一个证书
+        // @delete /admin/certificates/:certificate
+        $admin->delete('{certificate}', Admin\CertificateController::class . '@delete');
     });
 
 });

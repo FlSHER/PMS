@@ -124,4 +124,21 @@ class CertificateController extends Controller
 
 		return response()->json(['message' => '操作成功'], 201);
 	}
+
+	/**
+	 * 删除证书(关联删除证书拥有者).
+	 * 
+	 * @author 28youth
+	 * @param  \App\Models\Certificate $certificate
+	 * @return null
+	 */
+	public function delete(CertificateModel $certificate)
+	{
+		$certificate->getConnection()->transaction(function() use ($certificate) {
+			$certificate->staff()->delete();
+			$certificate->delete();
+		});
+
+		return response()->json(null, 204);
+	}
 }
