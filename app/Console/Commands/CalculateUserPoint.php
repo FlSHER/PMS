@@ -28,84 +28,129 @@ class CalculateUserPoint extends Command
     	$this->calculateMonthPoint();
     }
 
-    /**
-     *  日结积分.
-     *  
-     * @author 28youth
-     */
-    public function calculateDailyPoint()
+    public function calculateBasePoint()
     {
-        // 统计数据
-        $statistics = $this->calculate();
+        $lastMonth = [];
+        $statistics = [];
+        $calculatedAt = Carbon::now();
+        $lastDaily = CommandLogModel::bySn('pms:calculate-user-point')->latest('id')->first();
+        if ($lastDaily !== null) {
 
-        foreach ($statistics as $key => $value) {
-            // 更新日结表
+            // 获取上次结算的所有数据
+            $lastStatis = StatisticModel::query()
+                ->select('staff_sn', 'point_a', 'point_b_monthly', 'point_b_total', 'source_b_monthly', 'source_b_total')
+                ->whereBetween('calculated_at', [$lastDaily->created_at, $calculatedAt])
+                ->get();
             
+            $lastStatis->map(function ($item) use (&$statistics, &$lastMonthly, $lastDaily) {
+
+                // 判断跨月清空数据
+                if (!Carbon::parse($lastDaily->created_at)->isCurrentMonth()) {
+                    // 生成上月月结数据
+                    $lastMonthly[$item->staff_sn] = $item->toArray();
+                    $lastMonthly[$item->staff_sn]['date'] = Carbon::create(null, null, 02)->subMonth();
+                    
+                    $item->point_a = 0;
+                    $item->point_b_monthly = 0;
+                    $item->source_b_monthly = PointLogSource::get();
+                }
+                $statistics[$item->staff_sn] = $item->toArray();
+            });
+        }
+
+        // 拿上次日结到现在的积分日志
+        $logs = PointLogModel::query()
+            ->select('point_a', 'point_b', 'staff_sn', 'source_id', 'changed_at')
+            ->when($lastDaily, function ($query) use ($lastDaily, $calculatedAt) {
+                $query->whereBetween('created_at', [$lastDaily->created_at, $calculatedAt]);
+            })
+            ->get();
+        // 统计每个员工的积分
+        foreach ($logs as $key => $log) {
+            // 判断是否有上月的记录
+            if (!Carbon::parse($log->changed_at)->isCurrentMonth()) {
+                if (isset($lastMonth[$log->staff_sn])) {
+                    $lastMonth[$log->staff_sn]['point_a'] += $log->point_a;
+                    $lastMonth[$log->staff_sn]['point_b_monthly'] += $log->point_b;
+                    $lastMonth[$log->staff_sn]['point_b_total'] += $log->point_b;
+                    $lastMonth[$log->staff_sn]['source_b_monthly'] = $this->monthlySource($log, $lastMonth);
+                    $lastMonth[$log->staff_sn]['source_b_total'] = $this->monthlySource($log, $lastMonth, 'total');
+                } else {
+                    $lastMonth[$log->staff_sn]['point_a'] = $log->point_a;
+                    $lastMonth[$log->staff_sn]['point_b_monthly'] = $log->point_b;
+                    $lastMonth[$log->staff_sn]['point_b_total'] = $log->point_b;
+                    $lastMonth[$log->staff_sn]['source_b_monthly'] = $this->monthlySource($log, $lastMonth);
+                    $lastMonth[$log->staff_sn]['source_b_total'] = $this->monthlySource($log, $lastMonth, 'total');
+                    $lastMonth[$log->staff_sn]['date'] = Carbon::create(null, null, 02)->subMonth();
+                }
+            }
+
+            if (isset($statistics[$log->staff_sn])) {
+                $statistics[$log->staff_sn]['point_a'] += $log->point_a;
+                $statistics[$log->staff_sn]['point_b_monthly'] += $log->point_b;
+                $statistics[$log->staff_sn]['point_b_total'] += $log->point_b;
+                $statistics[$log->staff_sn]['source_b_monthly'] = $this->monthlySource($log, $statistics);
+                $statistics[$log->staff_sn]['source_b_total'] = $this->monthlySource($log, $statistics, 'total');
+                $statistics[$log->staff_sn]['calculated_at'] = $calculatedAt;
+
+                continue;
+            }
+            $statistics[$log->staff_sn]['point_a'] = $log->point_a;
+            $statistics[$log->staff_sn]['point_b_monthly'] = $log->point_b;
+            $statistics[$log->staff_sn]['point_b_total'] = $log->point_b;
+            $statistics[$log->staff_sn]['source_b_monthly'] = $this->monthlySource($log, $statistics);
+            $statistics[$log->staff_sn]['source_b_total'] = $this->monthlySource($log, $statistics, 'total');
+            $statistics[$log->staff_sn]['calculated_at'] = $calculatedAt;
+
+        }
+        $commandID = CommandLogModel::insertGetId([
+            'command_sn' => 'pms:calculate-user-point',
+            'title' => '积分结算',
+            'status' => 0,
+            'created_at' => $calculatedAt
+        ]);
+
+        try {
+            \DB::beginTransaction();
+
+            array_walk($statistics, [$this, 'saveDailyLog']);
+            array_walk($lastMonth, [$this, 'saveMonthlyLog']);
+
+            CommandLogModel::where('id', $commandID)->update([
+                'status' => 1
+            ]);
+
+            \DB::commit();
+        } catch (Exception $e) {
+
+            CommandLogModel::where('id', $commandID)->update([
+                'status' => 2
+            ]);
+
+            \DB::rollBack();
         }
     }
-
+    
     /**
-     * 积分统计.
+     * 获取结算所需用户信息.
      * 
      * @author 28youth
      * @return array
      */
-    public function calculate()
+    public function checkStaff(int $staff_sn): array
     {
-        $statistics = [];
-        $calculatedAt = Carbon::now();
-        $lastDaily = CommandLogModel::bySn('pms:calculate-user-point')->latest('id')->first();
+        $user = app('api')->getStaff($staff_sn);
 
-        $builder = PointLogModel::query();
-        if ($lastDaily !== null) {
-            $builder->whereBetween('created_at', [$lastDaily->created_at, $calculatedAt]);
-        }
-        // 拿上次日结到现在的积分日志
-        $logs = $builder->get();
-
-        if ($logs === null) return false;
-
-        // 拿上次日结到现在的积分日志员工
-        $users = $builder->groupBy('staff_sn')->pluck('staff_sn')->toArray();
-
-        // 统计每个员工的积分
-        foreach ($logs as $key => $log) {
-            if (in_array($log->staff_sn, $users)) {
-
-                // 各来源 b 分类统计
-                $statistics[$log->staff_sn]['point_source'] = $this->monthlySource($log, $statistics);
-
-                // ab 总分, 累计 b 分
-                $statistics[$log->staff_sn]['point_total'] = $this->monthlyPoint($log, $statistics);
-            }
-        }
-
-        // 合并本次统计到上次结算
-        foreach ($statistics as $staff => &$val) {
-
-            // 累计来源统计,默认值
-            $val['source_b_total'] = $val['point_source'];
-
-            // 员工上次结算
-            $last = StatisticModel::where('staff_sn', $staff)->latest('calculated_at')->first();
-
-            // 叠加上次结算
-            if ($last !== null) {
-                $val['point_total']['point_a'] += $last->point_a;
-                $val['point_total']['point_b_monthly'] += $last->point_b_monthly;
-                $val['point_total']['point_b_total'] += $last->point_b_total;
-                $val['point_source'] = $this->mergeSource($last->source_b_monthly, $val['point_source']);
-                $val['source_b_total'] = $this->mergeSource($last->source_b_total, $val['point_source']);
-            }
-
-            // 结算跨月 清空对应积分 
-            if ($lastDaily && !Carbon::parse($lastDaily->created_at)->isCurrentMonth()) {
-                $val['point_total']['point_a'] = 0;
-                $val['point_total']['point_b_monthly'] = 0;
-            }
-        }
-
-        return $statistics;
+        return [
+            'staff_sn' => $user['staff_sn'] ?? 0,
+            'staff_name' => $user['realname'] ?? '',
+            'brand_id' => $user['brand']['id'] ?? 0,
+            'brand_name' => $user['brand']['name'] ?? '',
+            'department_id' => $user['department']['id'] ?? 0,
+            'department_name' => $user['department']['full_name'] ?? '',
+            'shop_sn' => $user['shop']['shop_sn'] ?? '',
+            'shop_name' => $user['shop']['shop_name'] ?? '',
+        ];
     }
 
     /**
@@ -114,11 +159,14 @@ class CalculateUserPoint extends Command
      * @author 28youth
      * @return array
      */
-    public function monthlySource($log, $statistic)
+    public function monthlySource($log, $statistic, $type = 'monthly')
     {
-        $point_source = ($statistic[$log->staff_sn]['point_source']) ?? PointLogSource::get();
+        $statistic = $statistic[$log->staff_sn]['source_b_monthly'] ?? PointLogSource::get()->toArray();
+        if ($type === 'total') {
+            $statistic = $statistic[$log->staff_sn]['source_b_total'] ?? PointLogSource::get()->toArray();
+        }
 
-        foreach ($point_source as $key => &$value) {
+        foreach ($statistic as $key => &$value) {
             // 初始化值
             $value['add_point'] = $value['add_point'] ?? 0;
             $value['sub_point'] = $value['sub_point'] ?? 0;
@@ -134,111 +182,34 @@ class CalculateUserPoint extends Command
             }
         }
 
-        return $point_source;
+        return $statistic;
     }
 
-    /**
-     * 累计总分统计.
-     * 
-     * @author 28youth
-     * @return array
-     */
-    public function monthlyPoint($log, $statistic)
+    // 更新日结数据
+    public function saveDailyLog( $statistic, $key )
     {
-        $point_monthly = ($statistic[$log->staff_sn]['point_total']) ?? [
-            'point_a' => 0,
-            'point_b_monthly' => 0,
-            'point_b_total' => 0
-        ];
+        $staff = $this->checkStaff($key);
 
-        $point_monthly['point_a'] += $log->point_a;
-        $point_monthly['point_b_monthly'] += $log->point_b;
-        $point_monthly['point_b_total'] += $log->point_b;
-
-        return $point_monthly;
-    }
-
-    /**
-     * 合并各分类来源.
-     * 
-     * @author 28youth
-     * @param  $last  上次结算数据
-     * @param  $current 本次结算数据
-     */
-    public function mergeSource($last, $current)
-    {
-        foreach ($last as $key => &$val) {
-            $current->map(function ($item) use (&$val) {
-                if ($val['id'] === $item['id']) {
-                    $val['add_point'] += $item['add_point'];
-                    $val['sub_point'] += $item['sub_point'];
-                    $val['point_b_total'] += $item['point_b_total'];
-                }
-            });
+        $logModel = StatisticModel::where('staff_sn', $key)->first();
+        if ($logModel === null) {
+            $logModel = new StatisticModel();
         }
-        return $last;
+        $logModel->fill($staff + $statistic);
+        $logModel->save();
     }
 
-    /**
-     * 获取结算所需用户信息.
-     * 
-     * @author 28youth
-     * @return array
-     */
-    public function checkStaff(int $staff_sn): array
+    // 更新月结数据
+    public function saveMonthlyLog($statistic, $key)
     {
-        $user = app('api')->getStaff($staff_sn);
-        return [
-            'staff_sn' => $user['staff_sn'] ?? 0,
-            'staff_name' => $user['realname'] ?? '',
-            'brand_id' => $user['brand']['id'] ?? 0,
-            'brand_name' => $user['brand']['name'] ?? '',
-            'department_id' => $user['department']['id'] ?? 0,
-            'department_name' => $user['department']['full_name'] ?? '',
-            'shop_sn' => $user['shop']['shop_sn'] ?? '',
-            'shop_name' => $user['shop']['shop_name'] ?? '',
-        ];
+        $staff = $this->checkStaff($key);
+
+        $logModel = StatisticLogModel::where('staff_sn', $key)
+            ->whereBetween('date', monthBetween($statistic['date']))
+            ->first();
+        if ($logModel === null) {
+            $logModel = new StatisticLogModel();
+        }
+        $logModel->fill($staff + $statistic);
+        $logModel->save();
     }
-    
-    // 月结积分
-    /*public function calculateMonthPoint()
-    {
-        $statistic = [];
-        $users = PointLogModel::query()
-            ->whereBetween('created_at', monthBetween())
-            ->groupBy('staff_sn')
-            ->pluck('staff_sn')
-            ->toArray();
-
-        $logs = PointLogModel::whereBetween('created_at', monthBetween())->get();
-
-        foreach ($logs as $key => $log) {
-            if (in_array($log->staff_sn, $users)) {
-                // 当月各来源分类统计
-                $statistic[$log->staff_sn]['source_b_monthly'] = $this->monthlySource($log, $statistic);
-
-                // 当月 ab 总分
-                $statistic[$log->staff_sn]['point_monthly'] = $this->monthlyPoint($log, $statistic);
-            }
-        }
-
-        foreach ($statistic as $staff => &$monthly) {
-
-            // 上次月结数据
-            $lastMonth = StatisticLogModel::query()
-                ->select('source_b_total', 'point_b_total')
-                ->where('staff_sn', $staff)
-                ->orderBy('created_at', 'desc')
-                ->first();
-
-            // 无上次月结记录
-            if ($lastMonth === null) {
-                # code...
-            }
-            
-            // $monthly['point_b_total'] = 
-            // $monthly['source_b_total'] = 
-        }
-    }*/
-
 }
