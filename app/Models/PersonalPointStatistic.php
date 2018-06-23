@@ -21,6 +21,11 @@ class PersonalPointStatistic extends Model
         'brand_id',
         'brand_name',
         'department_id',
-        'department_name'
+        'department_name',
+        'point_b_monthly',
+        'point_b_total',
+        'source_b_monthly',
+        'source_b_total',
+        'calculated_at'
     ];
 }
