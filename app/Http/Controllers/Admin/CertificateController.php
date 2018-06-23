@@ -62,7 +62,7 @@ class CertificateController extends Controller
 		$certificate->fill($request->all());
 		$certificate->save();
 
-		return response()->json(['message' => '添加成功'], 201);
+		return response()->json($certificate, 201);
 	}
 
 	/**
@@ -90,7 +90,7 @@ class CertificateController extends Controller
 		$certificate->fill($request->all());
 		$certificate->save();
 
-		return response()->json(['message' => '编辑成功'], 201);
+		return response()->json($certificate, 201);
 	}
 
 	/**

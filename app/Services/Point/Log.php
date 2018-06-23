@@ -2,9 +2,9 @@
 
 namespace App\Services\Point;
 
+use Carbon\Carbon;
 use App\Jobs\PointLogger AS PointLoggerJob;
 use App\Models\PointLog as PointLogModel;
-use App\Models\EventLog as EventLogModel;
 
 class Log
 {
@@ -48,4 +48,22 @@ class Log
         ];
     }
 
+    /**
+     * 创建积分变更日志.
+     * 
+     * @author 28youth
+     * @param  [type] $params
+     */
+    public function createLogs($params)
+    {
+        foreach ($params as $key => $log) {
+
+            // 最新用户信息
+            $user = $this->checkStaff($log['staff_sn']);
+
+            $model = new PointLogModel();
+            $model->fill($user + $log);
+            $model->save();
+        }
+    }
 }
