@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use App\Models\CertificateStaff;
@@ -93,30 +94,34 @@ class CertificateController extends Controller
 	}
 
 	/**
-	 * [award description]
+	 * 颁发证书.
+	 * 
 	 * @author 28youth
-	 * @param  Request          $request [description]
-	 * @param  CertificateStaff $model   [description]
-	 * @return [type]                    [description]
+	 * @param  \Illuminate\Http\Request $request
+	 * @param  \App\Models\CertificateStaff $model
+	 * @return mixed
 	 */
 	public function award(Request $request, CertificateStaff $model)
 	{
 		$rules = [
-			'staff_sn' => 'required|integer',
-			'certificate_id' => 'required|integer|exists:certificates,id'
+			'datas.*.staff_sn' => 'required|integer',
+			'datas.*.certificate_id' => 'required|integer|exists:certificates,id'
 		];
 		$messages = [
-			'staff_sn.required' => '员工编号不能为空',
-			'certificate_id.required' => '证书编号不能为空',
-			'certificate_id.exists' => '证书编号错误'
+			'datas.*.staff_sn.required' => '员工编号不能为空',
+			'datas.*.certificate_id.required' => '证书编号不能为空',
+			'datas.*.certificate_id.exists' => '证书编号错误'
 		];
 
 		$this->validate($request, $rules, $messages);
 
-		$model->staff_sn = $request->staff_sn;
-		$model->certificate_id = $request->certificate_id;
-		$model->save();
+		$datas = array_filter(array_map(function($data){
+			$data['created_at'] = $data['updated_at'] = Carbon::now();
+			return $data;
+		}, $request->input('datas')));
 
-		return response()->json($model, 201);
+		CertificateStaff::insert($datas);
+
+		return response()->json(['message' => '操作成功'], 201);
 	}
 }
