@@ -69,17 +69,20 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $admin) {
         // @put /admin/certificates/:certificate
         $admin->put('{certificate}', Admin\CertificateController::class . '@update');
 
-        // 获取一个证书
-        // @get /admin/certificates/:certificate
-        $admin->get('{certificate}', Admin\CertificateController::class . '@show');
-
-        // 颁发一个证书
-        // @post /admin/certificates/award
-        $admin->post('award', Admin\CertificateController::class . '@award');
-
         // 删除一个证书
         // @delete /admin/certificates/:certificate
         $admin->delete('{certificate}', Admin\CertificateController::class . '@delete');
     });
 
+    // 获取全部证书拥有者
+    // @get /admin/certificate-staff
+    $admin->get('certificate-staff', Admin\CertificateController::class . '@getCertificateStaff');
+
+    // 批量分配证书
+    // @put /admin/certificate-staff/batch/add
+    $admin->put('certificate-staff/batch/add', Admin\CertificateController::class . '@storeCertificateStaff');
+
+    // 批量删除证书拥有者
+    // @post /admin/certificate-staff/batch/delete
+    $admin->post('certificate-staff/batch/delete',Admin\CertificateController::class . '@deleteCertificateStaff');
 });
