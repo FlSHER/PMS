@@ -81,7 +81,21 @@ class EventLogController extends Controller
     {
         $cates = $category->orderBy('sort', 'asc')->get();
 
-        return response()->json($cates);
+        return response()->json($cates, 200);
+    }
+
+    /**
+     * 获取分类下的事件.
+     * 
+     * @author 28youth
+     * @param  \App\Models\EventType $category
+     * @return mixed　
+     */
+    public function events(EventTypeMdel $category)
+    {
+        $events = $category->events()->byActive()->get();
+
+        return response()->json($events, 200);
     }
 
     /**

@@ -37,6 +37,10 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
         // @get /api/event-logs/categories
         $api->get('/categories', APIs\EventLogController::class.'@cates');
 
+        // 事件列表
+        // @get /api/event-logs/:category/events
+        $api->get('{category}/events', APIs\EventLogController::class.'@events');
+
         // 添加事件日志
         // @post /api/event-logs/event
         $api->post('event', APIs\EventLogController::class.'@store');
