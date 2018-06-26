@@ -46,9 +46,10 @@ class EventLogRepository
      * @param  \Illuminate\Http\Request $request
      * @return mixed
      */
-    public function getList(Request $request)
+    public function getAllList(Request $request)
     {
         $filters = $request->query('filters');
+        
         return $this->eventlog->filterByQueryString()
             ->sortByQueryString()
             ->get();
