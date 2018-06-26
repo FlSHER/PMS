@@ -126,6 +126,7 @@ class EventLogController extends Controller
     public function show(Request $request, EventLogModel $eventlog)
     {
         $eventlog->load('participant', 'addressee');
+        $eventlog->executed_at = Carbon::parse($eventlog->executed_at)->toDateString();
 
         return response()->json($eventlog);
     }
