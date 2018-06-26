@@ -5,6 +5,7 @@ namespace App\Http\Requests\API;
 use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 use App\Models\Event as EventModel;
+use App\Models\FinalApprover as FinalApproverModel;
 
 class StoreEventLogRequest extends FormRequest
 {
@@ -27,9 +28,11 @@ class StoreEventLogRequest extends FormRequest
     public function rules(): array
     {
         $event = EventModel::find($this->event_id);
+        $final = FinalApproverModel::where('staff_sn', $this->final_approver_sn)->first();
 
         return [
             'first_approver_sn' => [
+                'bail',
                 'required',
                 'integer',
                 function($attribute, $value, $fail) use ($event) {
@@ -39,6 +42,7 @@ class StoreEventLogRequest extends FormRequest
                 }
             ],
             'final_approver_sn' => [
+                'bail',
                 'required',
                 'integer',
                 Rule::notIn([$this->first_approver_sn, $this->user()->staff_sn]),
@@ -54,16 +58,34 @@ class StoreEventLogRequest extends FormRequest
             'addressees' => 'nullable|array',
             'participants' => 'required|array',
             'participants.*.point_a' => [
-                'integer', 
+                'bail',
+                'integer',
+                function($attribute, $value, $fail) use ($final) {
+                    if ($value > 0 && $value > $final->point_a_awarding_limit) {
+                        $fail('终审人无权限');
+                    }
+                    if ($value < 0 && $value < $final->point_a_deducting_limit){
+                        return $fail('终审人无权限');
+                    }
+                },
                 'max:'.$event->point_a_max, 
                 'min:'.$event->point_a_min 
             ],
             'participants.*.point_b' => [
+                'bail',
                 'integer', 
                 'max:'.$event->point_b_max, 
-                'min:'.$event->point_b_min 
+                'min:'.$event->point_b_min,
+                function($attribute, $value, $fail) use ($final) {
+                    if ($value > 0 && $value > $final->point_b_awarding_limit) {
+                        $fail('终审人无权限');
+                    }
+                    if ($value < 0 && $value < $final->point_b_deducting_limit){
+                        return $fail('终审人无权限');
+                    }
+                },
             ],
-            'executed_at' => 'required|date|before:'.date('Y-m-d H:i')
+            'executed_at' => 'bail|required|date|before:'.date('Y-m-d H:i')
         ];
     }
 
@@ -84,10 +106,10 @@ class StoreEventLogRequest extends FormRequest
             'final_approver_name.required' => '终审人姓名不能为空',
             'addressees.array' => '抄送人格式错误',
             'participants.required' => '事件参与人不能为空',
-            'participants.*.point_a.max' => '参与人 A 分不能大于默认值',
-            'participants.*.point_a.min' => '参与人 A 分不能小于默认值',
-            'participants.*.point_b.max' => '参与人 B 分不能大于默认值',
-            'participants.*.point_b.min' => '参与人 B 分不能小于默认值',
+            'participants.*.point_a.max' => '参与人 A 分不能大于默认值:max',
+            'participants.*.point_a.min' => '参与人 A 分不能小于默认值:min',
+            'participants.*.point_b.max' => '参与人 B 分不能大于默认值:max',
+            'participants.*.point_b.min' => '参与人 B 分不能小于默认值:min',
             'executed_at.required' => '事件执行时间不能为空',
             'executed_at.before' => '事件执行时间不能大于当前时间'
         ];
