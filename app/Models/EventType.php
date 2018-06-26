@@ -19,4 +19,15 @@ class EventType extends Model
         'name', 'parent_id', 'sort'
     ];
 
+    /**
+     * 分类下的事件.
+     * 
+     * @author 28youth
+     * @return \Illuminate\Database\Eloquent\hasMany
+     */
+    public function events()
+    {
+        return $this->hasMany(Events::class, 'type_id', 'id');
+    }
+
 }

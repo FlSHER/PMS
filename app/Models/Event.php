@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Traits\ListScopes;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
 class Event extends Model
 {
@@ -30,5 +31,16 @@ class Event extends Model
     public function logs()
     {
     	return $this->hasMany(EventLog::class, 'event_id', 'id');
+    }
+
+    /**
+     * 复用事件激活状态.
+     * 
+     * @author 28youth
+     * @param  \Illuminate\Database\Eloquent\Builder $query
+     */
+    public function scopeByActive(Builder $query)
+    {
+        return $query->where('is_active', 1);
     }
 }

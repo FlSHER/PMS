@@ -52,7 +52,7 @@ class Log
      * 创建积分变更日志.
      * 
      * @author 28youth
-     * @param  [type] $params
+     * @param  array $params
      */
     public function createLogs($params)
     {

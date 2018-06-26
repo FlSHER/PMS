@@ -46,9 +46,10 @@ class EventLogRepository
      * @param  \Illuminate\Http\Request $request
      * @return mixed
      */
-    public function getList(Request $request)
+    public function getAllList(Request $request)
     {
         $filters = $request->query('filters');
+        
         return $this->eventlog->filterByQueryString()
             ->sortByQueryString()
             ->get();
@@ -150,24 +151,14 @@ class EventLogRepository
     public function getProcessingList(Request $request)
     {
         $user = $request->user();
-        $type = $request->query('type', 'processing');
 
         return $this->eventlog->filterByQueryString()
-            ->when(($type == 'processing'), function ($query) use ($user) {
-                $query->where(function ($query) use ($user) {
-                    $query->where('first_approver_sn', $user->staff_sn)->byAudit(0);
+            ->where(function ($query) use ($user) {
+                $query->where('first_approver_sn', $user->staff_sn)->byAudit(0);
 
-                })->orWhere(function ($query) use ($user) {
-                    $query->where('final_approver_sn', $user->staff_sn)->byAudit(1);
-                });
             })
-            ->when(($type == 'dealt'), function ($query) use ($user) {
-                $query->where(function ($query) use ($user) {
-                    $query->where('final_approver_sn', $user->staff_sn)->byAudit(2);
-
-                })->orWhere(function ($query) use ($user) {
-                    $query->where('rejecter_sn', $user->staff_sn)->byAudit(-1);
-                });
+            ->orWhere(function ($query) use ($user) {
+                $query->where('final_approver_sn', $user->staff_sn)->byAudit(1);
             })
             ->sortByQueryString()
             ->withPagination();
