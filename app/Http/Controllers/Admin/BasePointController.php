@@ -43,9 +43,9 @@ class BasePointController extends Controller
         $messages = [
             'datas.required' => '输入的选项内容不能为空',
             'type.required' => '输入的选项类型不能为空', 
-            'datas.*.required' => '输入的配置分不能为空',
-            'datas.*.integer' => '输入的配置分必须为一个数字',
-            'datas.*.min' => '输入的配置分不能小于0'
+            'datas.*.point.required' => '输入的配置分不能为空',
+            'datas.*.point.integer' => '输入的配置分必须为一个数字',
+            'datas.*.point.min' => '输入的配置分不能小于0'
         ];
         $this->validate($request, $rules, $messages);
 
