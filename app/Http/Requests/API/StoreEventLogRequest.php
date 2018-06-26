@@ -52,11 +52,6 @@ class StoreEventLogRequest extends FormRequest
                     }
                 }
             ],
-            'event_id' => 'required|integer|exists:event,id',
-            'first_approver_name' => 'required|string',
-            'final_approver_name' => 'required|string',
-            'addressees' => 'nullable|array',
-            'participants' => 'required|array',
             'participants.*.point_a' => [
                 'bail',
                 'integer',
@@ -85,7 +80,12 @@ class StoreEventLogRequest extends FormRequest
                     }
                 },
             ],
-            'executed_at' => 'bail|required|date|before:'.date('Y-m-d H:i')
+            'executed_at' => 'bail|required|date|before:'.date('Y-m-d H:i'),
+            'event_id' => 'required|integer|exists:event,id',
+            'first_approver_name' => 'required|string',
+            'final_approver_name' => 'required|string',
+            'addressees' => 'nullable|array',
+            'participants' => 'required|array'
         ];
     }
 

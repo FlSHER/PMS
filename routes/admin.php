@@ -85,4 +85,8 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $admin) {
     // 批量删除证书拥有者
     // @post /admin/certificate-staff/batch/delete
     $admin->post('certificate-staff/batch/delete',Admin\CertificateController::class . '@deleteCertificateStaff');
+
+    // 获取任务执行记录
+    // @get /admin/commadn-logs
+    $admin->get('commadn-logs', Admin\CommandController::class.'@index');
 });
