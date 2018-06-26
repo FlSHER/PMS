@@ -52,7 +52,7 @@ class EventLogRepository
         
         return $this->eventlog->filterByQueryString()
             ->sortByQueryString()
-            ->get();
+            ->withPagination();
     }
 
     /**
