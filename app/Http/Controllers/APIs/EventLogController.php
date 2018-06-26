@@ -31,7 +31,7 @@ class EventLogController extends Controller
     public function index(Request $request)
     {
         $type = $request->query('type', 'all');
-        
+
         $items = app()->call([
             $this->eventLogRepository, 
             camel_case('get_'.$type.'_list')
@@ -102,7 +102,10 @@ class EventLogController extends Controller
         $eventlog->event_type_id = $event->type_id;
         $eventlog->recorder_sn = $user->staff_sn;
         $eventlog->recorder_name = $user->realname;
-
+        if ($eventlog->first_approver_sn === $user->staff_sn) {
+            $eventlog->status_id = 1;
+        }
+        
         $eventlog->getConnection()->transaction(function() use ($eventlog, $datas) {
             $eventlog->save();
             $eventlog->addressee()->createMany($datas['addressees']);
