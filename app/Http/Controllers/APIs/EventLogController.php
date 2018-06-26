@@ -42,20 +42,6 @@ class EventLogController extends Controller
     }
 
     /**
-     * 获取奖扣审核列表.
-     * 
-     * @author 28youth
-     * @param  \Illuminate\Http\Request  $request
-     * @return mixed
-     */
-    public function audit(Request $request)
-    {
-        $items = $this->eventLogRepository->getProcessingList($request);
-
-        return response()->json($items);
-    }
-
-    /**
      * 获取事件分类列表.
      * 
      * @author 28youth
