@@ -5,12 +5,13 @@ namespace App\Http\Controllers\APIs;
 use Carbon\Carbon;
 use Illuminate\Http\Response;
 use Illuminate\Http\Request;
-use App\Models\EventType as EventTypeMdel;
-use App\Models\Event as EventModel;
-use App\Models\EventLog as EventLogModel;
 use App\Services\Point\Types\Event;
 use App\Repositories\EventLogRepository;
 use App\Http\Requests\API\StoreEventLogRequest;
+use App\Models\Event as EventModel;
+use App\Models\EventLog as EventLogModel;
+use App\Models\EventType as EventTypeMdel;
+use App\Models\FinalApprover as FinalApproverModel;
 
 class EventLogController extends Controller
 {
@@ -83,6 +84,19 @@ class EventLogController extends Controller
     }
 
     /**
+     * 获取终审人列表.
+     * 
+     * @author 28youth
+     * @return mixed
+     */
+    public function finalStaff()
+    {
+        $items = FinalApproverModel::get();
+
+        return response()->json($items, 200);
+    }
+
+    /**
      * 创建事件日志.
      * 
      * @author 28youth
@@ -105,7 +119,7 @@ class EventLogController extends Controller
         if ($eventlog->first_approver_sn === $user->staff_sn) {
             $eventlog->status_id = 1;
         }
-        
+
         $eventlog->getConnection()->transaction(function() use ($eventlog, $datas) {
             $eventlog->save();
             $eventlog->addressee()->createMany($datas['addressees']);
