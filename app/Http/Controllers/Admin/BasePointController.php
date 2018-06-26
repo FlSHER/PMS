@@ -37,7 +37,7 @@ class BasePointController extends Controller
 	{
 		$rules = [
             'datas' => 'required|array',
-            'type' => 'required|string|in:type,education,position,speciality',
+            'type' => 'required|string|in:type,education,position,speciality,seniority',
             'datas.*.point' => 'required|integer|min:0'
         ];
         $messages = [
