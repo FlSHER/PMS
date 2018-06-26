@@ -89,8 +89,8 @@ class StoreEventLogRequest extends FormRequest
             'participants.*.point_b.max' => '参与人 B 分不能大于默认值',
             'participants.*.point_b.min' => '参与人 B 分不能小于默认值',
             'executed_at.required' => '事件执行时间不能为空',
-            'executed_at.before' => '时间执行时间不能大于当前时间'
-        // ];
+            'executed_at.before' => '事件执行时间不能大于当前时间'
+        ];
     }
 
 }
