@@ -36,8 +36,8 @@ class StoreEventLogRequest extends FormRequest
                 'required',
                 'integer',
                 function($attribute, $value, $fail) use ($event) {
-                    if ($event->first_approver_locked === 1 && $event->first_approver_sn !== $value) {
-                        return $fail('终审人已锁定为'.$event->first_approver_name);
+                    if ($event->first_approver_locked === 1 && $event->first_approver_sn != $value) {
+                        return $fail('初审人已锁定为'.$event->first_approver_name);
                     }
                 }
             ],
@@ -47,7 +47,7 @@ class StoreEventLogRequest extends FormRequest
                 'integer',
                 Rule::notIn([$this->first_approver_sn, $this->user()->staff_sn]),
                 function($attribute, $value, $fail) use ($event) {
-                    if ($event->final_approver_locked === 1 && $event->final_approver_sn !== $value) {
+                    if ($event->final_approver_locked === 1 && $event->final_approver_sn != $value) {
                         return $fail('终审人已锁定为'.$event->final_approver_name);
                     }
                 }

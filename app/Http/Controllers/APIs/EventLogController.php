@@ -94,10 +94,9 @@ class EventLogController extends Controller
     public function store(StoreEventLogRequest $request, EventLogModel $eventlog)
     {
         $user = $request->user();
-        $datas = $request->all();
+        $data = $request->all();
         $event = EventModel::find($request->event_id);
-
-        $eventlog->fill($datas);
+        $eventlog->fill($data);
         $eventlog->event_name = $event->name;
         $eventlog->event_type_id = $event->type_id;
         $eventlog->recorder_sn = $user->staff_sn;
@@ -106,10 +105,21 @@ class EventLogController extends Controller
             $eventlog->status_id = 1;
         }
 
-        $eventlog->getConnection()->transaction(function() use ($eventlog, $datas) {
+        // 合并默认抄送人到提交的抄送人
+        $addressees = array_merge($event->default_cc_addressees,$data['addressees']);
+        // 去除重复抄送人
+        $tmpArr = [];
+        foreach ($addressees as $key => $value) {
+            if (in_array($value['staff_sn'], $tmpArr)) {
+                unset($addressees[$key]);
+            } else {
+                $tmpArr[] = $value['staff_sn'];
+            }
+        }
+        $eventlog->getConnection()->transaction(function() use ($eventlog, $data) {
             $eventlog->save();
-            $eventlog->addressee()->createMany($datas['addressees']);
-            $eventlog->participant()->createMany($datas['participants']);
+            $eventlog->addressee()->createMany($addressees);
+            $eventlog->participant()->createMany($data['participants']);
         });
 
         return response()->json(['message' => '添加成功'], 201);
