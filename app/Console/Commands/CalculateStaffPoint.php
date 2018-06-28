@@ -28,12 +28,13 @@ class CalculateStaffPoint extends Command
     	$this->calculateMonthPoint();
     }
 
-    public function calculateBasePoint()
+    public function calculateMonthPoint()
     {
         $lastMonth = [];
         $statistics = [];
         $calculatedAt = Carbon::now();
-        $lastDaily = CommandLogModel::bySn('pms:calculate-staff-point')->latest('id')->first();
+        $lastDaily = ArtisanCommandLog::bySn('pms:calculate-staff-point')->latest('id')->first();
+
         if ($lastDaily !== null) {
 
             // 获取上次结算的所有数据

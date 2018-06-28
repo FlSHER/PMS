@@ -5,6 +5,7 @@ namespace App\Http\Controllers\APIs;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use function App\monthBetween;
+use function App\stageBetween;
 use App\Models\PointLog as PointLogModel;
 use App\Models\PersonalPointStatistic as StatisticModel;
 use App\Models\PersonalPointStatisticLog as StatisticLogModel;
@@ -35,7 +36,37 @@ class StaffPointController extends Controller
                 ->first();
         }
 
-        return response()->json($monthly);
+        // 前4个月积分趋势数据
+        $monthly->trend = $this->statistics($request);
+
+        return response()->json($monthly, 200);
+    }
+
+    /**
+     * 获取某一段时间统计结果.
+     * 
+     * @author 28youth
+     * @param  \Illuminate\Http\Request $request
+     * @return mixed
+     */
+    public function statistics(Request $request)
+    {
+        $user = $request->user();
+        $datetime = $request->query('datetime');
+        $etime = $datetime ? Carbon::parse($datetime) : Carbon::now()->subMonth(1);
+        $stime = clone $etime;
+
+        $items = StatisticLogModel::query()
+            ->select('point_a', 'point_b_monthly', 'date')
+            ->where('staff_sn', $user->staff_sn)
+            ->whereBetween('date', stageBetween($stime->subMonth(4), $etime))
+            ->get();
+
+        return $items->map(function ($item) {
+            $item->month = Carbon::parse($item->date)->month;
+
+            return $item;
+        })->toArray();
     }
 
     /**
