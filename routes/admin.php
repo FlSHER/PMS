@@ -56,7 +56,7 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $admin) {
 
     // 存储单个配置
     // @patch /admin/base-points/setting
-    $admin->post('base-points/setting', Admin\BasePointController::class . '@storeSingle');
+    $admin->post('base-points/setting', Admin\BasePointController::class . '@storeSeniority');
 
     // route 证书配置
     $admin->group(['prefix' => 'certificates'], function (RouteContract $admin) {
