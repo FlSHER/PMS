@@ -81,7 +81,7 @@ class PointRankController extends Controller
                     $query->whereIn('staff_sn', $groups['staff_ids'])
                         ->orWhereIn('department_id', $groups['department_ids']);
                 })
-                ->whereBetween('calculated_at', monthBetween($datetime))
+                ->whereBetween('date', monthBetween($datetime))
                 ->orderBy('point_b_total', 'desc')
                 ->get();
         }
@@ -97,7 +97,7 @@ class PointRankController extends Controller
         return response()->json([
             'list' => $items,
             'user' => [
-                'rank' => $user->rank,
+                'rank' => $user->rank ?? 1,
                 'name' => $user->realname
             ]
         ], 200);
@@ -139,7 +139,7 @@ class PointRankController extends Controller
         return response()->json([
             'list' => $items,
             'user' => [
-                'rank' => $user->rank,
+                'rank' => $user->rank ?? 1,
                 'name' => $user->realname
             ]
         ], 200);
@@ -178,7 +178,7 @@ class PointRankController extends Controller
         return response()->json([
             'list' => $items,
             'user' => [
-                'rank' => $user->rank,
+                'rank' => $user->rank ?? 1,
                 'name' => $user->realname
             ]
         ], 200);
