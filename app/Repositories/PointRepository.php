@@ -50,6 +50,17 @@ class PointRepository
 
     /**
      * @param $request
+     * @return mixed
+     * 获取单条信息
+     */
+    public function getDetailsData($request)
+    {
+        $id = $request->route('id');
+        return $this->point->find($id);
+    }
+
+    /**
+     * @param $request
      * @return \Illuminate\Database\Eloquent\Builder[]|\Illuminate\Database\Eloquent\Collection
      * 无分页
      */
