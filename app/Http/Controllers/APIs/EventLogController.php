@@ -5,12 +5,13 @@ namespace App\Http\Controllers\APIs;
 use Carbon\Carbon;
 use Illuminate\Http\Response;
 use Illuminate\Http\Request;
-use App\Models\EventType as EventTypeMdel;
-use App\Models\Event as EventModel;
-use App\Models\EventLog as EventLogModel;
 use App\Services\Point\Types\Event;
 use App\Repositories\EventLogRepository;
 use App\Http\Requests\API\StoreEventLogRequest;
+use App\Models\Event as EventModel;
+use App\Models\EventLog as EventLogModel;
+use App\Models\EventType as EventTypeMdel;
+use App\Models\FinalApprover as FinalApproverModel;
 
 class EventLogController extends Controller
 {
@@ -31,27 +32,13 @@ class EventLogController extends Controller
     public function index(Request $request)
     {
         $type = $request->query('type', 'all');
-        
+
         $items = app()->call([
             $this->eventLogRepository, 
             camel_case('get_'.$type.'_list')
         ]);
 
         return response()->json($items, 200);
-    }
-
-    /**
-     * 获取奖扣审核列表.
-     * 
-     * @author 28youth
-     * @param  \Illuminate\Http\Request  $request
-     * @return mixed
-     */
-    public function audit(Request $request)
-    {
-        $items = $this->eventLogRepository->getProcessingList($request);
-
-        return response()->json($items);
     }
 
     /**
@@ -83,6 +70,19 @@ class EventLogController extends Controller
     }
 
     /**
+     * 获取终审人列表.
+     * 
+     * @author 28youth
+     * @return mixed
+     */
+    public function finalStaff()
+    {
+        $items = FinalApproverModel::get();
+
+        return response()->json($items, 200);
+    }
+
+    /**
      * 创建事件日志.
      * 
      * @author 28youth
@@ -94,19 +94,33 @@ class EventLogController extends Controller
     public function store(StoreEventLogRequest $request, EventLogModel $eventlog)
     {
         $user = $request->user();
-        $datas = $request->all();
+        $data = $request->all();
         $event = EventModel::find($request->event_id);
 
-        $eventlog->fill($datas);
+        $eventlog->fill($data);
         $eventlog->event_name = $event->name;
         $eventlog->event_type_id = $event->type_id;
         $eventlog->recorder_sn = $user->staff_sn;
         $eventlog->recorder_name = $user->realname;
+        if ($eventlog->first_approver_sn === $user->staff_sn) {
+            $eventlog->status_id = 1;
+        }
 
-        $eventlog->getConnection()->transaction(function() use ($eventlog, $datas) {
+        // 合并默认抄送人到提交的抄送人
+        $addressees = array_merge($event->default_cc_addressees, $data['addressees']);
+        // 去除重复抄送人
+        $tmpArr = [];
+        foreach ($addressees as $key => $value) {
+            if (in_array($value['staff_sn'], $tmpArr)) {
+                unset($addressees[$key]);
+            } else {
+                $tmpArr[] = $value['staff_sn'];
+            }
+        }
+        $eventlog->getConnection()->transaction(function() use ($eventlog, $data) {
             $eventlog->save();
-            $eventlog->addressee()->createMany($datas['addressees']);
-            $eventlog->participant()->createMany($datas['participants']);
+            $eventlog->addressee()->createMany($addressees);
+            $eventlog->participant()->createMany($data['participants']);
         });
 
         return response()->json(['message' => '添加成功'], 201);
@@ -123,6 +137,7 @@ class EventLogController extends Controller
     public function show(Request $request, EventLogModel $eventlog)
     {
         $eventlog->load('participant', 'addressee');
+        $eventlog->executed_at = Carbon::parse($eventlog->executed_at)->toDateString();
 
         return response()->json($eventlog);
     }

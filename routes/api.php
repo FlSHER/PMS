@@ -29,10 +29,6 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
         // @get /api/event-logs
         $api->get('/', APIs\EventLogController::class.'@index');
 
-        // 审核日志列表
-        // @get /api/event-logs/audit
-        $api->get('audit', APIs\EventLogController::class.'@audit');
-
         // 事件类型列表
         // @get /api/event-logs/categories
         $api->get('/categories', APIs\EventLogController::class.'@cates');
@@ -40,6 +36,10 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
         // 事件列表
         // @get /api/event-logs/:category/events
         $api->get('{category}/events', APIs\EventLogController::class.'@events');
+
+        // 事件列表
+        // @get /api/event-logs/final-staff
+        $api->get('final-staff', APIs\EventLogController::class.'@finalStaff');
 
         // 添加事件日志
         // @post /api/event-logs/event

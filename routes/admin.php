@@ -60,6 +60,10 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $admin) {
     // @patch /admin/base-points/setting
     $admin->patch('base-points/setting', Admin\BasePointController::class . '@store');
 
+    // 存储单个配置
+    // @patch /admin/base-points/setting
+    $admin->post('base-points/setting', Admin\BasePointController::class . '@storeSeniority');
+
     // route 证书配置
     $admin->group(['prefix' => 'certificates'], function (RouteContract $admin) {
 
@@ -91,6 +95,10 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $admin) {
     // 批量删除证书拥有者
     // @post /admin/certificate-staff/batch/delete
     $admin->post('certificate-staff/batch/delete',Admin\CertificateController::class . '@deleteCertificateStaff');
+
+    // 获取任务执行记录
+    // @get /admin/commadn-logs
+    $admin->get('commadn-logs', Admin\CommandController::class.'@index');
 });
 
 Route::get('events/example', Admin\EventController::class . '@example');//导出模板范例ok  record

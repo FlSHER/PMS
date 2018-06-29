@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class ArtisanCommandLog extends Model
 {
+	use Traits\ListScopes;
+	
 	/**
 	 * 复用任务编号筛选.
 	 * 

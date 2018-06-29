@@ -37,14 +37,14 @@ class Log
         $user = app('api')->getStaff($staff_sn);
 
         return [
-            'staff_sn' => $user['staff_sn'] ?? 0,
-            'staff_name' => $user['realname'] ?? '',
-            'brand_id' => $user['brand']['id'] ?? 0,
-            'brand_name' => $user['brand']['name'] ?? '',
-            'department_id' => $user['department_id'] ?? 0,
-            'department_name' => $user['department']['full_name'] ?? '',
-            'shop_sn' => $user['shop_sn'] ?? '',
-            'shop_name' => $user['shop']['name'] ?? '',
+            'staff_sn' => $user['staff_sn'],
+            'staff_name' => $user['realname'],
+            'brand_id' => $user['brand']['id'],
+            'brand_name' => $user['brand']['name'],
+            'department_id' => $user['department_id'],
+            'department_name' => $user['department']['full_name'],
+            'shop_sn' => $user['shop_sn'],
+            'shop_name' => $user['shop']['name'],
         ];
     }
 

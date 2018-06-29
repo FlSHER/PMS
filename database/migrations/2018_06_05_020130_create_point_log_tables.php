@@ -22,8 +22,8 @@ class CreatePointLogTables extends Migration
             $table->char('brand_name', 10)->comment('品牌名称');
             $table->unsignedSmallInteger('department_id')->comment('部门ID');
             $table->char('department_name', 100)->comment('部门名称');
-            $table->char('shop_sn', 10)->comment('店铺代码');
-            $table->char('shop_name', 50)->comment('店铺名称');
+            $table->char('shop_sn', 10)->nullable()->default('')->comment('店铺代码');
+            $table->char('shop_name', 50)->nullable()->default('')->comment('店铺名称');
             $table->mediumInteger('point_a')->default(0)->comment('A分变化');
             $table->mediumInteger('point_b')->default(0)->comment('B分变化');
             $table->timestamp('changed_at')->comment('积分变化时间');

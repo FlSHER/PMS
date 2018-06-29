@@ -7,16 +7,16 @@ use Illuminate\Http\Request;
 use Illuminate\Console\Command;
 use function App\monthBetween;
 use App\Models\PointLogSource;
+use App\Models\ArtisanCommandLog;
 use App\Models\PointLog as PointLogModel;
-use App\Models\ArtisanCommandLog as CommandLogModel;
 use App\Models\PersonalPointStatistic as StatisticModel;
 use App\Models\PersonalPointStatisticLog as StatisticLogModel;
 
-class CalculateUserPoint extends Command
+class CalculateStaffPoint extends Command
 {
 
-    protected $signature = 'pms:calculate-user-point';
-    protected $description = 'Calculate user point';
+    protected $signature = 'pms:calculate-staff-point';
+    protected $description = 'Calculate staff point';
 
     public function __construct()
     {
@@ -28,12 +28,13 @@ class CalculateUserPoint extends Command
     	$this->calculateMonthPoint();
     }
 
-    public function calculateBasePoint()
+    public function calculateMonthPoint()
     {
         $lastMonth = [];
         $statistics = [];
         $calculatedAt = Carbon::now();
-        $lastDaily = CommandLogModel::bySn('pms:calculate-user-point')->latest('id')->first();
+        $lastDaily = ArtisanCommandLog::bySn('pms:calculate-staff-point')->latest('id')->first();
+
         if ($lastDaily !== null) {
 
             // 获取上次结算的所有数据
@@ -103,12 +104,7 @@ class CalculateUserPoint extends Command
             $statistics[$log->staff_sn]['calculated_at'] = $calculatedAt;
 
         }
-        $commandID = CommandLogModel::insertGetId([
-            'command_sn' => 'pms:calculate-user-point',
-            'title' => '积分结算',
-            'status' => 0,
-            'created_at' => $calculatedAt
-        ]);
+        $commandModel = $this->createLog();
 
         try {
             \DB::beginTransaction();
@@ -116,21 +112,36 @@ class CalculateUserPoint extends Command
             array_walk($statistics, [$this, 'saveDailyLog']);
             array_walk($lastMonth, [$this, 'saveMonthlyLog']);
 
-            CommandLogModel::where('id', $commandID)->update([
-                'status' => 1
-            ]);
+            $commandModel->status = 1;
+            $commandModel->save();
 
             \DB::commit();
         } catch (Exception $e) {
-
-            CommandLogModel::where('id', $commandID)->update([
-                'status' => 2
-            ]);
+            $commandModel->status = 2;
+            $commandModel->save();
 
             \DB::rollBack();
         }
     }
     
+    /**
+     * 创建积分日志.
+     * 
+     * @author 28youth
+     * @return ArtisanCommandLog
+     */
+    public function createLog(): ArtisanCommandLog
+    {
+        $commandModel = new ArtisanCommandLog();
+        $commandModel->command_sn = 'pms:calculate-staff-point';
+        $commandModel->created_at = Carbon::now();
+        $commandModel->title = '每月积分结算';
+        $commandModel->status = 0;
+        $commandModel->save();
+
+        return $commandModel;
+    }
+
     /**
      * 获取结算所需用户信息.
      * 

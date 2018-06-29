@@ -15,6 +15,8 @@ class Kernel extends ConsoleKernel
     protected $commands = [
         Commands\PackageCreateCommand::class,
         Commands\PackageHandlerCommand::class,
+        Commands\CalculateStaffBasePoint::class,
+        Commands\CalculateStaffPoint::class
     ];
 
     /**
@@ -30,7 +32,10 @@ class Kernel extends ConsoleKernel
                  ->hourly();
 
         // Monthly statistics of employees' points
-        $schedule->command('pms:calculate-user-point')->monthlyOn(1, '1:30');
+        $schedule->command('pms:calculate-staff-point')->monthlyOn(1, '1:30');
+
+        // Monthly statistics of employees' base points
+        $schedule->command('pms:calculate-staff-basepoint')->monthlyOn(1);
     }
 
     /**
