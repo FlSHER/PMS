@@ -24,7 +24,6 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $admin) {
     $admin->delete('events/{id}', Admin\EventController::class . '@delete');//删除事件ok
     $admin->post('events/import', Admin\EventController::class . '@import');//导入事件ok
     $admin->get('events/export', Admin\EventController::class . '@export');//导出事件ok
-    $admin->get('events/example', Admin\EventController::class . '@example');//导出模板范例ok
     //事件分类表接口
     $admin->get('/events/types', Admin\EventController::class . '@indexType');//事件分类列表ok
     $admin->patch('/events/types', Admin\EventController::class . '@refactorType');//事件分类排序，修改父级ok
@@ -45,7 +44,14 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $admin) {
     $admin->get('point-log', Admin\PointController::class . '@index');//积分变动列表
     $admin->get('point-log/{id}', Admin\PointController::class . '@details');//积分变动详情页面
     $admin->get('point/export', Admin\PointController::class . '@export');//积分变动导出 暂时不用
-
+    //奖扣任务
+    $admin->get('targets', Admin\PointTargetController::class . '@targets');//获取奖扣指标列表  页面左侧
+    $admin->get('targets/{id}', Admin\PointTargetController::class . '@targetsDetails');//获取奖扣指标详情
+    $admin->post('targets', Admin\PointTargetController::class . '@storeTarget');//添加奖扣指标
+    $admin->put('targets/{id}', Admin\PointTargetController::class . '@editTarget');//修改奖扣指标
+    $admin->put('targets/{id}/staff', Admin\PointTargetController::class . '@editStaff');//修改奖扣指标关联人员
+    $admin->delete('targets/{id}', Admin\PointTargetController::class . '@deleteTarget');//删除奖扣指标     PointTargetCommand
+    $admin->get('target',Admin\PointTargetController::class.'@test');//测试
     // 获取基础分配置
     // @get /admin/base-points/setting
     $admin->get('base-points/setting', Admin\BasePointController::class . '@index');
@@ -86,3 +92,5 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $admin) {
     // @post /admin/certificate-staff/batch/delete
     $admin->post('certificate-staff/batch/delete',Admin\CertificateController::class . '@deleteCertificateStaff');
 });
+
+Route::get('events/example', Admin\EventController::class . '@example');//导出模板范例ok  record
