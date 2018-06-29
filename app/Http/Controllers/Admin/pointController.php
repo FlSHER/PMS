@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Services\Admin\PointService;
 use Illuminate\Http\Request;
 
-class pointController extends Controller
+class PointController extends Controller
 {
     protected $point;
 
@@ -21,6 +21,16 @@ class pointController extends Controller
     public function index(Request $request)
     {
         return $this->point->index($request);
+    }
+
+    /**
+     * @param Request $request
+     * @return mixed
+     *积分变动详情
+     */
+    public function details(Request $request)
+    {
+        return $this->point->getDetails($request);
     }
 
     /**
