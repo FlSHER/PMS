@@ -34,28 +34,6 @@ class EventRepository
     public function getPaginateList(Request $request)
     {
         return $this->event->filterByQueryString()->withPagination($request->get('pagesize', 10));
-//        $builder = ($this->event instanceof Model) ? $this->event->query() : $this->event;
-//        $sort = explode('-', $request->sort);
-//        $limit = $request->query('limit', 20);
-//        $filters = $request->query('filters', '');
-//        if ($filters && $filters !== null) {
-//            $maps = $this->formatFilter($filters);
-//            foreach ($maps['maps'] as $k => $map) {
-//                $curKey = $maps['fields'][$k];
-//                $builder->when($curKey, $map[$curKey]);
-//            }
-//        }
-//        $builder->when(($sort && !$sort), function ($query) use ($sort) {
-//            $query->orderBy($sort[0], $sort[1]);
-//        });
-//        $items = $builder->paginate($limit);
-//        return [
-//            'data' => $items->items(),
-//            'total' => $items->count(),
-//            'page' => $items->currentPage(),
-//            'pagesize' => $limit,
-//            'totalpage' => $items->total(),
-//        ];
     }
 
     /**
@@ -74,7 +52,6 @@ class EventRepository
             $maps = $this->formatFilter($filters);
             foreach ($maps['maps'] as $k => $map) {
                 $curKey = $maps['fields'][$k];
-
                 $builder->when($curKey, $map[$curKey]);
             }
         }
@@ -112,9 +89,9 @@ class EventRepository
         $event->point_b_max = $request->point_b_max;
         $event->point_b_default = $request->point_b_default;
         $event->first_approver_sn = $request->first_approver_sn;
-        $event->first_approver_name = $request->first_approver_name;
+        $event->first_approver_name = $request->first_approver_sn > 0 ? $request->first_approver_name : "";
         $event->final_approver_sn = $request->final_approver_sn;
-        $event->final_approver_name = $request->final_approver_name;
+        $event->final_approver_name = $request->final_approver_sn > 0 ? $request->final_approver_name : "";
         $event->first_approver_locked = $request->first_approver_sn > 0 ? $request->first_approver_locked : 0;
         $event->final_approver_locked = $request->final_approver_sn > 0 ? $request->final_approver_locked : 0;
         $event->default_cc_addressees = $request->default_cc_addressees;
@@ -135,7 +112,25 @@ class EventRepository
         if (empty($event)) {
             abort(404, '未找到原始数据');
         }
-        $event->update($request->all());
+        $sql = [
+            'name' => $request->name,
+            'type_id' => $request->type_id,
+            'point_a_min' => $request->point_a_min,
+            'point_a_max' => $request->point_a_max,
+            'point_a_default' => $request->point_a_default,
+            'point_b_min' => $request->point_b_min,
+            'point_b_max' => $request->point_b_max,
+            'point_b_default' => $request->point_b_default,
+            'first_approver_sn' => $request->first_approver_sn,
+            'first_approver_name' => $request->first_approver_sn > 0 ? $request->first_approver_name : "",
+            'final_approver_sn' => $request->final_approver_sn,
+            'final_approver_name' => $request->final_approver_sn > 0 ? $request->final_approver_name : "",
+            'first_approver_locked' => $request->first_approver_locked,
+            'final_approver_locked' => $request->final_approver_locked,
+            'default_cc_addressees' => $request->default_cc_addressees,
+            'is_active' => $request->is_active,
+        ];
+        $event->update($sql);
         return $event;
     }
 
