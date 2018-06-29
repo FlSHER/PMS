@@ -26,6 +26,16 @@ class PointService
     }
 
     /**
+     * @param $request
+     * @return mixed
+     * 获取单条信息
+     */
+    public function getDetails($request)
+    {
+        return $this->point->getDetailsData($request);
+    }
+
+    /**
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      * 积分变动导出
