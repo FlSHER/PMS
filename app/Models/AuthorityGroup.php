@@ -22,7 +22,7 @@ class AuthorityGroup extends Model
      * @return \Illuminate\Database\Eloquent\Relations\hasmany
      */
 
-    public function departments()
+    public function department()
     {
         return $this->hasMany(AuthorityGroupHasDepartment::class,'authority_group_id','id');
     }
