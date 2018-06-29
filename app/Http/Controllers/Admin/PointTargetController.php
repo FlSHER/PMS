@@ -116,18 +116,18 @@ class PointTargetController extends Controller
      */
     public function test()
     {
-        $target=\App\Models\PointManagementTargets::get();
-        if($target->all() != false){
-            foreach ($target as $k=>$v){
+        $target = \App\Models\PointManagementTargets::get();
+        if ($target->all() != false) {
+            foreach ($target as $k => $v) {
                 $this->addTargetLogs($v);
             }
         }
-        $hasStaff=\App\Models\PointManagementTargetHasStaff::with(['targets.targetLogs' => function($query){
+        $hasStaff = \App\Models\PointManagementTargetHasStaff::with(['targets.targetLogs' => function ($query) {
 //            $query->whereBetween('date',monthBetween());  monthBetween()在1号的00:00:00  不会包含在当月
-            $query->whereYear('date',date('Y'))->whereMonth('date',date('m'));
+            $query->whereYear('date', date('Y'))->whereMonth('date', date('m'));
         }])->get();
-        if($hasStaff->all() != false){
-            foreach ($hasStaff as $k=>$v){
+        if ($hasStaff->all() != false) {
+            foreach ($hasStaff as $k => $v) {
                 $this->addStaffLogs($v);
             }
         }
@@ -135,37 +135,37 @@ class PointTargetController extends Controller
 
     public function addTargetLogs($v)
     {
-        $logs=new \App\Models\PointManagementTargetLogs();
-        $logs->target_id=$v['id'];
-        $logs->date=date('Y-m-1');
-        $logs->point_b_awarding_target=$v['point_b_awarding_target'];
-        $logs->point_b_deducting_target=$v['point_b_deducting_target'];
-        $logs->event_count_target=$v['event_count_target'];
-        $logs->deducting_percentage_target=$v['deducting_percentage_target'];
+        $logs = new \App\Models\PointManagementTargetLogs();
+        $logs->target_id = $v['id'];
+        $logs->date = date('Y-m-1');
+        $logs->point_b_awarding_target = $v['point_b_awarding_target'];
+        $logs->point_b_deducting_target = $v['point_b_deducting_target'];
+        $logs->event_count_target = $v['event_count_target'];
+        $logs->deducting_percentage_target = $v['deducting_percentage_target'];
         $logs->save();
     }
 
     public function addStaffLogs($all)
     {
-        $logsStaff=new \App\Models\PointManagementTargetLogHasStaff();
-        $oaStaff=app('api')->withRealException()->getStaff($all->staff_sn);
-        $logsStaff->target_id=$all->targets['id'];
-        $logsStaff->target_log_id=$all->targets->targetLogs[0]['id'];
-        $logsStaff->date=date('Y-m-1');
-        $logsStaff->staff_sn=$oaStaff['staff_sn'];
-        $logsStaff->staff_name=$oaStaff['realname'];
-        $logsStaff->brand_id=$oaStaff['brand_id'];
-        $logsStaff->brand_name=$oaStaff['brand']['name'];
-        $logsStaff->department_id=$oaStaff['department_id'];
-        $logsStaff->department_name=$oaStaff['department']['full_name'];
-        if(isset($oaStaff['shop']['name'])){
-            $logsStaff->shop_sn=$oaStaff['shop']['shop_sn'];
-            $logsStaff->shop_name=$oaStaff['shop']['name'];
+        $logsStaff = new \App\Models\PointManagementTargetLogHasStaff();
+        $oaStaff = app('api')->withRealException()->getStaff($all->staff_sn);
+        $logsStaff->target_id = $all->targets['id'];
+        $logsStaff->target_log_id = $all->targets->targetLogs[0]['id'];
+        $logsStaff->date = date('Y-m-1');
+        $logsStaff->staff_sn = $oaStaff['staff_sn'];
+        $logsStaff->staff_name = $oaStaff['realname'];
+        $logsStaff->brand_id = $oaStaff['brand_id'];
+        $logsStaff->brand_name = $oaStaff['brand']['name'];
+        $logsStaff->department_id = $oaStaff['department_id'];
+        $logsStaff->department_name = $oaStaff['department']['full_name'];
+        if (isset($oaStaff['shop']['name'])) {
+            $logsStaff->shop_sn = $oaStaff['shop']['shop_sn'];
+            $logsStaff->shop_name = $oaStaff['shop']['name'];
         }
-        $logsStaff->point_b_awarding_result=$all->targets['point_b_awarding_target'];
-        $logsStaff->point_b_deducting_result=$all->targets['point_b_deducting_target'];
-        $logsStaff->event_count_result=$all->targets['event_count_target'];
-        $logsStaff->deducting_percentage_result=$all->targets['deducting_percentage_target'];
+        $logsStaff->point_b_awarding_result = $all->targets['point_b_awarding_target'];
+        $logsStaff->point_b_deducting_result = $all->targets['point_b_deducting_target'];
+        $logsStaff->event_count_result = $all->targets['event_count_target'];
+        $logsStaff->deducting_percentage_result = $all->targets['deducting_percentage_target'];
         $logsStaff->save();
     }
 }
