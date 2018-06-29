@@ -80,7 +80,7 @@ class FinalsRepositories
     {
         $finals = $this->finalModel->find($request->route('id'));
         if ((bool)$finals == false) {
-            abort(400, '提供无效参数');
+            abort(404, '提供无效参数');
         }
         $finals->update($request->all());
         return $finals;
