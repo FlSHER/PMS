@@ -20,11 +20,11 @@ class CreatePointManagementTargetLogHasStaffTable extends Migration
             $table->unsignedMediumInteger('staff_sn')->comment('员工编号');
             $table->char('staff_name', 10)->comment('员工姓名');
             $table->unsignedTinyInteger('brand_id')->comment('品牌ID');
-            $table->char('brand_name', 10)->comment('品牌名称');
+            $table->char('brand_name', 10)->default('')->comment('品牌名称');
             $table->unsignedSmallInteger('department_id')->comment('部门ID');
-            $table->char('department_name', 100)->comment('部门名称');
-            $table->char('shop_sn', 10)->comment('店铺代码');
-            $table->char('shop_name', 50)->comment('店铺名称');
+            $table->char('department_name', 100)->default('')->comment('部门名称');
+            $table->char('shop_sn', 10)->default('')->comment('店铺代码');
+            $table->char('shop_name', 50)->default('')->comment('店铺名称');
             $table->unsignedInteger('point_b_awarding_result')->comment('奖分完成情况');
             $table->unsignedInteger('point_b_deducting_result')->comment('扣分完成情况');
             $table->unsignedInteger('event_count_result')->comment('奖扣次数完成情况');
