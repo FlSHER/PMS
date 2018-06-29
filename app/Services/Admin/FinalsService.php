@@ -5,7 +5,7 @@ namespace App\Services\Admin;
 use App\Repositories\FinalsRepositories;
 use Illuminate\Http\Request;
 
-class FinalsService//todo 验证编号唯一性
+class FinalsService
 {
     protected $finals;
 
@@ -27,7 +27,7 @@ class FinalsService//todo 验证编号唯一性
     public function addFinals($request)
     {
         if ($this->finals->repetition($request->staff_sn)) {
-            abort(400, '当前员工编号已存在');
+            abort(422, '当前员工编号已存在');
         };
         $id = $this->finals->delRepetition($request->staff_sn);
         if (true == (bool)$id) {
@@ -49,7 +49,7 @@ class FinalsService//todo 验证编号唯一性
     public function updateFinals($request)
     {
         if ($this->finals->editRepetition($request->route('id'), $request->staff_sn)) {
-            abort(400, '当前员工编号已存在');
+            abort(422, '当前员工编号已存在');
         }
         $id = $this->finals->delRepetition($request->staff_sn);
         if (true == (bool)$id) {
@@ -59,11 +59,16 @@ class FinalsService//todo 验证编号唯一性
         return $this->finals->updateFinals($request);
     }
 
+    /**
+     * @param $request
+     * @return \Illuminate\Contracts\Routing\ResponseFactory|\Symfony\Component\HttpFoundation\Response
+     * 删除终审人
+     */
     public function deleteFinals($request)
     {
         if (false == (bool)$this->finals->deleteFinalsData($request->route('id'))) {
             return response('删除失败', 404);
         }
-        return response('', 201);
+        return response('', 204);
     }
 }
