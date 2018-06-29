@@ -40,10 +40,10 @@ class PointTargetRepository
      */
     public function targetDetails($request)
     {
-        return $this->targetModel->with(['targetLogs'=>function($query){
-            $query->whereYear('date', date('Y'))->whereMonth('date',date('m'));
-        }])->with('targetHasStaff')->with(['targetLogHasStaff'=>function($quest){
-            $quest->whereYear('date', date('Y'))->whereMonth('date',date('m'));
+        return $this->targetModel->with(['targetLogs' => function ($query) {
+            $query->whereYear('date', date('Y'))->whereMonth('date', date('m'));
+        }])->with('targetHasStaff')->with(['targetLogHasStaff' => function ($quest) {
+            $quest->whereYear('date', date('Y'))->whereMonth('date', date('m'));
         }])->where('id', $request->route('id'))->first();
     }
 
