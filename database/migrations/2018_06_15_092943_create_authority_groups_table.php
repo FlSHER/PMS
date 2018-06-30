@@ -16,6 +16,7 @@ class CreateAuthorityGroupsTable extends Migration
         Schema::create('authority_groups', function (Blueprint $table) {
             $table->increments('id');
             $table->char('name', 20)->comment('分组名称');
+            $table->timestamps();
         });
     }
 
