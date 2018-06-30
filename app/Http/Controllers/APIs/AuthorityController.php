@@ -19,7 +19,11 @@ class AuthorityController extends Controller
 	{
 		$user = $request->user();
 
-		$items = $group->query()->get();
+		$items = $group->query()
+			->whereHas('staff', function ($query) use ($user) {
+			    $query->where('staff_sn', $user->staff_sn);
+			})
+			->get();
 
 		return response()->json($items, 200);
 	}
