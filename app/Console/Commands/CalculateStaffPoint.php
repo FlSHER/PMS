@@ -43,13 +43,13 @@ class CalculateStaffPoint extends Command
                 ->whereBetween('calculated_at', [$lastDaily->created_at, $calculatedAt])
                 ->get();
             
-            $lastStatis->map(function ($item) use (&$statistics, &$lastMonthly, $lastDaily) {
+            $lastStatis->map(function ($item) use (&$statistics, &$lastMonth, $lastDaily) {
 
                 // 判断跨月清空数据
                 if (!Carbon::parse($lastDaily->created_at)->isCurrentMonth()) {
                     // 生成上月月结数据
-                    $lastMonthly[$item->staff_sn] = $item->toArray();
-                    $lastMonthly[$item->staff_sn]['date'] = Carbon::create(null, null, 02)->subMonth();
+                    $lastMonth[$item->staff_sn] = $item->toArray();
+                    $lastMonth[$item->staff_sn]['date'] = Carbon::create(null, null, 02)->subMonth();
                     
                     $item->point_a = 0;
                     $item->point_b_monthly = 0;
