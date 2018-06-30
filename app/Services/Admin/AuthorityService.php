@@ -10,6 +10,7 @@ namespace App\Services\Admin;
 //use App\Repositories\EventTypeRepository;
 use App\Repositories\AuthorityRepository;
 use Illuminate\Support\Facades\Auth;
+use DB;
 
 class AuthorityService
 {
@@ -36,21 +37,26 @@ class AuthorityService
     public function addAuthGroup($request)
     {
         $auth = $this->authRepository->firstAuthGroup($request->name);
+        if((bool)$auth == true){abort(400,'当前分组名称存在');}
         $arrayId = false != $auth ? (array)$auth['id'] : (array)$this->authRepository->addAuthority($request);
         $authorityId = implode($arrayId);
         if ($request->staff != null) {
+            DB::beginTransaction();
             foreach ($request->staff as $k=>$v){
                 $bool = $this->authRepository->staffOnly($authorityId,$v['staff_sn']);
                 if(true==(bool)$bool){
+                    DB::rollback();
                     abort(400,$v['staff_sn'].'员工编号已存在');
                 }
                 $this->authRepository->editStaffGroup($authorityId,$v);
             }
         }
         if ($request->departments != null) {
+            DB::beginTransaction();
             foreach ($request->departments as $key=>$val){
                 $departmentBool = $this->authRepository->departmentOnly($authorityId,$val['department_id']);
                 if(true==(bool)$departmentBool){
+                    DB::rollback();
                     abort(400,$val['department_id'].'部门已存在');
                 }
                 $this->authRepository->editDepartmentGroup($authorityId,$val);
@@ -78,21 +84,29 @@ class AuthorityService
             }
         }
         if($request->staff != null){
-            $this->authRepository->deleteStaffGroup($id);
-            foreach ($request->staff as $k=>$v){
-                $staffGroup=$this->authRepository->editStaffGroup($id,$v);
-                if(false == (bool)$staffGroup){
-                    abort(404,'分组员工操作失败');
+            try{
+                DB::beginTransaction();//开始
+                $this->authRepository->deleteStaffGroup($id);
+                foreach ($request->staff as $k=>$v){
+                    $this->authRepository->editStaffGroup($id,$v);
                 }
+                DB::commit();
+            }catch (\Exception $e){
+                DB::rollBack();
+                abort(404,'分组员工操作失败');
             }
         }
         if($request->departments != null){
-            $this->authRepository->deleteDepartmentGroup($id);
-            foreach ($request->departments as $key=>$val){
-                $department=$this->authRepository->editDepartmentGroup($id,$val);
-                if(false == (bool)$department){
-                    abort(404,'分组部门操作失败');
+            try{
+                DB::beginTransaction();//开始
+                $this->authRepository->deleteDepartmentGroup($id);
+                foreach ($request->departments as $key=>$val){
+                    $this->authRepository->editDepartmentGroup($id,$val);
                 }
+                DB::commit();
+            }catch (\Exception $e){
+                DB::rollBack();
+                abort(404,'分组部门操作失败');
             }
         }
         return response($this->authRepository->getIdAuthGroup($request->route('id')), 201);
