@@ -19,6 +19,30 @@ class RequestSSOService
 		]);
 	}
 
+	/**
+	 * oauth 客户端授权.
+	 * 
+	 * @author 28youth
+	 * @return RequestSSOService
+	 */
+	public function client()
+	{
+		$response = $this->request('post', '/oauth/token', [
+			'headers' => ['Accept' => 'application/json'],
+			'form_params' => [
+		        'grant_type' => 'client_credentials',
+		        'client_id' => 7,
+		        'client_secret' => 'lcBIS0l1eW038wqUgDf6qsNyUl3L69Ck8YxHXKGh',
+		    ]
+		]);
+		$this->setHeader([
+			'Accept' => 'application/json',
+			'Authorization' => 'Bearer '.$response['access_token']
+		]);
+
+		return $this;
+	}
+
 	protected function getBaseUri(): string
     {
         return config('sso.host');
