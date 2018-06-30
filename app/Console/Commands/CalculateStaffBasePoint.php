@@ -29,7 +29,7 @@ class CalculateStaffBasePoint extends Command
         $ratio = CommonConfig::byNamespace('basepoint')->byName('ratio')->pluck('value');
         // 所有权限分组员工
         $staff_sns = AuthorityGroupHasStaff::pluck('staff_sn')->unique()->values()->toJson();
-        $users = app('api')->getStaff(['filters' => 'staff_sn='.$staff_sns]);
+        $users = app('api')->client()->getStaff(['filters' => 'staff_sn='.$staff_sns]);
 
         $commandModel = $this->createLog();
 

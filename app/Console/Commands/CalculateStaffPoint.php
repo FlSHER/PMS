@@ -150,7 +150,7 @@ class CalculateStaffPoint extends Command
      */
     public function checkStaff(int $staff_sn): array
     {
-        $user = app('api')->getStaff($staff_sn);
+        $user = app('api')->client()->getStaff($staff_sn);
 
         return [
             'staff_sn' => $user['staff_sn'] ?? 0,
