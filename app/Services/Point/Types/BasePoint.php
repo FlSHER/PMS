@@ -9,17 +9,17 @@ use App\Models\PointLog as PointLogModel;
 
 class BasePoint extends Log
 {
-	
-	/**
-	 * 基础分记录.
-	 * 
-	 * @author 28youth
-	 * @param  array
-	 * @return mixed
-	 */
-	public function record($staff)
-	{
-		$model = new PointLogModel();
+    
+    /**
+     * 基础分记录.
+     * 
+     * @author 28youth
+     * @param  array
+     * @return mixed
+     */
+    public function record($staff)
+    {
+        $model = new PointLogModel();
 
         $model->title = '基础分统计结果';
         $model->staff_sn = $staff['staff_sn'];
@@ -34,5 +34,5 @@ class BasePoint extends Log
         $model->source_id = self::FIXED_POINT;
         $model->changed_at = Carbon::now();
         $model->save();
-	}
+    }
 }
