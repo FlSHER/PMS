@@ -10,36 +10,87 @@ use App\Models\PointLog as PointLogModel;
 class Event extends Log
 {
 
+    /**
+     * 记录事件参与人、初审人、记录人积分变更.
+     * 
+     * @author 28youth
+     * @param  \App\Models\EventLog $eventlog
+     */
     public function record(EventLogModel $eventlog)
     {
-        $participants = $eventlog->participant;
-        
-        $logs = $participants->map(function ($item) use ($eventlog) {
-            $item = [
-                'title' => '事件积分变化',
-                'point_a' => $item->point_a,
-                'point_b' => $item->point_b,
-                'staff_sn' => $item->staff_sn,
-                'source_id' => self::EVENT_POINT,
-                'source_foreign_key' => $eventlog->id,
-                'first_approver_sn' => $eventlog->first_approver_sn,
-                'first_approver_name' => $eventlog->first_approver_name,
-                'final_approver_sn' => $eventlog->final_approver_sn,
-                'final_approver_name' => $eventlog->final_approver_name,
-                'changed_at' => $item->executed_at,
-                'created_at' => Carbon::now(),
-            ];
+        $baseData = $this->fillBaseData($eventlog);
 
-            // 根据事件执行时间 月结后自动顺延到本月一号
-            if (!Carbon::parse($item->executed_at)->isCurrentMonth()) {
-                $item['changed_at'] = Carbon::create(null, null, 01);
-            }
+        // 事件参与人得分
+        $logs = $eventlog->participant->map(function ($item) use ($baseData) {
+            $item = array_merge($item->toArray(), $baseData);
 
             return $item;
-
         })->toArray();
 
-        $this->createLogs($logs);
+        // 初审人得分
+        $logs[] = array_merge($baseData, [
+            'point_a' => 0,
+            'point_b' => $eventlog->first_approver_point,
+            'staff_sn' => $eventlog->first_approver_sn,
+            'source_id' => self::SYSTEM_POINT,
+            'title' => '初审事件: '.$eventlog->event_name
+        ]);
+        // 记录人得分
+        $logs[] = array_merge($baseData, [
+            'point_a' => 0,
+            'point_b' => $eventlog->recorder_point,
+            'staff_sn' => $eventlog->recorder_sn,
+            'source_id' => self::SYSTEM_POINT,
+            'title' => '记录事件: '.$eventlog->event_name
+        ]);
+
+        array_walk($logs, [$this, 'createLog']);
     }
 
+    /**
+     * 创建积分变更日志.
+     * 
+     * @author 28youth
+     * @param  array $params
+     */
+    protected function createLog($log)
+    {
+        // 根据事件执行时间 月结后自动顺延到本月一号
+        $setDay = config('command.monthly_date');
+        $curDay = Carbon::now()->daysInMonth;
+        $changedAt = Carbon::parse($log['changed_at']);
+        $curMonth = Carbon::now()->startOfMonth();
+        
+        if ($curDay >= $setDay && $changedAt->lt($curMonth)) {
+            $log['changed_at'] = $curMonth;
+        }
+        // 最新用户信息
+        $user = $this->checkStaff($log['staff_sn']);
+
+        $model = new PointLogModel();
+        $model->fill($user + $log);
+        $model->save();
+    }
+
+    /**
+     * 填充事件基础数据.
+     * 
+     * @author 28youth
+     * @param  \App\Models\EventLog $eventlog
+     * @return array
+     */
+    protected function fillBaseData(EventLogModel $eventlog): array
+    {
+        return [
+            'source_id' => self::EVENT_POINT,
+            'title' => '参与事件: '.$eventlog->event_name,
+            'source_foreign_key' => $eventlog->id,
+            'first_approver_sn' => $eventlog->first_approver_sn,
+            'first_approver_name' => $eventlog->first_approver_name,
+            'final_approver_sn' => $eventlog->final_approver_sn,
+            'final_approver_name' => $eventlog->final_approver_name,
+            'changed_at' => $eventlog->executed_at,
+            'created_at' => Carbon::now(),
+        ];
+    }
 }

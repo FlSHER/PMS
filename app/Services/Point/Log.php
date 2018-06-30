@@ -47,23 +47,4 @@ class Log
             'shop_name' => $user['shop']['name'],
         ];
     }
-
-    /**
-     * 创建积分变更日志.
-     * 
-     * @author 28youth
-     * @param  array $params
-     */
-    public function createLogs($params)
-    {
-        foreach ($params as $key => $log) {
-
-            // 最新用户信息
-            $user = $this->checkStaff($log['staff_sn']);
-
-            $model = new PointLogModel();
-            $model->fill($user + $log);
-            $model->save();
-        }
-    }
 }

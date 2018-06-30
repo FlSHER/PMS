@@ -107,7 +107,7 @@ class EventLogController extends Controller
         }
 
         // 合并默认抄送人到提交的抄送人
-        $addressees = array_merge($event->default_cc_addressees, $data['addressees']);
+        $addressees = array_merge((array) $event->default_cc_addressees, (array) $data['addressees']);
         // 去除重复抄送人
         $tmpArr = [];
         foreach ($addressees as $key => $value) {
