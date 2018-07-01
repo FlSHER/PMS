@@ -104,6 +104,8 @@ class EventLogController extends Controller
         $eventlog->recorder_name = $user->realname;
         if ($eventlog->first_approver_sn === $user->staff_sn) {
             $eventlog->status_id = 1;
+            $eventlog->first_approve_remark = '初审人与记录人相同，系统自动通过。';
+            $eventlog->first_approved_at = Carbon::now();
         }
 
         // 合并默认抄送人到提交的抄送人
