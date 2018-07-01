@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App\Services\Point\Types;
 
@@ -12,7 +12,7 @@ class Event extends Log
 
     /**
      * 记录事件参与人、初审人、记录人积分变更.
-     * 
+     *
      * @author 28youth
      * @param  \App\Models\EventLog $eventlog
      */
@@ -22,7 +22,10 @@ class Event extends Log
 
         // 事件参与人得分
         $logs = $eventlog->participant->map(function ($item) use ($baseData) {
-            $item = array_merge($item->toArray(), $baseData);
+            $eventData = $item->toArray();
+            $eventData['point_a'] = round($eventData['point_a'] * $eventData['count']);
+            $eventData['point_b'] = round($eventData['point_b'] * $eventData['count']);
+            $item = array_merge($eventData, $baseData);
 
             return $item;
         })->toArray();
@@ -33,7 +36,7 @@ class Event extends Log
             'point_b' => $eventlog->first_approver_point,
             'staff_sn' => $eventlog->first_approver_sn,
             'source_id' => self::SYSTEM_POINT,
-            'title' => '初审事件: '.$eventlog->event_name
+            'title' => '初审事件: ' . $eventlog->event_name
         ]);
         // 记录人得分
         $logs[] = array_merge($baseData, [
@@ -41,7 +44,7 @@ class Event extends Log
             'point_b' => $eventlog->recorder_point,
             'staff_sn' => $eventlog->recorder_sn,
             'source_id' => self::SYSTEM_POINT,
-            'title' => '记录事件: '.$eventlog->event_name
+            'title' => '记录事件: ' . $eventlog->event_name
         ]);
 
         array_walk($logs, [$this, 'createLog']);
@@ -49,7 +52,7 @@ class Event extends Log
 
     /**
      * 创建积分变更日志.
-     * 
+     *
      * @author 28youth
      * @param  array $params
      */
@@ -60,7 +63,7 @@ class Event extends Log
         $curDay = Carbon::now()->daysInMonth;
         $changedAt = Carbon::parse($log['changed_at']);
         $curMonth = Carbon::now()->startOfMonth();
-        
+
         if ($curDay >= $setDay && $changedAt->lt($curMonth)) {
             $log['changed_at'] = $curMonth;
         }
@@ -74,7 +77,7 @@ class Event extends Log
 
     /**
      * 填充事件基础数据.
-     * 
+     *
      * @author 28youth
      * @param  \App\Models\EventLog $eventlog
      * @return array
@@ -83,7 +86,7 @@ class Event extends Log
     {
         return [
             'source_id' => self::EVENT_POINT,
-            'title' => '参与事件: '.$eventlog->event_name,
+            'title' => '参与事件: ' . $eventlog->event_name,
             'source_foreign_key' => $eventlog->id,
             'first_approver_sn' => $eventlog->first_approver_sn,
             'first_approver_name' => $eventlog->first_approver_name,

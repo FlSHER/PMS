@@ -28,12 +28,12 @@ class CreateEventsTable extends Migration
             $table->increments('id');
             $table->char('name', 50)->comment('事件名称');
             $table->unsignedSmallInteger('type_id')->comment('事件分类ID');
-            $table->mediumInteger('point_a_min')->default(0)->comment('A分最小值');
-            $table->mediumInteger('point_a_max')->default(0)->comment('A分最大值');
-            $table->mediumInteger('point_b_min')->default(0)->comment('B分最小值');
-            $table->mediumInteger('point_b_max')->default(0)->comment('B分最大值');
-            $table->mediumInteger('point_a_default')->default(0)->comment('A分默认值');
-            $table->mediumInteger('point_b_default')->default(0)->comment('B分默认值');
+            $table->decimal('point_a_min', 8, 2)->default(0)->comment('A分最小值');
+            $table->decimal('point_a_max', 8, 2)->default(0)->comment('A分最大值');
+            $table->decimal('point_b_min', 8, 2)->default(0)->comment('B分最小值');
+            $table->decimal('point_b_max', 8, 2)->default(0)->comment('B分最大值');
+            $table->decimal('point_a_default', 8, 2)->default(0)->comment('A分默认值');
+            $table->decimal('point_b_default', 8, 2)->default(0)->comment('B分默认值');
             $table->unsignedMediumInteger('first_approver_sn')->nullable()->comment('初审人编号');
             $table->char('first_approver_name', 10)->nullable()->comment('初审人姓名');
             $table->unsignedMediumInteger('final_approver_sn')->nullable()->comment('终审人编号');
