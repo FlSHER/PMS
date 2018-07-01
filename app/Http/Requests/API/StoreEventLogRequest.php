@@ -81,7 +81,7 @@ class StoreEventLogRequest extends FormRequest
                 },
             ],
             'executed_at' => 'bail|required|date|before:'.date('Y-m-d H:i'),
-            'event_id' => 'required|integer|exists:event,id',
+            'event_id' => 'required|integer|exists:events,id',
             'first_approver_name' => 'required|string',
             'final_approver_name' => 'required|string',
             'addressees' => 'nullable|array',
