@@ -37,32 +37,40 @@ class AuthorityService
      */
     public function addAuthGroup($request)
     {
-        $auth = $this->authRepository->firstAuthGroup($request->name);
-        if ((bool)$auth == true) {
-            abort(400, '当前分组名称存在');
-        }
-        $arrayId = false != $auth ? (array)$auth['id'] : (array)$this->authRepository->addAuthority($request);
+        $arrayId = (array)$this->authRepository->addAuthority($request);
         $authorityId = implode($arrayId);
         if ($request->staff != null) {
-            DB::beginTransaction();
-            foreach ($request->staff as $k => $v) {
-                $bool = $this->authRepository->staffOnly($authorityId, $v['staff_sn']);
-                if (true == (bool)$bool) {
-                    DB::rollback();
-                    abort(400, $v['staff_sn'] . '员工编号已存在');
+            try{
+                DB::beginTransaction();
+                foreach ($request->staff as $k => $v) {
+                    $bool = $this->authRepository->staffOnly($authorityId, $v['staff_sn']);
+                    if (true == (bool)$bool) {
+                        DB::rollback();
+                        abort(400, $v['staff_sn'] . '员工编号已存在');
+                    }
+                    $this->authRepository->editStaffGroup($authorityId, $v);
                 }
-                $this->authRepository->editStaffGroup($authorityId, $v);
+                DB::commit();
+            }catch (\Exception $e){
+                DB::rollback();
+                abort(400, $v['staff_sn'] . '添加失败');
             }
         }
         if ($request->departments != null) {
-            DB::beginTransaction();
-            foreach ($request->departments as $key => $val) {
-                $departmentBool = $this->authRepository->departmentOnly($authorityId, $val['department_id']);
-                if (true == (bool)$departmentBool) {
-                    DB::rollback();
-                    abort(400, $val['department_id'] . '部门已存在');
+            try{
+                DB::beginTransaction();
+                foreach ($request->departments as $key => $val) {
+                    $departmentBool = $this->authRepository->departmentOnly($authorityId, $val['department_id']);
+                    if (true == (bool)$departmentBool) {
+                        DB::rollback();
+                        abort(400, $val['department_id'] . '部门已存在');
+                    }
+                    $this->authRepository->editDepartmentGroup($authorityId, $val);
                 }
-                $this->authRepository->editDepartmentGroup($authorityId, $val);
+                DB::commit();
+            }catch (\Exception $e){
+                DB::rollback();
+                abort(400, $val['department_id'] . '添加失败');
             }
         }
         $authId = ['id' => $authorityId];
@@ -78,12 +86,9 @@ class AuthorityService
     {
         $id = $request->route('id');
         if ($request->name != null) {
-            if ($this->authRepository->updateFirstAuthGroup($request)) {
-                abort(404, '分组名称重复');
-            };
             $authGroup = $this->authRepository->editAuthGroup($request);
             if (false == (bool)$authGroup) {
-                abort(404, '分组操作失败');
+                abort(400, '分组操作失败');
             }
         }
         if ($request->staff != null) {
@@ -96,7 +101,7 @@ class AuthorityService
                 DB::commit();
             } catch (\Exception $e) {
                 DB::rollBack();
-                abort(404, '分组员工操作失败');
+                abort(400, '分组员工操作失败');
             }
         }
         if ($request->departments != null) {
@@ -109,7 +114,7 @@ class AuthorityService
                 DB::commit();
             } catch (\Exception $e) {
                 DB::rollBack();
-                abort(404, '分组部门操作失败');
+                abort(400, '分组部门操作失败');
             }
         }
         return response($this->authRepository->getIdAuthGroup($request->route('id')), 201);
@@ -126,6 +131,6 @@ class AuthorityService
         if ((bool)$status == true) {
             return response('', 204);
         }
-        abort(404, '删除失败');
+        abort(400, '删除失败');
     }
 }

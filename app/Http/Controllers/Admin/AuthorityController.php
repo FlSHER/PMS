@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Services\Admin\AuthorityService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class AuthorityController extends Controller
 {
@@ -56,7 +57,11 @@ class AuthorityController extends Controller
     public function addAuthGroupVerify($request)
     {
         $this->validate($request, [
-            'name' => 'required',
+            'name' => [
+                'required',
+                Rule::unique('authority_groups', 'name')
+                    ->ignore('id', $request->get('id', 0))
+            ],
             'departments.*.department_id' => 'numeric',
             'departments.*.department_name' => '',
             'staff.*.staff_sn' => 'numeric',
