@@ -61,7 +61,7 @@ class PointRankController extends Controller
         $user->total = 0;
         $datetime = $request->query('datetime');
         $group = GroupModel::find($request->query('group_id', 1));
-
+          
         // 本月
         if (Carbon::parse($datetime)->isCurrentMonth()) {
             $calculatedAt = \DB::table('artisan_command_logs')
@@ -71,7 +71,7 @@ class PointRankController extends Controller
                 ->select('staff_sn', 'staff_name', 'point_b_total as total')
                 ->where(function ($query) use ($group) {
                     $query->whereIn('staff_sn', $group->staff()->pluck('staff_sn'))
-                        ->orWhereIn('department_id', $group->department()->pluck('department_id'));
+                        ->orWhereIn('department_id', $group->departments()->pluck('department_id'));
                 })
                 ->whereBetween('calculated_at', monthBetween())
                 ->orderBy('total', 'desc')
@@ -82,7 +82,7 @@ class PointRankController extends Controller
                 ->select('staff_sn', 'staff_name', 'point_b_total as total')
                 ->where(function ($query) use ($group) {
                     $query->whereIn('staff_sn', $group->staff()->pluck('staff_sn'))
-                        ->orWhereIn('department_id', $group->department()->pluck('department_id'));
+                        ->orWhereIn('department_id', $group->departments()->pluck('department_id'));
                 })
                 ->whereBetween('date', monthBetween($datetime))
                 ->orderBy('total', 'desc')
@@ -117,6 +117,7 @@ class PointRankController extends Controller
                 'rank' => $user->rank ?? 1,
                 'name' => $user->realname,
                 'total' => $user->total,
+                'prev_rank' => $this->prevMonthRank($request, $group)
             ],
         ];
         if (Carbon::parse($datetime)->isCurrentMonth()) {
@@ -146,7 +147,7 @@ class PointRankController extends Controller
             ->whereBetween('date', stageBetween($stime, $etime))
             ->where(function ($query) use ($group) {
                 $query->whereIn('staff_sn', $group->staff()->pluck('staff_sn'))
-                    ->orWhereIn('department_id', $group->department()->pluck('department_id'));
+                    ->orWhereIn('department_id', $group->departments()->pluck('department_id'));
             })
             ->groupBy(['staff_sn', 'staff_name'])
             ->orderBy('total', 'desc')
@@ -203,7 +204,7 @@ class PointRankController extends Controller
             ->select(\DB::raw('staff_sn, staff_name, SUM(point_b_monthly) as total'))
             ->where(function ($query) use ($group) {
                 $query->whereIn('staff_sn', $group->staff()->pluck('staff_sn'))
-                    ->orWhereIn('department_id', $group->department()->pluck('department_id'));
+                    ->orWhereIn('department_id', $group->departments()->pluck('department_id'));
             })
             ->groupBy(['staff_sn', 'staff_name'])
             ->orderBy('total', 'desc')
@@ -239,5 +240,47 @@ class PointRankController extends Controller
             ],
             'calculated_at' => $calculatedAt
         ], 200);
+    }
+
+    /**
+     * 获取上月排行.
+     * 
+     * @author 28youth
+     * @param  \Illuminate\Http\Request $request
+     * @return int
+     */
+    public function prevMonthRank(Request $request, GroupModel $group)
+    {
+        $user = $request->user();
+        $user->rank = 1;
+        $datetime = Carbon::parse($request->query('datetime'))->subMonth();
+
+        $items = StatisticLogModel::query()
+            ->select('staff_sn', 'staff_name', 'point_b_total as total')
+            ->where(function ($query) use ($group) {
+                $query->whereIn('staff_sn', $group->staff()->pluck('staff_sn'))
+                    ->orWhereIn('department_id', $group->departments()->pluck('department_id'));
+            })
+            ->whereBetween('date', monthBetween($datetime))
+            ->orderBy('total', 'desc')
+            ->get();
+
+        $items->map(function ($item, $key) use (&$user) {
+            if ($item->staff_sn === $user->staff_sn) {
+                $user->rank = $key + 1;
+            }
+        });
+        $group->staff->map(function ($item, $key) use ($items, &$user) {
+            if (!in_array($item->staff_sn, $items->pluck('staff_sn')->toArray())) {
+                $item->rank = $items->count() + 1;
+                $items->push($item);
+
+                if ($item->staff_sn === $user->staff_sn) {
+                    $user->rank = $item->rank;
+                }
+            }
+        });
+
+        return $user->rank;
     }
 }
