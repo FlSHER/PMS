@@ -122,7 +122,7 @@ class PointRankController extends Controller
         });
 
         $staffInDepartments = collect(app('api')
-            ->getStaff(['filters' => 'department_id=' . json_encode($departmentIdGroup) . '&status_id>=0']));
+            ->getStaff(['filters' => 'department_id=' . json_encode($departmentIdGroup) . ';status_id>=0']));
 
         $staffInDepartments->map(function ($staff) use ($items, &$user, $lastRank) {
             if (!in_array($staff['staff_sn'], $items->pluck('staff_sn')->toArray())) {
