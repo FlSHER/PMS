@@ -57,10 +57,10 @@ class StoreEventLogRequest extends FormRequest
                 'numeric',
                 function ($attribute, $value, $fail) use ($final) {
                     if ($value > 0 && $value > $final->point_a_awarding_limit) {
-                        $fail('终审人无权限');
+                        return $fail('终审人分值审核上限不能大于' . $final->point_a_awarding_limit);
                     }
-                    if ($value < 0 && $value < $final->point_a_deducting_limit) {
-                        return $fail('终审人无权限');
+                    if ($value < 0 && $value < -$final->point_a_deducting_limit) {
+                        return $fail('终审人分值审核下限不能小于' . -$final->point_a_deducting_limit);
                     }
                 },
                 'max:' . $event->point_a_max,
@@ -73,10 +73,10 @@ class StoreEventLogRequest extends FormRequest
                 'min:' . $event->point_b_min,
                 function ($attribute, $value, $fail) use ($final) {
                     if ($value > 0 && $value > $final->point_b_awarding_limit) {
-                        $fail('终审人无权限');
+                        return $fail('终审人分值审核上限不能大于' . $final->point_b_awarding_limit);
                     }
-                    if ($value < 0 && $value < $final->point_b_deducting_limit) {
-                        return $fail('终审人无权限');
+                    if ($value < 0 && $value < -$final->point_b_deducting_limit) {
+                        return $fail('终审人分值审核下限不能小于' . -$final->point_b_deducting_limit);
                     }
                 },
             ],
