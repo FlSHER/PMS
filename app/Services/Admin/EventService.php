@@ -145,9 +145,9 @@ class EventService
      */
     public function excelExample()
     {
-        $cellData[] = ['事件名字', '事件分类全称', 'A分最小值', 'A分最大值', 'B分最小值', 'B分最大值', 'A分默认值', 'B分默认值', '初审人编号（一个人）', '终审人编号（一个人）', '是否锁定初审人', '是否锁定终审人', '默认抄送人编号（可以选择多个人）', '是否激活'];
-        $cellData[] = ['例：迟到', '例：工作类事件（此名称不能和以前重复）', '例：10', '例：20', '例：5', '例：10', '例：15', '8', '例：100000(可为空)', '例：100001(可为空)', '例：1（1：锁定，0：未锁定）', '例：1（1：锁定，0：未锁定）', '例：（编号=名字）100000=张三,100001=李四,1000002=王五(可为空)', '例：1（1：激活，0未激活）'];
-        $fileName = '积分制事件导入范例文件';
+        $cellData[] = ['事件', '分类全称', 'A分最小值', 'A分最大值', 'B分最小值', 'B分最大值', 'A分默认值', 'B分默认值', '初审人编号', '终审人编号', '是否锁定初审人', '是否锁定终审人', '默认抄送人', '是否激活'];
+        $cellData[] = ['例：迟到', '例：工作类事件（不能重复）', '例：10', '例：20', '例：5', '例：10', '例：15', '例：8', '例：100000(可为空)', '例：100001(可为空)', '例：1（1：锁定，0：未锁定）', '例：1（1：锁定，0：未锁定）', '例：（编号=名字）100000=张三,100001=李四,1000002=王五(可为空)', '例：1（1：激活，0未激活）'];
+        $fileName = '事件导入模板';
         Excel::create($fileName, function ($excel) use ($cellData) {
             $excel->sheet('score', function ($sheet) use ($cellData) {
                 $sheet->rows($cellData);
@@ -326,7 +326,6 @@ class EventService
             return response()->json(['message' => '没有找到符号条件的数据'], 404);
         }
         $eventTop[] = ['事件', '分类', 'A分最小值', 'A分最大值', 'B分最小值', 'B分最大值', 'A分平均值', 'B分平均值', '默认初审人', '默认终审人', '初审人锁定', '终审人锁定', '默认抄送', '是否激活'];
-//        $value   []=['name','type_id','point_a_min','point_a_max','point_b_min','point_b_max','point_a_default','point_b_default','first_approver_name','final_approver_name','first_approver_locked','final_approver_locked','default_cc_addressees','is_active'];
         foreach ($eventData as $k => $v) {
             $eventTop[] = [$v['name'], $v['type_id'], $v['point_a_min'], $v['point_a_max'],
                 $v['point_b_min'], $v['point_b_max'], $v['point_a_default'], $v['point_b_default'],
