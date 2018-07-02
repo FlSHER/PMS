@@ -29,15 +29,11 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('inspire')
-                 ->hourly();
-
+        $schedule->command('inspire')->hourly();
         // Monthly statistics of employees' points
-        $schedule->command('pms:calculate-staff-point')->monthlyOn(1, '1:30');
-
+        $schedule->command('pms:calculate-staff-point')->daily(1, '4:40');
         // Monthly statistics of employees' base points
-        $schedule->command('pms:calculate-staff-basepoint')->monthlyOn(1);
-        $schedule->command('pms:calculate-user-point')->monthlyOn(1, '1:30');
+        $schedule->command('pms:calculate-staff-basepoint')->monthlyOn(1, '2:10');
         $schedule->command('command:pointTarget')->monthlyOn(1, '2:00');
     }
 
@@ -48,7 +44,7 @@ class Kernel extends ConsoleKernel
      */
     protected function commands()
     {
-        $this->load(__DIR__.'/Commands');
+        $this->load(__DIR__ . '/Commands');
 
         require base_path('routes/console.php');
     }
