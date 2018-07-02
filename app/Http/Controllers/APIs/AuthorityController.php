@@ -24,7 +24,7 @@ class AuthorityController extends Controller
                 $query->where('staff_sn', $user->staff_sn);
             })
             ->whereHas('departments', function ($query) use ($user) {
-                $query->where('department_id', $user->department_id);
+                $query->where('department_id', $user->department['id']);
             })
             ->get();
 
