@@ -104,30 +104,35 @@ class PointRankController extends Controller
             return $item;
         });
 
-        $group->staff->map(function ($item, $key) use ($items, &$user) {
-            if (!in_array($item->staff_sn, $items->pluck('staff_sn')->toArray())) {
-                unset($item->authority_group_id);
-                $item->total = 0;
-                $item->rank = $items->count() + 1;
-                $items->push($item);
+        $lastRank = $preItem ? ($preItem->total == 0 ? $preItem->rank : $preItem->rank + 1) : 1;
 
-                if ($item->staff_sn === $user->staff_sn) {
-                    $user->rank = $item->rank;
+        $group->staff->map(function ($staff) use ($items, &$user, $lastRank) {
+            if (!in_array($staff->staff_sn, $items->pluck('staff_sn')->toArray())) {
+                $items->push([
+                    'staff_sn' => $staff->staff_sn,
+                    'staff_name' => $staff->staff_name,
+                    'total' => 0,
+                    'rank' => $lastRank,
+                ]);
+
+                if ($staff->staff_sn === $user->staff_sn) {
+                    $user->rank = $lastRank;
                 }
             }
         });
 
         $staffInDepartments = collect(app('api')->getStaff(['filters' => 'department_id=' . json_encode($departmentIdGroup)]));
 
-        $staffInDepartments->map(function ($item, $key) use ($items, &$user) {
-            if (!in_array($item->staff_sn, $items->pluck('staff_sn')->toArray())) {
-                unset($item->authority_group_id);
-                $item->total = 0;
-                $item->rank = $items->count() + 1;
-                $items->push($item);
-
-                if ($item->staff_sn === $user->staff_sn) {
-                    $user->rank = $item->rank;
+        $staffInDepartments->map(function ($staff) use ($items, &$user, $lastRank) {
+            if (!in_array($staff['staff_sn'], $items->pluck('staff_sn')->toArray())) {
+                $items->push([
+                    'staff_sn' => $staff['staff_sn'],
+                    'staff_name' => $staff['realname'],
+                    'total' => 0,
+                    'rank' => $lastRank,
+                ]);
+                if ($staff['staff_sn'] === $user->staff_sn) {
+                    $user->rank = $lastRank;
                 }
             }
         });
