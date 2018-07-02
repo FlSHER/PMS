@@ -213,13 +213,13 @@ class EventLogController extends Controller
     {
         $user = $request->user();
 
-        if ($eventlog->status_id === 1 && $user->staff_sn !== $eventlog->first_approver_sn) {
+        if ($eventlog->status_id === 0 && $user->staff_sn !== $eventlog->first_approver_sn) {
             return response()->json([
                 'message' => '非初审人无权驳回'
             ], 401);
         }
 
-        if ($eventlog->status_id === 2 && $user->staff_sn !== $eventlog->final_approver_sn) {
+        if ($eventlog->status_id === 1 && $user->staff_sn !== $eventlog->final_approver_sn) {
             return response()->json([
                 'message' => '非终审人无权驳回'
             ], 401);
