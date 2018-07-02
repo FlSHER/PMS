@@ -8,11 +8,11 @@ use Illuminate\Http\Request;
 class AuthorityController extends Controller
 {
 
-    protected  $auth;
+    protected $auth;
 
     public function __construct(AuthorityService $auth)
     {
-        $this->auth=$auth;
+        $this->auth = $auth;
     }
 
     /**
@@ -56,17 +56,17 @@ class AuthorityController extends Controller
     public function addAuthGroupVerify($request)
     {
         $this->validate($request, [
-            'name'=>'required',
+            'name' => 'required',
             'departments.*.department_id' => 'numeric',
             'departments.*.department_name' => '',
             'staff.*.staff_sn' => 'numeric',
-            'staff.*.staff_name'=>'',
+            'staff.*.staff_name' => '',
         ], [], [
             'name' => '分组名称',
             'departments.*.department_id' => '部门id',
             'departments.*.department_name' => '部门名称',
             'staff.*.staff_sn' => '员工编号',
-            'staff.*.staff_name'=>'员工姓名',
+            'staff.*.staff_name' => '员工姓名',
         ]);
     }
 }

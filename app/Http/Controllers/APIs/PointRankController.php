@@ -74,7 +74,7 @@ class PointRankController extends Controller
                         ->orWhereIn('department_id', $group->department()->pluck('department_id'));
                 })
                 ->whereBetween('calculated_at', monthBetween())
-                ->orderBy('point_b_total', 'desc')
+                ->orderBy('total', 'desc')
                 ->get();
         } else {
             // 历史月份
