@@ -61,7 +61,9 @@ class PointRankController extends Controller
         $user->total = 0;
         $datetime = $request->query('datetime');
         $group = GroupModel::find($request->query('group_id', 1));
-          
+        $staffSnGroup = $group->staff()->pluck('staff_sn');
+        $departmentIdGroup = $group->departments()->pluck('department_id');
+
         // 本月
         if (Carbon::parse($datetime)->isCurrentMonth()) {
             $calculatedAt = \DB::table('artisan_command_logs')
@@ -69,9 +71,9 @@ class PointRankController extends Controller
                 ->orderBy('id', 'desc')->value('created_at');
             $items = StatisticModel::query()
                 ->select('staff_sn', 'staff_name', 'point_b_total as total')
-                ->where(function ($query) use ($group) {
-                    $query->whereIn('staff_sn', $group->staff()->pluck('staff_sn'))
-                        ->orWhereIn('department_id', $group->departments()->pluck('department_id'));
+                ->where(function ($query) use ($staffSnGroup, $departmentIdGroup) {
+                    $query->whereIn('staff_sn', $staffSnGroup)
+                        ->orWhereIn('department_id', $departmentIdGroup);
                 })
                 ->whereBetween('calculated_at', monthBetween())
                 ->orderBy('total', 'desc')
@@ -80,25 +82,44 @@ class PointRankController extends Controller
             // 历史月份
             $items = StatisticLogModel::query()
                 ->select('staff_sn', 'staff_name', 'point_b_total as total')
-                ->where(function ($query) use ($group) {
-                    $query->whereIn('staff_sn', $group->staff()->pluck('staff_sn'))
-                        ->orWhereIn('department_id', $group->departments()->pluck('department_id'));
+                ->where(function ($query) use ($staffSnGroup, $departmentIdGroup) {
+                    $query->whereIn('staff_sn', $staffSnGroup)
+                        ->orWhereIn('department_id', $departmentIdGroup);
                 })
                 ->whereBetween('date', monthBetween($datetime))
                 ->orderBy('total', 'desc')
                 ->get();
         }
 
-        $items->map(function ($item, $key) use (&$user) {
-            $item->rank = $key + 1;
+        $preItem = null;
+
+        $items->map(function ($item, $key) use (&$user, &$preItem) {
+            $rank = $preItem && $preItem->total == $item->total ? $preItem->rank : $key + 1;
+            $item->rank = $rank;
             if ($item->staff_sn === $user->staff_sn) {
-                $user->rank = $key + 1;
+                $user->rank = $rank;
                 $user->total = $item->total;
             }
+            $preItem = $item;
             return $item;
         });
 
         $group->staff->map(function ($item, $key) use ($items, &$user) {
+            if (!in_array($item->staff_sn, $items->pluck('staff_sn')->toArray())) {
+                unset($item->authority_group_id);
+                $item->total = 0;
+                $item->rank = $items->count() + 1;
+                $items->push($item);
+
+                if ($item->staff_sn === $user->staff_sn) {
+                    $user->rank = $item->rank;
+                }
+            }
+        });
+
+        $staffInDepartments = collect(app('api')->getStaff(['filters' => 'department_id=' . json_encode($departmentIdGroup)]));
+
+        $staffInDepartments->map(function ($item, $key) use ($items, &$user) {
             if (!in_array($item->staff_sn, $items->pluck('staff_sn')->toArray())) {
                 unset($item->authority_group_id);
                 $item->total = 0;
@@ -244,7 +265,7 @@ class PointRankController extends Controller
 
     /**
      * 获取上月排行.
-     * 
+     *
      * @author 28youth
      * @param  \Illuminate\Http\Request $request
      * @return int
