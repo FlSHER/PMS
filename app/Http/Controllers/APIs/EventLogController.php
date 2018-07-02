@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App\Http\Controllers\APIs;
 
@@ -24,9 +24,9 @@ class EventLogController extends Controller
 
     /**
      * 获取事件日志分类列表.
-     * 
+     *
      * @author 28youth
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\Request $request
      * @return mixed
      */
     public function index(Request $request)
@@ -34,8 +34,8 @@ class EventLogController extends Controller
         $type = $request->query('type', 'all');
 
         $items = app()->call([
-            $this->eventLogRepository, 
-            camel_case('get_'.$type.'_list')
+            $this->eventLogRepository,
+            camel_case('get_' . $type . '_list')
         ]);
 
         return response()->json($items, 200);
@@ -43,7 +43,7 @@ class EventLogController extends Controller
 
     /**
      * 获取事件分类列表.
-     * 
+     *
      * @author 28youth
      * @param  \App\Models\EventType $category
      * @return mixed　
@@ -57,7 +57,7 @@ class EventLogController extends Controller
 
     /**
      * 获取分类下的事件.
-     * 
+     *
      * @author 28youth
      * @param  \App\Models\EventType $category
      * @return mixed　
@@ -71,7 +71,7 @@ class EventLogController extends Controller
 
     /**
      * 获取终审人列表.
-     * 
+     *
      * @author 28youth
      * @return mixed
      */
@@ -84,11 +84,11 @@ class EventLogController extends Controller
 
     /**
      * 创建事件日志.
-     * 
+     *
      * @author 28youth
      * @param  \App\Http\Requests\API\StoreEventLogRequest $request
-     * @param  \App\Models\EventLog  $eventlog
-     * @param  \App\Models\Event  $event
+     * @param  \App\Models\EventLog $eventlog
+     * @param  \App\Models\Event $event
      * @return mixed
      */
     public function store(StoreEventLogRequest $request, EventLogModel $eventlog)
@@ -104,10 +104,12 @@ class EventLogController extends Controller
         $eventlog->recorder_name = $user->realname;
         if ($eventlog->first_approver_sn === $user->staff_sn) {
             $eventlog->status_id = 1;
+            $eventlog->first_approve_remark = '初审人与记录人相同，系统自动通过。';
+            $eventlog->first_approved_at = Carbon::now();
         }
 
         // 合并默认抄送人到提交的抄送人
-        $addressees = array_merge($event->default_cc_addressees, $data['addressees']);
+        $addressees = array_merge((array)$event->default_cc_addressees, (array)$data['addressees']);
         // 去除重复抄送人
         $tmpArr = [];
         foreach ($addressees as $key => $value) {
@@ -117,7 +119,7 @@ class EventLogController extends Controller
                 $tmpArr[] = $value['staff_sn'];
             }
         }
-        $eventlog->getConnection()->transaction(function() use ($eventlog, $data) {
+        $eventlog->getConnection()->transaction(function () use ($eventlog, $data, $addressees) {
             $eventlog->save();
             $eventlog->addressee()->createMany($addressees);
             $eventlog->participant()->createMany($data['participants']);
@@ -128,10 +130,10 @@ class EventLogController extends Controller
 
     /**
      * 获取事件详情.
-     * 
+     *
      * @author 28youth
      * @param  \Illuminate\Http\Request $request
-     * @param  \App\Models\EventLog  $eventlog
+     * @param  \App\Models\EventLog $eventlog
      * @return mixed
      */
     public function show(Request $request, EventLogModel $eventlog)
@@ -144,9 +146,9 @@ class EventLogController extends Controller
 
     /**
      * 初审事件.
-     * 
+     *
      * @author 28youth
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\Request $request
      * @param  \App\Models\EventLog $eventlog
      * @return mixed
      */
@@ -169,9 +171,9 @@ class EventLogController extends Controller
 
     /**
      * 终审事件.
-     * 
+     *
      * @author 28youth
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\Request $request
      * @param  \App\Models\EventLog $eventlog
      * @return mixed
      */
@@ -195,15 +197,15 @@ class EventLogController extends Controller
             // 事件参与者记录积分
             app(Event::class)->record($eventlog);
         });
-        
+
         return response()->json(['message' => '操作成功'], 201);
     }
 
     /**
      *  驳回事件.
-     *  
+     *
      * @author 28youth
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\Request $request
      * @param  \App\Models\EventLog $eventlog
      * @return mixed
      */
@@ -235,9 +237,9 @@ class EventLogController extends Controller
 
     /**
      * 撤回事件.
-     * 
+     *
      * @author 28youth
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \Illuminate\Http\Request $request
      * @param  \App\Models\EventLog $eventlog
      * @return mixed
      */

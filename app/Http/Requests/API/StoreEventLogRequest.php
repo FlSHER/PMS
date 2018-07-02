@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App\Http\Requests\API;
 
@@ -9,7 +9,7 @@ use App\Models\FinalApprover as FinalApproverModel;
 
 class StoreEventLogRequest extends FormRequest
 {
-	
+
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -35,9 +35,9 @@ class StoreEventLogRequest extends FormRequest
                 'bail',
                 'required',
                 'integer',
-                function($attribute, $value, $fail) use ($event) {
+                function ($attribute, $value, $fail) use ($event) {
                     if ($event->first_approver_locked === 1 && $event->first_approver_sn != $value) {
-                        return $fail('初审人已锁定为'.$event->first_approver_name);
+                        return $fail('初审人已锁定为' . $event->first_approver_name);
                     }
                 }
             ],
@@ -46,42 +46,42 @@ class StoreEventLogRequest extends FormRequest
                 'required',
                 'integer',
                 Rule::notIn([$this->first_approver_sn, $this->user()->staff_sn]),
-                function($attribute, $value, $fail) use ($event) {
+                function ($attribute, $value, $fail) use ($event) {
                     if ($event->final_approver_locked === 1 && $event->final_approver_sn != $value) {
-                        return $fail('终审人已锁定为'.$event->final_approver_name);
+                        return $fail('终审人已锁定为' . $event->final_approver_name);
                     }
                 }
             ],
             'participants.*.point_a' => [
                 'bail',
-                'integer',
-                function($attribute, $value, $fail) use ($final) {
+                'numeric',
+                function ($attribute, $value, $fail) use ($final) {
                     if ($value > 0 && $value > $final->point_a_awarding_limit) {
                         $fail('终审人无权限');
                     }
-                    if ($value < 0 && $value < $final->point_a_deducting_limit){
+                    if ($value < 0 && $value < $final->point_a_deducting_limit) {
                         return $fail('终审人无权限');
                     }
                 },
-                'max:'.$event->point_a_max, 
-                'min:'.$event->point_a_min 
+                'max:' . $event->point_a_max,
+                'min:' . $event->point_a_min
             ],
             'participants.*.point_b' => [
                 'bail',
-                'integer', 
-                'max:'.$event->point_b_max, 
-                'min:'.$event->point_b_min,
-                function($attribute, $value, $fail) use ($final) {
+                'numeric',
+                'max:' . $event->point_b_max,
+                'min:' . $event->point_b_min,
+                function ($attribute, $value, $fail) use ($final) {
                     if ($value > 0 && $value > $final->point_b_awarding_limit) {
                         $fail('终审人无权限');
                     }
-                    if ($value < 0 && $value < $final->point_b_deducting_limit){
+                    if ($value < 0 && $value < $final->point_b_deducting_limit) {
                         return $fail('终审人无权限');
                     }
                 },
             ],
-            'executed_at' => 'bail|required|date|before:'.date('Y-m-d H:i'),
-            'event_id' => 'required|integer|exists:event,id',
+            'executed_at' => 'bail|required|date|before:' . date('Y-m-d H:i'),
+            'event_id' => 'required|integer|exists:events,id',
             'first_approver_name' => 'required|string',
             'final_approver_name' => 'required|string',
             'addressees' => 'nullable|array',

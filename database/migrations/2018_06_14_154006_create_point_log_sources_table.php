@@ -16,8 +16,11 @@ class CreatePointLogSourcesTable extends Migration
         Schema::create('point_log_sources', function (Blueprint $table) {
             $table->tinyInteger('id')->default(0);
             $table->char('name', 10);
-
             $table->unique('id');
+        });
+
+        Schema::table('point_logs', function (Blueprint $table) {
+            $table->foreign('source_id')->references('id')->on('point_log_sources');
         });
     }
 
@@ -28,6 +31,10 @@ class CreatePointLogSourcesTable extends Migration
      */
     public function down()
     {
+        Schema::table('point_logs', function (Blueprint $table) {
+            $table->dropForeign('point_logs_source_id_foreign');
+        });
+
         Schema::dropIfExists('point_log_sources');
     }
 }

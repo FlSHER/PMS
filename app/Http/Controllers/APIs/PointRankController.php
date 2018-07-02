@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 namespace App\Http\Controllers\APIs;
 
@@ -6,8 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use function App\monthBetween;
 use function App\stageBetween;
-use App\Models\PointLog as PointLogModel;
-use App\Models\AuthorityGroup as GroupModel; 
+use App\Models\AuthorityGroup as GroupModel;
 use App\Models\PersonalPointStatistic as StatisticModel;
 use App\Models\PersonalPointStatisticLog as StatisticLogModel;
 
@@ -15,7 +14,7 @@ class PointRankController extends Controller
 {
     /**
      * 积分排名详情.
-     * 
+     *
      * @author 28youth
      * @param  \Illuminate\Http\Request $request
      * @return mixed
@@ -24,16 +23,16 @@ class PointRankController extends Controller
     {
         $user = $request->user();
         $monthly = StatisticModel::query()
-                ->where('staff_sn', $user->staff_sn)
-                ->orderBy('calculated_at', 'desc')
-                ->first();
+            ->where('staff_sn', $user->staff_sn)
+            ->orderBy('calculated_at', 'desc')
+            ->first();
 
         return response()->json($monthly);
     }
 
     /**
      * 获取员工排行榜信息.
-     * 
+     *
      * @author 28youth
      * @param  \Illuminate\Http\Request $request
      * @param  string stage month:月度  stage:阶段 total:累计
@@ -42,28 +41,32 @@ class PointRankController extends Controller
     public function staff(Request $request)
     {
         $type = $request->query('stage', 'month');
-        if (! in_array($type, ['month', 'stage', 'total'])) {
+        if (!in_array($type, ['month', 'stage', 'total'])) {
             $type = 'month';
         }
 
-        return app()->call([$this, camel_case($type.'_rank')]);
+        return app()->call([$this, camel_case($type . '_rank')]);
     }
 
     /**
      * 获取月度排行.
-     * 
+     *
      * @author 28youth
      * @param  \Illuminate\Http\Request $request
      * @return mixed
      */
-    public function monthRank(Request $request) 
+    public function monthRank(Request $request)
     {
         $user = $request->user();
+        $user->total = 0;
         $datetime = $request->query('datetime');
         $group = GroupModel::find($request->query('group_id', 1));
 
         // 本月
         if (Carbon::parse($datetime)->isCurrentMonth()) {
+            $calculatedAt = \DB::table('artisan_command_logs')
+                ->where('command_sn', 'pms:calculate-staff-point')
+                ->orderBy('id', 'desc')->value('created_at');
             $items = StatisticModel::query()
                 ->select('staff_sn', 'staff_name', 'point_b_total as total')
                 ->where(function ($query) use ($group) {
@@ -71,7 +74,7 @@ class PointRankController extends Controller
                         ->orWhereIn('department_id', $group->department()->pluck('department_id'));
                 })
                 ->whereBetween('calculated_at', monthBetween())
-                ->orderBy('point_b_total', 'desc')
+                ->orderBy('total', 'desc')
                 ->get();
         } else {
             // 历史月份
@@ -89,7 +92,8 @@ class PointRankController extends Controller
         $items->map(function ($item, $key) use (&$user) {
             $item->rank = $key + 1;
             if ($item->staff_sn === $user->staff_sn) {
-                $user->rank = $key+1;
+                $user->rank = $key + 1;
+                $user->total = $item->total;
             }
             return $item;
         });
@@ -107,18 +111,24 @@ class PointRankController extends Controller
             }
         });
 
-        return response()->json([
+        $response = [
             'list' => $items,
             'user' => [
                 'rank' => $user->rank ?? 1,
-                'name' => $user->realname
-            ]
-        ], 200);
+                'name' => $user->realname,
+                'total' => $user->total,
+            ],
+        ];
+        if (Carbon::parse($datetime)->isCurrentMonth()) {
+            $response['calculated_at'] = $calculatedAt;
+        }
+
+        return response()->json($response, 200);
     }
 
     /**
      * 获取阶段排行.
-     * 
+     *
      * @author 28youth
      * @param  \Illuminate\Http\Request $request
      * @return mixed
@@ -126,6 +136,7 @@ class PointRankController extends Controller
     public function stageRank(Request $request)
     {
         $user = $request->user();
+        $user->total = 0;
         $stime = $request->query('start_at');
         $etime = $request->query('end_at');
         $group = GroupModel::find($request->query('group_id', 1));
@@ -144,7 +155,8 @@ class PointRankController extends Controller
         $items->map(function ($item, $key) use (&$user) {
             $item->rank = $key + 1;
             if ($item->staff_sn === $user->staff_sn) {
-                $user->rank = $key+1;
+                $user->rank = $key + 1;
+                $user->total = $item->total;
             }
             return $item;
         });
@@ -166,14 +178,15 @@ class PointRankController extends Controller
             'list' => $items,
             'user' => [
                 'rank' => $user->rank ?? 1,
-                'name' => $user->realname
+                'name' => $user->realname,
+                'total' => $user->total,
             ]
         ], 200);
     }
 
     /**
      * 获取累计排行.
-     * 
+     *
      * @author 28youth
      * @param  \Illuminate\Http\Request $request
      * @return mixed
@@ -182,6 +195,9 @@ class PointRankController extends Controller
     {
         $user = $request->user();
         $group = GroupModel::find($request->query('group_id', 1));
+        $calculatedAt = \DB::table('artisan_command_logs')
+            ->where('command_sn', 'pms:calculate-staff-point')
+            ->orderBy('id', 'desc')->value('created_at');
 
         $items = StatisticLogModel::query()
             ->select(\DB::raw('staff_sn, staff_name, SUM(point_b_monthly) as total'))
@@ -196,7 +212,7 @@ class PointRankController extends Controller
         $items->map(function ($item, $key) use (&$user) {
             $item->rank = $key + 1;
             if ($item->staff_sn === $user->staff_sn) {
-                $user->rank = $key+1;
+                $user->rank = $key + 1;
             }
             return $item;
         });
@@ -218,8 +234,10 @@ class PointRankController extends Controller
             'list' => $items,
             'user' => [
                 'rank' => $user->rank ?? 1,
-                'name' => $user->realname
-            ]
+                'name' => $user->realname,
+                'total' => $user->total,
+            ],
+            'calculated_at' => $calculatedAt
         ], 200);
     }
 }

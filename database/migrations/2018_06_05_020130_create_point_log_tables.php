@@ -35,8 +35,6 @@ class CreatePointLogTables extends Migration
             $table->char('final_approver_name', 10)->default('')->comment('终审人姓名');
             $table->timestamps();
             $table->softDeletes();
-
-            $table->foreign('source_id')->references('id')->on('point_log_sources');
         });
     }
 
