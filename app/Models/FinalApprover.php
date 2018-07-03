@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Traits\ListScopes;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class FinalApprover extends Model
 {
+    use ListScopes;
     use SoftDeletes;
     protected $table = 'final_approvers';
     protected $fillable = [

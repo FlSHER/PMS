@@ -19,30 +19,9 @@ class FinalsRepositories
      * @param $request
      * @return array
      */
-    public function getFinalsAll($request)
+    public function getFinalsAll()
     {
-        $builder = ($this->finalModel instanceof Model) ? $this->finalModel->query() : $this->finalModel;
-        $sort = explode('-', $request->sort);
-        $limit = $request->query('pagesize', 20);
-        $filters = $request->query('filters', '');
-        if ($filters && $filters !== null) {
-            $maps = $this->formatFilter($filters);
-            foreach ($maps['maps'] as $k => $map) {
-                $curKey = $maps['fields'][$k];
-                $builder->when($curKey, $map[$curKey]);
-            }
-        }
-        $builder->when(($sort && !$sort), function ($query) use ($sort) {
-            $query->orderBy($sort[0], $sort[1]);
-        });
-        $items = $builder->paginate($limit);
-        return array(
-            'data' => $items->items(),
-            'total' => $items->count(),
-            'page' => $items->currentPage(),
-            'pagesize' => $limit,
-            'totalpage' => $items->total(),
-        );
+        return $this->finalModel->filterByQueryString()->withPagination();
     }
 
     public function repetition($staff_sn)

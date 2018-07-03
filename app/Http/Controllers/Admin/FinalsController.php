@@ -18,9 +18,9 @@ class FinalsController extends Controller
      * @param Request $request
      * list页面
      */
-    public function index(Request $request)
+    public function index()
     {
-        return $this->finals->getFinalsList($request);
+        return $this->finals->getFinalsList();
     }
 
     /**
