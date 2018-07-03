@@ -23,7 +23,6 @@ class StaffPointController extends Controller
     {
         $user = $request->user();
         $datetime = $request->query('datetime');
-        // 当前月统计
         if (Carbon::parse($datetime)->isCurrentMonth()) {
             $monthly = StatisticModel::query()
                 ->where('staff_sn', $user->staff_sn)

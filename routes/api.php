@@ -90,6 +90,10 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
         $api->get('statistic/{pointlog}', APIs\StaffPointController::class . '@detail');
     });
 
+    // 当前员工积分指标
+    // @get /api/staff/target
+    $api->get('user/target', APIs\TargetController::class.'@index');
+
     // 获取员工权限分组
     // get /api/staff/authority-groups
     $api->get('authority-groups', APIs\AuthorityController::class . '@index');
