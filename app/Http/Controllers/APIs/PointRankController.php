@@ -61,64 +61,6 @@ class PointRankController extends Controller
     }
 
     /**
-     * 统计分组排名.
-     * 
-     * @author 28youth
-     * @param  [type] $items 积分统计信息
-     * @param  [type] &$user 当前认证员工信息
-     * @param  [type] $group 员工分组信息
-     */
-    public function calculatedRank($items, &$user, $group)
-    {
-        $prevItem = (object)['total' => 0, 'rank' => 1];
-
-        $items->map(function ($item, $key) use (&$user, &$prevItem) {
-            $rank = ($prevItem->total == $item->total) ? $prevItem->rank : ($key + 1);
-            $item->rank = $rank;
-            if ($item->staff_sn === $user->staff_sn) {
-                $user->rank = $rank;
-                $user->total = $item->total;
-            }
-            $prevItem = $item;
-            return $item;
-        });
-
-        $lastRank = ($prevItem->total == 0) ? $prevItem->rank : $prevItem->rank++;
-
-        $group->staff->map(function ($staff) use ($items, &$user, $lastRank) {
-            if (!in_array($staff->staff_sn, $items->pluck('staff_sn')->toArray())) {
-                $items->push([
-                    'staff_sn' => $staff->staff_sn,
-                    'staff_name' => $staff->staff_name,
-                    'rank' => $lastRank,
-                    'total' => 0,
-                ]);
-                if ($staff->staff_sn === $user->staff_sn) {
-                    $user->rank = $lastRank;
-                }
-            }
-        });
-
-        $staffResponse = collect(app('api')->getStaff([
-            'filters' => 'department_id='.json_encode($group->departments()->pluck('department_id')).';status_id>=0'
-        ]));
-
-        $staffResponse->map(function ($staff) use ($items, &$user, $lastRank) {
-            if (!in_array($staff['staff_sn'], $items->pluck('staff_sn')->toArray())) {
-                $items->push([
-                    'staff_sn' => $staff['staff_sn'],
-                    'staff_name' => $staff['realname'],
-                    'rank' => $lastRank,
-                    'total' => 0,
-                ]);
-                if ($staff['staff_sn'] === $user->staff_sn) {
-                    $user->rank = $lastRank;
-                }
-            }
-        });
-    }
-
-    /**
      * 获取月度排行.
      *
      * @author 28youth
@@ -160,7 +102,7 @@ class PointRankController extends Controller
                 'rank' => $user->rank ?? 1,
                 'name' => $user->realname,
                 'total' => $user->total,
-                'prev_rank' => $this->prevMonthRank($request, $group)
+                'prev_rank' => $this->prevMonthRank($group)
             ],
         ];
         if (Carbon::parse($datetime)->isCurrentMonth()) {
@@ -247,11 +189,11 @@ class PointRankController extends Controller
      * @param  \Illuminate\Http\Request $request
      * @return int
      */
-    public function prevMonthRank(Request $request, GroupModel $group)
+    public function prevMonthRank(GroupModel $group)
     {
-        $user = $request->user();
+        $user = request()->user();
         $user->rank = 1;
-        $datetime = Carbon::parse($request->query('datetime'))->subMonth();
+        $datetime = Carbon::parse(request()->query('datetime'))->subMonth();
 
         $items = StatisticLogModel::query()
             ->select('staff_sn', 'staff_name', 'point_b_total as total')
@@ -263,22 +205,67 @@ class PointRankController extends Controller
             ->orderBy('total', 'desc')
             ->get();
 
-        $items->map(function ($item, $key) use (&$user) {
-            if ($item->staff_sn === $user->staff_sn) {
-                $user->rank = $key + 1;
-            }
-        });
-        $group->staff->map(function ($item, $key) use ($items, &$user) {
-            if (!in_array($item->staff_sn, $items->pluck('staff_sn')->toArray())) {
-                $item->rank = $items->count() + 1;
-                $items->push($item);
+        $this->calculatedRank($items, $user, $group);
 
-                if ($item->staff_sn === $user->staff_sn) {
-                    $user->rank = $item->rank;
+        return $user->rank;
+    }
+
+    /**
+     * 统计分组排名.
+     * 
+     * @author 28youth
+     * @param  [type] $items 积分统计信息
+     * @param  [type] &$user 当前认证员工信息
+     * @param  [type] $group 员工分组信息
+     */
+    public function calculatedRank($items, &$user, $group)
+    {
+        $user->total = 0;
+        $prevItem = (object)['total' => 0, 'rank' => 1];
+
+        $items->map(function ($item, $key) use (&$user, &$prevItem) {
+            $rank = ($prevItem->total == $item->total) ? $prevItem->rank : ($key + 1);
+            $item->rank = $rank;
+            if ($item->staff_sn === $user->staff_sn) {
+                $user->rank = $rank;
+                $user->total = $item->total;
+            }
+            $prevItem = $item;
+            return $item;
+        });
+
+        $lastRank = ($prevItem->total == 0) ? $prevItem->rank : $prevItem->rank++;
+
+        $group->staff->map(function ($staff) use ($items, &$user, $lastRank) {
+            if (!in_array($staff->staff_sn, $items->pluck('staff_sn')->toArray())) {
+                $items->push([
+                    'staff_sn' => $staff->staff_sn,
+                    'staff_name' => $staff->staff_name,
+                    'rank' => $lastRank,
+                    'total' => 0,
+                ]);
+                if ($staff->staff_sn === $user->staff_sn) {
+                    $user->rank = $lastRank;
                 }
             }
         });
 
-        return $user->rank;
+        $staffResponse = collect(app('api')->getStaff([
+            'filters' => 'department_id='.json_encode($group->departments()->pluck('department_id')).';status_id>=0'
+        ]));
+
+        $staffResponse->map(function ($staff) use ($items, &$user, $lastRank) {
+            if (!in_array($staff['staff_sn'], $items->pluck('staff_sn')->toArray())) {
+                $items->push([
+                    'staff_sn' => $staff['staff_sn'],
+                    'staff_name' => $staff['realname'],
+                    'rank' => $lastRank,
+                    'total' => 0,
+                ]);
+                if ($staff['staff_sn'] === $user->staff_sn) {
+                    $user->rank = $lastRank;
+                }
+            }
+        });
     }
 }
