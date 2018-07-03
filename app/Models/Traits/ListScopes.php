@@ -56,6 +56,7 @@ Trait ListScopes
     public function scopeWithPagination(Builder $query, int $pagesize = 10)
     {
         if (request()->has('page') && is_numeric(request('page'))) {
+            $pagesize = request()->has('pagesize') ? request('pagesize') : $pagesize;
             $items = $query->paginate($pagesize);
 
             return [
@@ -63,7 +64,7 @@ Trait ListScopes
                 'total' => $items->total(),
                 'page' => $items->currentPage(),
                 'pagesize' => $items->perPage(),
-                'totalpage' => ceil($items->total()/$items->perPage()),
+                'totalpage' => ceil($items->total() / $items->perPage()),
             ];
         } else {
             return $query->get();
