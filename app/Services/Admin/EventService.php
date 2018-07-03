@@ -123,7 +123,7 @@ class EventService
                     abort(422, 'B分最大扣分值超过终审人上限');
                 }
             } else {
-                if ($request['point_b_max'] > $final['point_b_deducting_limit']) {
+                if ($request['point_b_max'] > $final['point_b_awarding_limit']) {
                     abort(422, 'B分最大加分值超过终审人上限');
                 }
             }
@@ -145,8 +145,8 @@ class EventService
      */
     public function excelExample()
     {
-        $cellData[] = ['事件', '分类全称', 'A分最小值', 'A分最大值', 'B分最小值', 'B分最大值', 'A分默认值', 'B分默认值', '初审人编号', '终审人编号', '是否锁定初审人', '是否锁定终审人', '默认抄送人', '是否激活'];
-        $cellData[] = ['例：迟到', '例：工作类事件（不能重复）', '例：10', '例：20', '例：5', '例：10', '例：15', '例：8', '例：100000(可为空)', '例：100001(可为空)', '例：1（1：锁定，0：未锁定）', '例：1（1：锁定，0：未锁定）', '例：（编号=名字）100000=张三,100001=李四,1000002=王五(可为空)', '例：1（1：激活，0未激活）'];
+        $cellData[] = ['事件',    '分类全称',                 'A分最小值','A分最大值', 'B分最小值', 'B分最大值', 'A分默认值', 'B分默认值', '初审人编号', '终审人编号', '是否锁定初审人', '是否锁定终审人', '默认抄送人', '是否激活'];
+        $cellData[] = ['例：迟到','例：工作类事件（不能重复）','例：10',   '例：20', '例：5', '例：10', '例：15', '例：8', '例：100000(可为空)', '例：100001(可为空)', '例：1（1：锁定，0：未锁定）', '例：1（1：锁定，0：未锁定）', '例：（编号=名字）100000=张三,100001=李四,1000002=王五(可为空)', '例：1（1：激活，0未激活）'];
         $fileName = '事件导入模板';
         Excel::create($fileName, function ($excel) use ($cellData) {
             $excel->sheet('score', function ($sheet) use ($cellData) {
@@ -161,7 +161,7 @@ class EventService
      */
     public function excelImport()
     {
-        $str = explode('.', $_FILES['file']['name'])[0];
+        $str = trim(explode('.', $_FILES['file']['name'])[0]);
         $excelPath = $_FILES['file']['tmp_name'];
         $res = [];
         Excel::load($excelPath, function ($matter) use (&$res) {
@@ -170,89 +170,90 @@ class EventService
         });
         for ($i = 1; $i < count($res); $i++) {
             $x = $i + 1;
+            $s = 1;
             $errorInfo = [];
             $dataInfo = [];
             if (count($res[$i]) != 14) {
-                $errorInfo[$str] = ['序号：第' . $x . '条信息添加失败，错误：文件布局错误'];
+                $errorInfo[$str.'_'.$s++] = ['序号：第' . $x . '条信息添加失败，错误：文件布局错误'];
             }
             if (!is_numeric($res[$i][2]) || !is_numeric($res[$i][3]) || !is_numeric($res[$i][4]) || !is_numeric($res[$i][5]) ||
                 !is_numeric($res[$i][6]) || !is_numeric($res[$i][7]) || !is_numeric($res[$i][13])) {
-                $errorInfo[$str] = ['序号：第' . $x . '条信息添加失败，错误：数字被文字代替'];
+                $errorInfo[$str.'_'.$s++] = ['序号：第' . $x . '条信息添加失败，错误：数字被文字代替'];
             }
             if (strlen($res[$i][0]) >= 147) {//数据库长度是50
-                $errorInfo[$str] = ['序号：第' . $x . '条信息添加失败，错误：事件名称过长'];
+                $errorInfo[$str.'_'.$s++] = ['序号：第' . $x . '条信息添加失败，错误：事件名称过长'];
                 $dataInfo[] = $res[$i][0];
             }
             $onlyType = Event::where('name', $res[$i][0])->value('name');
             if ($onlyType == true) {
-                $errorInfo[$str] = ['序号：第' . $x . '条信息添加失败，错误：事件名字重复 '];
+                $errorInfo[$str.'_'.$s++] = ['序号：第' . $x . '条信息添加失败，错误：事件名字重复 '];
                 $dataInfo[] = $res[$i][0];
             }
             $eventTypeId = EventType::where('name', $res[$i][1])->value('id');
             if (false == (bool)$eventTypeId) {
-                $errorInfo[$str] = ['序号：第' . $x . '条信息添加失败，错误：事件分类错误'];
+                $errorInfo[$str.'_'.$s++] = ['序号：第' . $x . '条信息添加失败，错误：事件分类错误'];
                 $dataInfo[] = $res[$i][1];
             }
             if ($res[$i][8] != '') {
                 if (strlen($res[$i][8]) != 6 || !is_numeric($res[$i][8])) {
-                    $errorInfo[$str] = ['序号：第' . $x . '条信息添加失败，错误：初审人编号长度错误'];
+                    $errorInfo[$str.'_'.$s++] = ['序号：第' . $x . '条信息添加失败，错误：初审人编号长度错误'];
                     $dataInfo[] = $res[$i][8];
                 }
                 try {
                     $firstOa = app('api')->withRealException()->getStaff((int)$res[$i][8]);
                 } catch (\Exception $e) {
-                    $errorInfo[$str] = ['序号：第' . $x . '条信息添加失败，错误：初审人编号错误'];
+                    $errorInfo[$str.'_'.$s++] = ['序号：第' . $x . '条信息添加失败，错误：初审人编号错误'];
                     $dataInfo[] = $res[$i][8];
                 }
             }
             if ($res[$i][9] != '') {
                 $finalOa = $this->finalsRepositories->repetition((int)$res[$i][9]);
                 if (true != (bool)$finalOa) {
-                    $errorInfo[$str] = ['序号：第' . $x . '条信息添加失败，错误：不存在的终审人'];
+                    $errorInfo[$str.'_'.$s++] = ['序号：第' . $x . '条信息添加失败，错误：不存在的终审人'];
                     $dataInfo[] = $res[$i][9];
                 }
                 $final = $this->finalsRepositories->repetition($res[$i][9]);
                 if (strstr($res[$i][3], '-')) {
                     $pointAMax = str_replace('-', ' ', $res[$i][3]);
                     if ($pointAMax > $final['point_a_deducting_limit']) {
-                        $errorInfo[$str] = ['序号：第' . $x . '条信息添加失败，错误：A分最大值超过终审人上限'];
+                        $errorInfo[$str.'_'.$s++] = ['序号：第' . $x . '条信息添加失败，错误：A分最大值超过终审人上限'];
                         $dataInfo[] = $res[$i][9];
                     }
                 } else {
                     if ($res[$i][3] > $final['point_a_awarding_limit']) {
-                        $errorInfo[$str] = ['序号：第' . $x . '条信息添加失败，错误：A分最大值超过终审人上限'];
+                        $errorInfo[$str.'_'.$s++] = ['序号：第' . $x . '条信息添加失败，错误：A分最大值超过终审人上限'];
                         $dataInfo[] = $res[$i][9];
                     }
                 }
                 if (strstr($res[$i][5], '-')) {
                     $pointAMax = str_replace('-', ' ', $res[$i][5]);
-                    if ($pointAMax > $final['point_a_deducting_limit']) {
-                        $errorInfo[$str] = ['序号：第' . $x . '条信息添加失败，错误：B分最大值超过终审人上限'];
+                    if ($pointAMax > $final['point_b_deducting_limit']) {
+                        $errorInfo[$str.'_'.$s++] = ['序号：第' . $x . '条信息添加失败，错误：B分最大值超过终审人上限'];
                         $dataInfo[] = $res[$i][9];
                     }
                 } else {
-                    if ($res[$i][5] > $final['point_a_awarding_limit']) {
-                        $errorInfo[$str] = ['序号：第' . $x . '条信息添加失败，错误：B分最大值超过终审人上限'];
+                    if ($res[$i][5] > $final['point_b_awarding_limit']) {
+                        $errorInfo[$str.'_'.$s++] = ['序号：第' . $x . '条信息添加失败，错误：B分最大值超过终审人上限'];
                         $dataInfo[] = $res[$i][9];
                     }
                 }
             }
             if ($res[$i][2] >= $res[$i][3]) {
-                $errorInfo[$str] = ['序号：第' . $x . '条信息添加失败，错误：A分最大值小于A分最小值'];
+                $errorInfo[$str.'_'.$s++] = ['序号：第' . $x . '条信息添加失败，错误：A分最大值小于A分最小值'];
                 $dataInfo[] = $res[$i][2] . '>' . $res[$i][3];;
             }
             if ($res[$i][4] >= $res[$i][5]) {
-                $errorInfo[$str] = ['序号：第' . $x . '条信息添加失败，错误：B分最大值小于B分最小值'];
+                $errorInfo[$str.'_'.$s++] = ['序号：第' . $x . '条信息添加失败，错误：B分最大值小于B分最小值'];
                 $dataInfo[] = $res[$i][4] . '>' . $res[$i][5];
             }
             if ($res[$i][2] > $res[$i][6] || $res[$i][3] < $res[$i][6]) {
-                $errorInfo[$str] = ['序号：第' . $x . '条信息添加失败，错误：默认值不在AB分之间'];
+                $errorInfo[$str.'_'.$s++] = ['序号：第' . $x . '条信息添加失败，错误：默认值不在AB分之间'];
                 $dataInfo[] = $res[$i][2] . '>' . $res[$i][6] . '>' . $res[$i][3];
             }
             if (isset($res[$i][12])) {
                 $arr = explode(',', $res[$i][12]);
                 if (count($arr) > 5) {
-                    $errorInfo[$str] = ['序号：第' . $x . '条信息添加失败，错误：抄送人不能超过5人'];
+                    $errorInfo[$str.'_'.$s++] = ['序号：第' . $x . '条信息添加失败，错误：抄送人不能超过5人'];
                     $dataInfo[] = $res[$i][12];
                 }
                 $t = 0;
@@ -275,7 +276,7 @@ class EventService
                     ];
                 }
                 if ($errorInfo1 != []) {
-                    $errorInfo[$str] = ['序号：第' . $x . '条信息添加失败，错误：' . implode('、', $errorInfo1)];
+                    $errorInfo[$str.'_'.$s++] = ['序号：第' . $x . '条信息添加失败，错误：' . implode('、', $errorInfo1)];
                     $dataInfo[] = $res[$i][12];
                 }
             }
@@ -296,7 +297,7 @@ class EventService
             $model->point_a_default = $res[$i][6];//A分默认
             $model->point_b_default = $res[$i][7];//B分默认
             $model->first_approver_sn = $res[$i][8];//初审编号
-            $model->first_approver_name = $firstOa['realname'] == true ? $firstOa['realname'] : "";//初审姓名
+            $model->first_approver_name = isset($firstOa['realname']) ? $firstOa['realname'] : "";//初审姓名
             $model->final_approver_sn = $res[$i][9];//终审编号
             $model->final_approver_name = isset($finalOa) ? $finalOa->realname == true ? $finalOa->realname : "" : "";//终审姓名
             $model->first_approver_locked = $res[$i][8] == true ? $res[$i][10] : 0;//初审锁定
