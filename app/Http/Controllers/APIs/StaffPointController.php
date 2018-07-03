@@ -37,7 +37,7 @@ class StaffPointController extends Controller
         }
 
         // 前4个月积分趋势数据
-        $monthly->trend = $this->statistics($request);
+        $monthly->trend = $this->statistics();
 
         return response()->json($monthly, 200);
     }
@@ -46,18 +46,16 @@ class StaffPointController extends Controller
      * 获取某一段时间统计结果.
      * 
      * @author 28youth
-     * @param  \Illuminate\Http\Request $request
      * @return mixed
      */
-    public function statistics(Request $request)
+    public function statistics()
     {
-        $user = $request->user();
-        $datetime = $request->query('datetime');
-        $etime = $datetime ? Carbon::parse($datetime) : Carbon::now()->subMonth(1);
+        $user = request()->user();
+        $etime = Carbon::parse(request()->query('datetime'));
         $stime = clone $etime;
 
         $items = StatisticLogModel::query()
-            ->select('point_a', 'point_b_monthly', 'date')
+            ->select('point_a', 'point_b_monthly as total', 'date')
             ->where('staff_sn', $user->staff_sn)
             ->whereBetween('date', stageBetween($stime->subMonth(4), $etime))
             ->get();
