@@ -33,4 +33,14 @@ class PointManagementTargetLogs extends Model
         return '0.6';
     }
 
+    /**
+     * 关联当月指标信息.
+     * 
+     * @author 28youth
+     * @return \Illuminate\Database\Eloquent\belongsTo|null
+     */
+    public function targetlog()
+    {
+        return $this->belongsTo(PointManagementTargetLogs::class, 'target_log_id', 'id');
+    }
 }
