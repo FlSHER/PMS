@@ -23,7 +23,7 @@ class FinalsRepositories
     {
         $builder = ($this->finalModel instanceof Model) ? $this->finalModel->query() : $this->finalModel;
         $sort = explode('-', $request->sort);
-        $limit = $request->query('limit', 20);
+        $limit = $request->query('pagesize', 20);
         $filters = $request->query('filters', '');
         if ($filters && $filters !== null) {
             $maps = $this->formatFilter($filters);
