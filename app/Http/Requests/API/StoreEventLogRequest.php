@@ -45,7 +45,7 @@ class StoreEventLogRequest extends FormRequest
                 'bail',
                 'required',
                 'integer',
-                Rule::notIn([$this->first_approver_sn, $this->user()->staff_sn]),
+                // Rule::notIn([$this->first_approver_sn, $this->user()->staff_sn]),
                 function ($attribute, $value, $fail) use ($event) {
                     if ($event->final_approver_locked === 1 && $event->final_approver_sn != $value) {
                         return $fail('终审人已锁定为' . $event->final_approver_name);
@@ -102,7 +102,7 @@ class StoreEventLogRequest extends FormRequest
             'first_approver_sn.required' => '初审人编号不能为空',
             'first_approver_name.required' => '初审人姓名不能为空',
             'final_approver_sn.required' => '终审人编号不能为空',
-            'final_approver_sn.not_in' => '终审人不能是初审人和记录人',
+            // 'final_approver_sn.not_in' => '终审人不能是初审人和记录人',
             'final_approver_name.required' => '终审人姓名不能为空',
             'addressees.array' => '抄送人格式错误',
             'participants.required' => '事件参与人不能为空',
