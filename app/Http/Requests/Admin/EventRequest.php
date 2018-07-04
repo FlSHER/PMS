@@ -24,7 +24,7 @@ class EventRequest extends FormRequest
     public function rules()
     {
         return [
-            'name'=>'required',
+            'name'=>'required|max:40',
             'type_id'=>'required|numeric',
             'point_a_min'=>'required|numeric',
             'point_a_max'=>'required|numeric',
@@ -38,7 +38,7 @@ class EventRequest extends FormRequest
 //            'final_approver_name'=>'',
             'first_approver_locked'=>'required|min:0|max:1',//0未锁定1锁定
             'final_approver_locked'=>'required|min:0|max:1',//0未锁定1锁定
-            'default_cc_addressees'=>'nullable',
+//            'default_cc_addressees'=>'nullable',
             'is_active'=>'required|min:0|max:1'//0未激活1激活
         ];
     }
@@ -60,7 +60,7 @@ class EventRequest extends FormRequest
 //            'final_approver_name'=>'终审人姓名',
             'first_approver_locked'=>'初审人锁定',//0未锁定1锁定
             'final_approver_locked'=>'终审人锁定',//0未锁定1锁定
-            'default_cc_addressees'=>'默认抄送人',
+//            'default_cc_addressees'=>'默认抄送人',
             'is_active'=>'是否激活'//0未激活1激活
             ];
     }
