@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Services\Admin\FinalsService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class FinalsController extends Controller
 {
@@ -60,7 +61,7 @@ class FinalsController extends Controller
     protected function formVerify(Request $request)
     {
         $this->validate($request, [
-            'staff_sn' => 'required|numeric',
+            'staff_sn' => 'required|numeric|unique:final_approvers,staff_sn',
             'staff_name' => 'required',
             'point_a_awarding_limit' => 'required|numeric',
             'point_a_deducting_limit' => 'required|numeric',
