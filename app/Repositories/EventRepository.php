@@ -26,7 +26,6 @@ class EventRepository
 
     /**
      * 获取事件分页列表.
-     *
      * @author 28youth
      * @param  \Illuminate\Http\Request $request
      * @return mixed
