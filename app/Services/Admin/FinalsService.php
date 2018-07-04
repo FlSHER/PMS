@@ -14,6 +14,11 @@ class FinalsService
         $this->finals = $finals;
     }
 
+    /**
+     * 终审人列表
+     * @param $request
+     * @return array
+     */
     public function getFinalsList()
     {
         return $this->finals->getFinalsAll();
