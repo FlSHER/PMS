@@ -72,7 +72,7 @@ class AuthorityRepository
     {
         $authModel = $this->authModel->find($request->route('id'));
         if (empty($authModel)) {
-            abort(404,'未找到原始数据');
+            abort(404,'提供无效参数');
         }
         return $authModel->update($request->all());
     }
