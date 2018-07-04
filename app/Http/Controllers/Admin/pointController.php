@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Services\Admin\PointService;
 use Illuminate\Http\Request;
 
-class PointController extends Controller
+class pointController extends Controller
 {
     protected $point;
 
