@@ -3,9 +3,7 @@
 namespace App\Http\Controllers\APIs;
 
 use Carbon\Carbon;
-use Illuminate\Http\Response;
 use Illuminate\Http\Request;
-use App\Services\Point\Types\Event;
 use App\Services\EventApprove;
 use App\Repositories\EventLogRepository;
 use App\Http\Requests\API\StoreEventLogRequest;
@@ -103,18 +101,8 @@ class EventLogController extends Controller
         $eventlog->event_type_id = $event->type_id;
         $eventlog->recorder_sn = $user->staff_sn;
         $eventlog->recorder_name = $user->realname;
-
-        // 合并默认抄送人到提交的抄送人
-        $addressees = array_merge((array)$event->default_cc_addressees, (array)$data['addressees']);
-        // 去除重复抄送人
-        $tmpArr = [];
-        foreach ($addressees as $key => $value) {
-            if (in_array($value['staff_sn'], $tmpArr)) {
-                unset($addressees[$key]);
-            } else {
-                $tmpArr[] = $value['staff_sn'];
-            }
-        }
+        $addressees = $this->mergeAddressees($event->default_cc_addressees, $data['addressees']);
+        
         $eventlog->getConnection()->transaction(function () use ($eventlog, $data, $user, $addressees) {
             $eventlog->save();
             $eventlog->addressee()->createMany($addressees);
@@ -139,6 +127,27 @@ class EventLogController extends Controller
     }
 
     /**
+     * 合并抄送人.
+     * 
+     * @author 28youth
+     */
+    public function mergeAddressees(...$params)
+    {
+        $addressees = array_merge((array)$params[0], (array)$params[1]);
+        // 去除重复抄送人
+        $tmpArr = [];
+        foreach ($addressees as $key => $value) {
+            if (in_array($value['staff_sn'], $tmpArr)) {
+                unset($addressees[$key]);
+            } else {
+                $tmpArr[] = $value['staff_sn'];
+            }
+        }
+
+        return $addressees;
+    }
+
+    /**
      * 获取事件详情.
      *
      * @author 28youth
@@ -148,7 +157,7 @@ class EventLogController extends Controller
      */
     public function show(Request $request, EventLogModel $eventlog)
     {
-        $eventlog->load('participant', 'addressee');
+        $eventlog->load('participant', 'addressee', 'event');
         $eventlog->executed_at = Carbon::parse($eventlog->executed_at)->toDateString();
 
         return response()->json($eventlog);

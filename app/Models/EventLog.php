@@ -56,4 +56,15 @@ class EventLog extends Model
     {
         return $this->hasMany(EventLogAddressee::class, 'event_log_id', 'id');
     }
+
+    /**
+     * 事件类型.
+     *
+     * @author 28youth
+     * @return \Illuminate\Database\Eloquent\Relations\hasOne
+     */
+    public function event()
+    {
+        return $this->hasOne(Event::class, 'id', 'event_id');
+    }
 }
