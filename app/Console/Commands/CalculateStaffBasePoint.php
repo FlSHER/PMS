@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Console\Command;
 use App\Models\ArtisanCommandLog;
 use App\Models\CommonConfig;
+use App\Models\CertificateStaff;
 use App\Models\AuthorityGroupHasStaff;
 use App\Services\Point\Types\BasePoint;
 
@@ -70,6 +71,16 @@ class CalculateStaffBasePoint extends Command
                     }
                 });
 
+                // 计算证书得分
+                $certificate_total = CertificateStaff::query()
+                    ->where('staff_sn', $val['staff_sn'])
+                    ->select(\DB::raw('SUM(certificates.point) as total'))
+                    ->leftJoin('certificates', 'certificate_staff.certificate_id', '=', 'certificates.id')
+                    ->value('total');
+                if ($certificate_total !== null) {
+                    $val['base_point'] += $certificate_total;
+                }
+
                 app(BasePoint::class)->record($val);
             }
 
@@ -98,7 +109,7 @@ class CalculateStaffBasePoint extends Command
 		$commandModel = new ArtisanCommandLog();
         $commandModel->command_sn = 'pms:calculate-staff-basepoint';
         $commandModel->created_at = Carbon::now();
-        $commandModel->title = '每月基础分结算';
+        $commandModel->title = Carbon::now()->month.'月基础分结算';
         $commandModel->status = 0;
         $commandModel->save();
 
