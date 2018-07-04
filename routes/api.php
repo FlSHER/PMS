@@ -23,23 +23,32 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
 
     // @route 事件奖扣
+    $api->group(['prefix' => 'event'], function (RouteContract $api) {
+
+        // 事件列表
+        // @get /api/event
+        $api->get('/', APIs\EventController::class . '@index');
+
+        // 事件类型列表
+        // @get /api/event/categories
+        $api->get('categories', APIs\EventController::class . '@cates');
+
+        // 分类事件列表
+        // @get /api/event/:category/events
+        $api->get('{category}/events', APIs\EventController::class . '@events');
+
+        // 事件终审人列表
+        // @get /api/event/final-staff
+        $api->get('final-staff', APIs\EventController::class . '@finalStaff');
+
+    });
+
+    // @route 事件奖扣
     $api->group(['prefix' => 'event-logs'], function (RouteContract $api) {
 
         // 事件日志列表
         // @get /api/event-logs
-        $api->get('/', APIs\EventLogController::class . '@index');
-
-        // 事件类型列表
-        // @get /api/event-logs/categories
-        $api->get('/categories', APIs\EventLogController::class . '@cates');
-
-        // 事件列表
-        // @get /api/event-logs/:category/events
-        $api->get('{category}/events', APIs\EventLogController::class . '@events');
-
-        // 事件列表
-        // @get /api/event-logs/final-staff
-        $api->get('final-staff', APIs\EventLogController::class . '@finalStaff');
+        $api->get('/', APIs\EventLogController::class . '@index');        
 
         // 添加事件日志
         // @post /api/event-logs/event
