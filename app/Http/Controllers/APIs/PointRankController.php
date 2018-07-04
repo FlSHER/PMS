@@ -69,7 +69,7 @@ class PointRankController extends Controller
     public function monthRank(...$params)
     {
         $datetime = Carbon::parse(request()->query('datetime'));
-        list($group, $user, $staffSns, $departmentIds) = $params;
+        [$group, $user, $staffSns, $departmentIds] = $params;
 
         if ($datetime->isCurrentMonth()) {
             $calculatedAt = \DB::table('artisan_command_logs')
@@ -122,7 +122,7 @@ class PointRankController extends Controller
     {
         $stime = request()->query('start_at');
         $etime = request()->query('end_at');
-        list($group, $user, $staffSns, $departmentIds) = $params;
+        [$group, $user, $staffSns, $departmentIds] = $params;
 
         $items = StatisticLogModel::query()
             ->select(\DB::raw('staff_sn, staff_name, SUM(point_b_monthly) as total'))
@@ -155,7 +155,7 @@ class PointRankController extends Controller
      */
     public function totalRank(...$params)
     {
-        list($group, $user, $staffSns, $departmentIds) = $params;
+        [$group, $user, $staffSns, $departmentIds] = $params;
 
         $calculatedAt = \DB::table('artisan_command_logs')
             ->where('command_sn', 'pms:calculate-staff-point')
@@ -220,7 +220,7 @@ class PointRankController extends Controller
      */
     public function calculatedRank(...$params)
     {
-        list($items, $user, $group) = $params;
+        [$items, $user, $group] = $params;
 
         $user->total = 0;
         $prevItem = (object)['total' => 0, 'rank' => 1];
