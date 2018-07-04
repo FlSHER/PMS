@@ -27,7 +27,7 @@ class CalculateStaffBasePoint extends Command
     	// 基础分配置项
         $configs = CommonConfig::byNamespace('basepoint')->get();
         // 基础工龄系数
-        $ratio = CommonConfig::byNamespace('basepoint')->byName('ratio')->pluck('value');
+        $ratio = CommonConfig::byNamespace('basepoint')->byName('ratio')->value('value');
         // 所有权限分组员工
         $staff_sns = AuthorityGroupHasStaff::pluck('staff_sn')->unique()->values()->toJson();
         $users = app('api')->client()->getStaff(['filters' => 'staff_sn='.$staff_sns]);
@@ -66,7 +66,7 @@ class CalculateStaffBasePoint extends Command
                         
                         // 员工工龄转月数
                         $month = Carbon::parse($val['employed_at'])->diffInMonths(Carbon::now());
-                        $point = ceil($month * $ratio[0]);
+                        $point = ceil($month * $ratio);
                         $val['base_point'] += ($point >= $config['value']) ? $config['value'] : $point;
                     }
                 });
