@@ -14,9 +14,9 @@ class FinalsService
         $this->finals = $finals;
     }
 
-    public function getFinalsList($request)
+    public function getFinalsList()
     {
-        return $this->finals->getFinalsAll($request);
+        return $this->finals->getFinalsAll();
     }
 
     /**

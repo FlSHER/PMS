@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\APIs;
 
 use Carbon\Carbon;
-use Illuminate\Http\Response;
 use Illuminate\Http\Request;
-use App\Services\Point\Types\Event;
+use App\Services\EventApprove;
 use App\Repositories\EventLogRepository;
 use App\Http\Requests\API\StoreEventLogRequest;
 use App\Models\Event as EventModel;
@@ -102,14 +101,39 @@ class EventLogController extends Controller
         $eventlog->event_type_id = $event->type_id;
         $eventlog->recorder_sn = $user->staff_sn;
         $eventlog->recorder_name = $user->realname;
-        if ($eventlog->first_approver_sn === $user->staff_sn) {
-            $eventlog->status_id = 1;
-            $eventlog->first_approve_remark = '初审人与记录人相同，系统自动通过。';
-            $eventlog->first_approved_at = Carbon::now();
-        }
+        $addressees = $this->mergeAddressees($event->default_cc_addressees, $data['addressees']);
+        
+        $eventlog->getConnection()->transaction(function () use ($eventlog, $data, $user, $addressees) {
+            $eventlog->save();
+            $eventlog->addressee()->createMany($addressees);
+            $eventlog->participant()->createMany($data['participants']);
 
-        // 合并默认抄送人到提交的抄送人
-        $addressees = array_merge((array)$event->default_cc_addressees, (array)$data['addressees']);
+            if ($eventlog->first_approver_sn === $user->staff_sn) {
+                $approveService = new EventApprove($eventlog);
+                $approveService->firstApprove([
+                    'remark' => '初审人与记录人相同，系统自动通过。'
+                ]);
+            }
+
+            if ($eventlog->final_approver_sn === $user->staff_sn) {
+                $approveService = new EventApprove($eventlog);
+                $approveService->finalApprove([
+                    'remark' => '终审人与记录人相同，系统自动通过。'
+                ]);
+            }
+        });
+
+        return response()->json(['message' => '添加成功'], 201);
+    }
+
+    /**
+     * 合并抄送人.
+     * 
+     * @author 28youth
+     */
+    public function mergeAddressees(...$params)
+    {
+        $addressees = array_merge((array)$params[0], (array)$params[1]);
         // 去除重复抄送人
         $tmpArr = [];
         foreach ($addressees as $key => $value) {
@@ -119,13 +143,8 @@ class EventLogController extends Controller
                 $tmpArr[] = $value['staff_sn'];
             }
         }
-        $eventlog->getConnection()->transaction(function () use ($eventlog, $data, $addressees) {
-            $eventlog->save();
-            $eventlog->addressee()->createMany($addressees);
-            $eventlog->participant()->createMany($data['participants']);
-        });
 
-        return response()->json(['message' => '添加成功'], 201);
+        return $addressees;
     }
 
     /**
@@ -138,7 +157,7 @@ class EventLogController extends Controller
      */
     public function show(Request $request, EventLogModel $eventlog)
     {
-        $eventlog->load('participant', 'addressee');
+        $eventlog->load('participant', 'addressee', 'event');
         $eventlog->executed_at = Carbon::parse($eventlog->executed_at)->toDateString();
 
         return response()->json($eventlog);
@@ -154,19 +173,13 @@ class EventLogController extends Controller
      */
     public function firstApprove(Request $request, EventLogModel $eventlog)
     {
-        $user = $request->user();
+        $approveService = new EventApprove($eventlog);
 
-        if ($eventlog->first_approved_at !== null) {
-            return response()->json([
-                'message' => '初审已通过'
-            ], 422);
-        }
-        $eventlog->first_approve_remark = $request->remark;
-        $eventlog->first_approved_at = Carbon::now();
-        $eventlog->status_id = 1;
-        $eventlog->save();
+        $response = $approveService->firstApprove([
+            'remark' => $request->remark
+        ]);
 
-        return response()->json($eventlog, 201);
+        return response()->json($response, 201);
     }
 
     /**
@@ -179,23 +192,13 @@ class EventLogController extends Controller
      */
     public function finalApprove(Request $request, EventLogModel $eventlog)
     {
-        $user = $request->user();
-
-        if ($eventlog->final_approved_at !== null) {
-            return response()->json([
-                'message' => '终审已通过'
-            ], 422);
-        }
-        $eventlog->recorder_point = $request->recorder_point;
-        $eventlog->first_approver_point = $request->first_approver_point;
-        $eventlog->final_approve_remark = $request->remark;
-        $eventlog->final_approved_at = Carbon::now();
-        $eventlog->status_id = 2;
-
-        $eventlog->getConnection()->transaction(function () use ($eventlog) {
-            $eventlog->save();
-            // 事件参与者记录积分
-            app(Event::class)->record($eventlog);
+        $eventlog->getConnection()->transaction(function () use ($eventlog, $request) {
+            $approveService = new EventApprove($eventlog);
+            $approveService->finalApprove([
+                'first_approver_point' => $request->first_approver_point,
+                'recorder_point' => $request->recorder_point,
+                'remark' => $request->remark
+            ]);
         });
 
         return response()->json(['message' => '操作成功'], 201);

@@ -31,7 +31,7 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('inspire')->hourly();
         // Monthly statistics of employees' points
-        $schedule->command('pms:calculate-staff-point')->daily(1, '4:40');
+        $schedule->command('pms:calculate-staff-point')->dailyAt('4:40');
         // Monthly statistics of employees' base points
         $schedule->command('pms:calculate-staff-basepoint')->monthlyOn(1, '2:10');
         $schedule->command('command:pointTarget')->monthlyOn(1, '2:00');
