@@ -66,10 +66,10 @@ class PointRankController extends Controller
      * @author 28youth
      * @return mixed
      */
-    public function monthRank()
+    public function monthRank(...$params)
     {
         $datetime = Carbon::parse(request()->query('datetime'));
-        list($group, $user, $staffSns, $departmentIds) = func_get_args();
+        list($group, $user, $staffSns, $departmentIds) = $params;
 
         if ($datetime->isCurrentMonth()) {
             $calculatedAt = \DB::table('artisan_command_logs')
@@ -118,11 +118,11 @@ class PointRankController extends Controller
      * @author 28youth
      * @return mixed
      */
-    public function stageRank()
+    public function stageRank(...$params)
     {
         $stime = request()->query('start_at');
         $etime = request()->query('end_at');
-        list($group, $user, $staffSns, $departmentIds) = func_get_args();
+        list($group, $user, $staffSns, $departmentIds) = $params;
 
         $items = StatisticLogModel::query()
             ->select(\DB::raw('staff_sn, staff_name, SUM(point_b_monthly) as total'))
@@ -153,9 +153,9 @@ class PointRankController extends Controller
      * @author 28youth
      * @return mixed
      */
-    public function totalRank()
+    public function totalRank(...$params)
     {
-        list($group, $user, $staffSns, $departmentIds) = func_get_args();
+        list($group, $user, $staffSns, $departmentIds) = $params;
 
         $calculatedAt = \DB::table('artisan_command_logs')
             ->where('command_sn', 'pms:calculate-staff-point')
@@ -218,8 +218,10 @@ class PointRankController extends Controller
      * @param  [type] &$user 当前认证员工信息
      * @param  [type] $group 员工分组信息
      */
-    public function calculatedRank($items, &$user, $group)
+    public function calculatedRank(...$params)
     {
+        list($items, $user, $group) = $params;
+
         $user->total = 0;
         $prevItem = (object)['total' => 0, 'rank' => 1];
 

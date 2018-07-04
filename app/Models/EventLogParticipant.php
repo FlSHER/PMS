@@ -34,4 +34,16 @@ class EventLogParticipant extends Model
      * @var bool
      */
     public $timestamps = false;
+
+
+    /**
+     * 设定事件完成次数。
+     *
+     * @param  string  $value
+     * @return void
+     */
+    public function setFirstNameAttribute($value)
+    {
+        $this->attributes['count'] = ((bool)$value !== true) ? 1 : $value;
+    }
 }

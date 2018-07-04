@@ -36,7 +36,7 @@ class Event extends Log
             'point_b' => $eventlog->first_approver_point,
             'staff_sn' => $eventlog->first_approver_sn,
             'source_id' => self::SYSTEM_POINT,
-            'title' => '初审事件: ' . $eventlog->event_name
+            'title' => '初审奖扣: ' . $eventlog->event_name
         ]);
         // 记录人得分
         $logs[] = array_merge($baseData, [
@@ -44,7 +44,7 @@ class Event extends Log
             'point_b' => $eventlog->recorder_point,
             'staff_sn' => $eventlog->recorder_sn,
             'source_id' => self::SYSTEM_POINT,
-            'title' => '记录事件: ' . $eventlog->event_name
+            'title' => '记录奖扣: ' . $eventlog->event_name
         ]);
 
         array_walk($logs, [$this, 'createLog']);
@@ -58,6 +58,11 @@ class Event extends Log
      */
     protected function createLog($log)
     {
+        // a b 分均等于零不录入记录
+        if ($log['point_a'] == 0 && $log['point_b'] == 0) {
+            return false;
+        }
+
         // 根据事件执行时间 月结后自动顺延到本月一号
         $setDay = config('command.monthly_date');
         $curDay = Carbon::now()->daysInMonth;
@@ -86,7 +91,7 @@ class Event extends Log
     {
         return [
             'source_id' => self::EVENT_POINT,
-            'title' => '参与事件: ' . $eventlog->event_name,
+            'title' => '参与奖扣: ' . $eventlog->event_name,
             'source_foreign_key' => $eventlog->id,
             'first_approver_sn' => $eventlog->first_approver_sn,
             'first_approver_name' => $eventlog->first_approver_name,
