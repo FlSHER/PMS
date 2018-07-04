@@ -21,7 +21,7 @@ class BasePoint extends Log
     {
         $model = new PointLogModel();
 
-        $model->title = '基础分统计结果';
+        $model->title = Carbon::now()->month.'月基础分统计';
         $model->staff_sn = $staff['staff_sn'];
         $model->staff_name = $staff['realname'];
         $model->brand_id = $staff['brand']['id'];
