@@ -150,9 +150,4 @@ class EventRepository
             ], 400);
         }
     }
-
-    public function updateGetOnly($id, $name)
-    {
-        return Event::whereNotIn('id', explode(',', $id))->where('name', $name)->first();
-    }
 }

@@ -67,10 +67,6 @@ class EventService
         if (false == (bool)$bool) {
             abort(404, '没有找到当前的事件分类');
         }
-        $event = $this->eventRepository->updateGetOnly($request->route('id'), $request->name);
-        if (true == (bool)$event) {
-            abort(422, '当前名字已经被使用');
-        }
         $this->finalValueVerify($request);
         $request->first_approver_locked = $request->first_approver_sn > 0 ? $request->first_approver_locked : 0;
         $request->final_approver_locked = $request->final_approver_sn > 0 ? $request->final_approver_locked : 0;
