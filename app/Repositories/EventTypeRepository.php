@@ -15,6 +15,7 @@ class EventTypeRepository
     }
     public function evenTypeListGetData()
     {
+//        return $this->eventType->filterByQueryString()->withPagination($request->get('pagesize', 10));
         return EventType::orderBy('sort')->get()->toArray();
     }
 

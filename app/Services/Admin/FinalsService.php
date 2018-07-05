@@ -53,9 +53,6 @@ class FinalsService
      */
     public function updateFinals($request)
     {
-        if ($this->finals->editRepetition($request->route('id'), $request->staff_sn)) {
-            abort(422, '当前员工编号已存在');
-        }
         $id = $this->finals->delRepetition($request->staff_sn);
         if (true == (bool)$id) {
             $this->finals->restoreDeleteFinals($id);

@@ -34,11 +34,6 @@ class FinalsRepositories
         return $this->finalModel->withTrashed()->where('staff_sn', $staff_sn)->value('id');
     }
 
-    public function editRepetition($id, $staff_sn)
-    {
-        return $this->finalModel->whereNotIn('id', explode(',', $id))->where('staff_sn', $staff_sn)->first();
-    }
-
     public function addFinals($request)
     {
         $this->finalModel->staff_sn = $request->staff_sn;
