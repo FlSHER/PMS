@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\FinalApprover;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class EventRequest extends FormRequest
 {
@@ -18,13 +20,16 @@ class EventRequest extends FormRequest
 
     /**
      * Get the validation rules that apply to the request.
-     *
      * @return array
      */
     public function rules()
     {
         return [
-            'name'=>'required|max:40',
+            'name'=>['required','max:40',
+                Rule::unique('events', 'name')
+                    ->where('type_id',$this->all('type_id'))
+                    ->ignore('id', $this->get('id', 0))
+                ],
             'type_id'=>'required|numeric',
             'point_a_min'=>'required|numeric',
             'point_a_max'=>'required|numeric',

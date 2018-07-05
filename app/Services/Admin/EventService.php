@@ -51,7 +51,7 @@ class EventService
      */
     public function addEvent($request)
     {
-        $this->verifyEventType($request->type_id, $request->name);
+        $this->verifyEventType($request->type_id);
         $this->finalValueVerify($request);
         return $this->eventRepository->addEventData($request);
     }
@@ -81,15 +81,11 @@ class EventService
      * @param $id
      * 检测有没有当前事件类型id
      */
-    public function verifyEventType($id, $name)
+    public function verifyEventType($id)
     {
         $bool = $this->eventTypeRepository->getEventTypeData($id);
         if (false == (bool)$bool) {
             abort(404, '没有找到当前的事件分类');
-        }
-        $nameOnly = $this->eventRepository->nameWhereGetData($name);
-        if (true == (bool)$nameOnly) {
-            abort(422, '当前名字已经被占用');
         }
     }
 

@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Services\Admin\EventService;
 
+use Illuminate\Validation\Rule;
 use Validator;
 use App\Providers\RepositoryServiceProvider;
 use App\Http\Requests\Admin\EventRequest;
@@ -47,8 +48,9 @@ class EventController extends Controller
      * @return mixed
      * 更新事件
      */
-    public function update(EventRequest $request)
+    public function update(Request $request)
     {
+        $this->editEventVerify($request);
         return $this->eventService->updateEvent($request);
     }
 
@@ -174,6 +176,54 @@ class EventController extends Controller
             'new_data.*.parent_id' => '父类id',
             'new_data.*.name' => '名字',
             'new_data.*.sort' => '排序',
+        ]);
+    }
+
+    /**
+     * 事件编辑验证
+     * @param $request
+     */
+    public function editEventVerify($request)
+    {
+        $this->validate($request,[
+            'name'=>['required','max:40',
+                Rule::unique('events', 'name')
+                    ->where('type_id',$request->all('type_id'))
+                    ->whereNotIn('id',explode(' ',$request->route('id')))
+                    ->ignore('id', $request->get('id', 0))
+            ],
+            'type_id'=>'required|numeric',
+            'point_a_min'=>'required|numeric',
+            'point_a_max'=>'required|numeric',
+            'point_a_default'=>'required|numeric',
+            'point_b_min'=>'required|numeric',
+            'point_b_max'=>'required|numeric',
+            'point_b_default'=>'required|numeric',
+//            'first_approver_sn'=>'',
+//            'first_approver_name'=>'',
+//            'final_approver_sn'=>'',
+//            'final_approver_name'=>'',
+            'first_approver_locked'=>'required|min:0|max:1',//0未锁定1锁定
+            'final_approver_locked'=>'required|min:0|max:1',//0未锁定1锁定
+//            'default_cc_addressees'=>'nullable',
+            'is_active'=>'required|min:0|max:1'//0未激活1激活
+        ],[],[
+            'name'=>'事件名称',
+            'type_id'=>'事件类型',
+            'point_a_min'=>'A分最小值',
+            'point_a_max'=>'A分最大值',
+            'point_a_default'=>'A分默认值',
+            'point_b_min'=>'B分最小值',
+            'point_b_max'=>'B分最大值',
+            'point_b_default'=>'B分默认值',
+//            'first_approver_sn'=>'初审人编号',
+//            'first_approver_name'=>'初审人姓名',
+//            'final_approver_sn'=>'终审人编号',
+//            'final_approver_name'=>'终审人姓名',
+            'first_approver_locked'=>'初审人锁定',//0未锁定1锁定
+            'final_approver_locked'=>'终审人锁定',//0未锁定1锁定
+//            'default_cc_addressees'=>'默认抄送人',
+            'is_active'=>'是否激活'//0未激活1激活
         ]);
     }
 }

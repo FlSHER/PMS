@@ -151,11 +151,6 @@ class EventRepository
         }
     }
 
-    public function nameWhereGetData($name)
-    {
-        return Event::where('name', $name)->first();
-    }
-
     public function updateGetOnly($id, $name)
     {
         return Event::whereNotIn('id', explode(',', $id))->where('name', $name)->first();
