@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+
 use App\Models\Traits\ListScopes;
 use Illuminate\Database\Eloquent\Model;
 
@@ -12,19 +13,20 @@ class AuthorityGroup extends Model
      *
      * @var bool
      */
-    protected $table='authority_groups';
+    protected $table = 'authority_groups';
 
     protected $fillable = ['name'];
+
     /**
      * has department.
-     * 
+     *
      * @author 28youth
      * @return \Illuminate\Database\Eloquent\Relations\hasmany
      */
 
     public function departments()
     {
-        return $this->hasMany(AuthorityGroupHasDepartment::class,'authority_group_id','id');
+        return $this->hasMany(AuthorityGroupHasDepartment::class, 'authority_group_id', 'id');
     }
 
     /**
@@ -34,6 +36,11 @@ class AuthorityGroup extends Model
 
     public function staff()
     {
-        return $this->hasMany(AuthorityGroupHasStaff::class,'authority_group_id','id');
+        return $this->hasMany(AuthorityGroupHasStaff::class, 'authority_group_id', 'id');
+    }
+
+    public function Administrator()
+    {
+        return $this->hasMany(AuthorityTaskPublish::class, 'group_id', 'id');
     }
 }
