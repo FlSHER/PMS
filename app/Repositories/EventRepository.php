@@ -93,10 +93,11 @@ class EventRepository
         $event->final_approver_name = $request->final_approver_sn > 0 ? $request->final_approver_name : null;
         $event->first_approver_locked = $request->first_approver_sn > 0 ? $request->first_approver_locked : 0;
         $event->final_approver_locked = $request->final_approver_sn > 0 ? $request->final_approver_locked : 0;
-        $event->default_cc_addressees = $request->default_cc_addressees;
+        $event->default_cc_addressees = $request->default_cc_addressees ?: "";
         $event->is_active = $request->is_active;
         $event->save();
-        return $event->find($event->id);
+        
+        return $event;
     }
 
     /**

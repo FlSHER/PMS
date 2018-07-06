@@ -90,12 +90,10 @@ class EventLogController extends Controller
      */
     public function mergeAddressees(...$params)
     {
-        if (!$params[1] || !is_array($params[1])) {
-            return (array)$params[0];
-        }
-
-        $addressees = array_merge((array)$params[0], (array)$params[1]);
-        // 去除重复抄送人
+        $addressees = array_merge(
+            array_filter((array)$params[0]), 
+            array_filter((array)$params[1])
+        );
         $tmpArr = [];
         foreach ($addressees as $key => $value) {
             if (in_array($value['staff_sn'], $tmpArr)) {
@@ -105,7 +103,7 @@ class EventLogController extends Controller
             }
         }
 
-        return (array)$addressees;
+        return $addressees;
     }
 
     /**
