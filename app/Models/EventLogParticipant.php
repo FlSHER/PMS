@@ -42,7 +42,7 @@ class EventLogParticipant extends Model
      * @param  string  $value
      * @return void
      */
-    public function setFirstNameAttribute($value)
+    public function setCountAttribute($value)
     {
         $this->attributes['count'] = ((bool)$value !== true) ? 1 : $value;
     }
