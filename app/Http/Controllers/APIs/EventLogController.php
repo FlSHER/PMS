@@ -59,7 +59,7 @@ class EventLogController extends Controller
         $eventlog->recorder_sn = $user->staff_sn;
         $eventlog->recorder_name = $user->realname;
         $addressees = $this->mergeAddressees($event->default_cc_addressees, $data['addressees']);
-        
+
         $eventlog->getConnection()->transaction(function () use ($eventlog, $data, $user, $addressees) {
             $eventlog->save();
             $eventlog->addressee()->createMany($addressees);
@@ -90,8 +90,10 @@ class EventLogController extends Controller
      */
     public function mergeAddressees(...$params)
     {
-        $addressees = array_merge((array)$params[0], (array)$params[1]);
-        // 去除重复抄送人
+        $addressees = array_merge(
+            array_filter((array)$params[0]), 
+            array_filter((array)$params[1])
+        );
         $tmpArr = [];
         foreach ($addressees as $key => $value) {
             if (in_array($value['staff_sn'], $tmpArr)) {
