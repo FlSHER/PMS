@@ -96,7 +96,6 @@ class EventRepository
         $event->default_cc_addressees = $request->default_cc_addressees ?: "";
         $event->is_active = $request->is_active;
         $event->save();
-        
         return $event;
     }
 
