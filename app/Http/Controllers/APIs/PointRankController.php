@@ -127,9 +127,8 @@ class PointRankController extends Controller
         $items = StatisticLogModel::query()
             ->select(\DB::raw('staff_sn, staff_name, SUM(point_b_monthly) as total'))
             ->whereBetween('date', stageBetween($stime, $etime))
-            ->where(function ($query) use ($group) {
-                $query->whereIn('staff_sn', $staffSns)
-                    ->orWhereIn('department_id', $departmentIds);
+            ->where(function ($query) use ($staffSns, $departmentIds) {
+                $query->whereIn('staff_sn', $staffSns)->orWhereIn('department_id', $departmentIds);
             })
             ->groupBy(['staff_sn', 'staff_name'])
             ->orderBy('total', 'desc')
