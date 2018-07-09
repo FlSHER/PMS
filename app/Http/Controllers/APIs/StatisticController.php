@@ -33,7 +33,11 @@ class StatisticController extends Controller
         
         return app()->call(
             [$this, camel_case($type . '_rank')],
-            [$group, $group->checking()->pluck('admin_sn')]
+            [
+                $group,
+                $group->staff()->pluck('staff_sn'),
+                $group->departments()->pluck('department_id')
+            ]
         );
     }
 
@@ -46,7 +50,7 @@ class StatisticController extends Controller
     public function monthRank(...$params)
     {
         $datetime = Carbon::parse(request()->query('datetime'));
-        [$group, $staffSns] = $params;
+        [$group, $staffSns, $departmentIds] = $params;
 
         if ($datetime->isCurrentMonth()) {
             $calculatedAt = \DB::table('artisan_command_logs')
@@ -54,8 +58,8 @@ class StatisticController extends Controller
                 ->orderBy('id', 'desc')->value('created_at');
             $items = StatisticModel::query()
                 ->select('staff_sn', 'staff_name', 'point_b_monthly as total')
-                ->where(function ($query) use ($staffSns) {
-                    $query->whereIn('staff_sn', $staffSns);
+                ->where(function ($query) use ($staffSns, $departmentIds) {
+                    $query->whereIn('staff_sn', $staffSns)->orWhereIn('department_id', $departmentIds);
                 })
                 ->whereBetween('calculated_at', monthBetween())
                 ->orderBy('total', 'desc')
@@ -63,8 +67,8 @@ class StatisticController extends Controller
         } else {
             $items = StatisticLogModel::query()
                 ->select('staff_sn', 'staff_name', 'point_b_monthly as total')
-                ->where(function ($query) use ($staffSns) {
-                    $query->whereIn('staff_sn', $staffSns);
+                ->where(function ($query) use ($staffSns, $departmentIds) {
+                    $query->whereIn('staff_sn', $staffSns)->orWhereIn('department_id', $departmentIds);
                 })
                 ->whereBetween('date', monthBetween($datetime))
                 ->orderBy('total', 'desc')
@@ -93,13 +97,13 @@ class StatisticController extends Controller
     {
         $stime = request()->query('start_at');
         $etime = request()->query('end_at');
-        [$group, $staffSns] = $params;
+        [$group, $staffSns, $departmentIds] = $params;
 
         $items = StatisticLogModel::query()
             ->select(\DB::raw('staff_sn, staff_name, SUM(point_b_monthly) as total'))
             ->whereBetween('date', stageBetween($stime, $etime))
-            ->where(function ($query) use ($staffSns) {
-                $query->whereIn('staff_sn', $staffSns);
+            ->where(function ($query) use ($staffSns, $departmentIds) {
+                $query->whereIn('staff_sn', $staffSns)->orWhereIn('department_id', $departmentIds);
             })
             ->groupBy(['staff_sn', 'staff_name'])
             ->orderBy('total', 'desc')
@@ -120,7 +124,7 @@ class StatisticController extends Controller
      */
     public function totalRank(...$params)
     {
-        [$group, $staffSns] = $params;
+        [$group, $staffSns, $departmentIds] = $params;
 
         $calculatedAt = \DB::table('artisan_command_logs')
             ->where('command_sn', 'pms:calculate-staff-point')
@@ -128,8 +132,8 @@ class StatisticController extends Controller
 
         $items = StatisticModel::query()
             ->select('staff_sn', 'staff_name', 'point_b_total as total')
-            ->where(function ($query) use ($staffSns) {
-                $query->whereIn('staff_sn', $staffSns);
+            ->where(function ($query) use ($staffSns, $departmentIds) {
+                $query->whereIn('staff_sn', $staffSns)->orWhereIn('department_id', $departmentIds);
             })
             ->orderBy('total', 'desc')
             ->get();
@@ -163,11 +167,26 @@ class StatisticController extends Controller
 
         $lastRank = ($prevItem->total == 0) ? $prevItem->rank : $prevItem->rank++;
 
-        $group->checking->map(function ($staff) use ($items, $lastRank) {
-            if (!in_array($staff->admin_sn, $items->pluck('staff_sn')->toArray())) {
+        $group->staff->map(function ($staff) use ($items, $lastRank) {
+            if (!in_array($staff->staff_sn, $items->pluck('staff_sn')->toArray())) {
                 $items->push([
-                    'staff_sn' => $staff->admin_sn,
-                    'staff_name' => $staff->admin_name,
+                    'staff_sn' => $staff->staff_sn,
+                    'staff_name' => $staff->staff_name,
+                    'rank' => $lastRank,
+                    'total' => 0,
+                ]);
+            }
+        });
+
+        $staffResponse = collect(app('api')->getStaff([
+            'filters' => 'department_id=' . json_encode($group->departments()->pluck('department_id')) . ';status_id>=0'
+        ]));
+
+        $staffResponse->map(function ($staff) use ($items, $lastRank) {
+            if (!in_array($staff['staff_sn'], $items->pluck('staff_sn')->toArray())) {
+                $items->push([
+                    'staff_sn' => $staff['staff_sn'],
+                    'staff_name' => $staff['realname'],
                     'rank' => $lastRank,
                     'total' => 0,
                 ]);
