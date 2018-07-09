@@ -79,6 +79,7 @@ class StatisticController extends Controller
 
         $response = [
             'list' => $items,
+            'group_id' => $group->id
         ];
         if (Carbon::parse($datetime)->isCurrentMonth()) {
             $response['calculated_at'] = $calculatedAt;
@@ -113,6 +114,7 @@ class StatisticController extends Controller
 
         return response()->json([
             'list' => $items,
+            'group_id' => $group->id
         ], 200);
     }
 
@@ -142,6 +144,7 @@ class StatisticController extends Controller
 
         return response()->json([
             'list' => $items,
+            'group_id' => $group->id,
             'calculated_at' => $calculatedAt
         ], 200);
     }
