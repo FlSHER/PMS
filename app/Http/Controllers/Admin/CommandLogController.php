@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Admin;
 use Illuminate\Http\Request;
 use App\Models\ArtisanCommandLog as CommandLogModel;
 
-class CommandController extends Controller
+class CommandLogController extends Controller
 {
     /**
      * 获取任务执行记录.

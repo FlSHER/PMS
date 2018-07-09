@@ -7,11 +7,11 @@
 |
 | 后台功能路由
 |
-*/
+ */
 
+use App\Http\Controllers\Admin;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Contracts\Routing\Registrar as RouteContract;
-use App\Http\Controllers\Admin;
 
 Route::options('{a?}/{b?}/{c?}', function () {
     return response('', 204);
@@ -51,7 +51,7 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $admin) {
     $admin->put('targets/{id}', Admin\PointTargetController::class . '@editTarget');//修改奖扣指标
     $admin->put('targets/{id}/staff', Admin\PointTargetController::class . '@editStaff');//修改奖扣指标关联人员
     $admin->delete('targets/{id}', Admin\PointTargetController::class . '@deleteTarget');//删除奖扣指标     PointTargetCommand
-    $admin->get('target',Admin\PointTargetController::class.'@test');//测试
+    $admin->get('target', Admin\PointTargetController::class . '@test');//测试
     // 获取基础分配置
     // @get /admin/base-points/setting
     $admin->get('base-points/setting', Admin\BasePointController::class . '@index');
@@ -94,11 +94,11 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $admin) {
 
     // 批量删除证书拥有者
     // @post /admin/certificate-staff/batch/delete
-    $admin->post('certificate-staff/batch/delete',Admin\CertificateController::class . '@deleteCertificateStaff');
+    $admin->post('certificate-staff/batch/delete', Admin\CertificateController::class . '@deleteCertificateStaff');
 
     // 获取任务执行记录
     // @get /admin/commadn-logs
-    $admin->get('commadn-logs', Admin\CommandController::class.'@index');
+    $admin->get('commadn-logs', Admin\CommandLogController::class . '@index');
 });
 
 Route::get('events/example', Admin\EventController::class . '@example');//导出模板范例ok  record
