@@ -23,17 +23,25 @@ class AuthorityGroup extends Model
      * @author 28youth
      * @return \Illuminate\Database\Eloquent\Relations\hasmany
      */
-
     public function departments()
     {
         return $this->hasMany(AuthorityGroupHasDepartment::class, 'authority_group_id', 'id');
     }
 
     /**
+     * 统计审查权限分组人员.
+     *
+     * @author 28youth
+     * @return \Illuminate\Database\Eloquent\Relations\hasmany
+     */
+    public function checking()
+    {
+        return $this->hasMany(StatisticCheckingAuthorities::class, 'group_id', 'id');
+    }
+
+    /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-
-
     public function staff()
     {
         return $this->hasMany(AuthorityGroupHasStaff::class, 'authority_group_id', 'id');

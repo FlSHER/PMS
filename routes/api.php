@@ -82,10 +82,14 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
         // get /api/points/ranking/show
         $api->get('ranking/show', APIs\PointRankController::class . '@show');
 
-        // 员工分组排行榜
+        // 认证员工分组排行榜
         // get /api/points/ranking/staff
         $api->get('ranking/staff', APIs\PointRankController::class . '@staff');
-
+        
+        // 查看员工统计排行
+        // get /api/statistic/ranking
+        $api->get('statistic/ranking', APIs\StatisticController::class . '@staff');
+        
         // 我的积分首页
         // get /api/points/statistic/mine
         $api->get('statistic/mine', APIs\StaffPointController::class . '@index');
@@ -99,9 +103,6 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
         $api->get('statistic/{pointlog}', APIs\StaffPointController::class . '@detail');
     });
 
-    // 查看员工分组排行
-    // get /api/statistic/ranking/staff
-    $api->get('statistic/ranking/staff', APIs\StatisticController::class . '@staff');
 
     // 当前员工积分指标
     // @get /api/staff/target
