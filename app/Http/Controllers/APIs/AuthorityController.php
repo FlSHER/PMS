@@ -12,23 +12,30 @@ class AuthorityController extends Controller
      *
      * @author 28youth
      * @param  Illuminate\Http\Request $request
-     * @param  App\Models\AuthorityGroup $group
      * @return mixed
      */
-    public function index(Request $request, AuthorityGroup $group)
+    public function index(Request $request)
     {
         $user = $request->user();
-
-        $items = $group->query()
-            ->whereHas('staff', function ($query) use ($user) {
+        $builder = AuthorityGroup::query();
+        
+        // 员工权限分组
+        $authGroup = $builder->whereHas('staff', function ($query) use ($user) {
                 $query->where('staff_sn', $user->staff_sn);
             })
             ->orWhereHas('departments', function ($query) use ($user) {
                 $query->where('department_id', $user->department['id']);
-            })
-            ->get();
-
-        return response()->json($items, 200);
+            })->get();
+            
+        // 员工统计查看权限分组
+        $statisGroup = $builder->whereHas('checking', function ($query) use ($user) {
+            $query->where('admin_sn', $user->staff_sn);
+        })->get();
+        
+        return response()->json([
+            'auth_group' => $authGroup,
+            'statis_group' => $statisGroup
+        ], 200);
     }
 
 }
