@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use function App\monthBetween;
 use function App\stageBetween;
 use App\Models\PointLog as PointLogModel;
+use App\Models\AuthorityGroup as GroupModel;
 use App\Models\PersonalPointStatistic as StatisticModel;
 use App\Models\PersonalPointStatisticLog as StatisticLogModel;
 
@@ -23,6 +24,7 @@ class StaffPointController extends Controller
     {
         $user = $request->user();
         $datetime = $request->query('datetime');
+        
         if (Carbon::parse($datetime)->isCurrentMonth()) {
             $monthly = StatisticModel::query()
                 ->where('staff_sn', $user->staff_sn)
@@ -76,13 +78,24 @@ class StaffPointController extends Controller
     public function show(Request $request)
     {
         $user = $request->user();
-
+        $staffSn = $request->query('staff_sn');
+        $groupId = $request->query('group_id');
+        if ($staffSn && $groupId) {
+            $group = GroupModel::where('id', $groupId)
+                ->whereHas('checking', function ($query) use ($user) {
+                    $query->where('admin_sn', $user->staff_sn);
+                })->first();
+            if ($group === null || ($group && !in_array($staffSn, $group->stafflist()))) {
+                return response()->json(['message' => '无权查看当前员工'], 403);
+            }
+        }
+        
         $items = PointLogModel::query()
-            ->where('staff_sn', $user->staff_sn)
+            ->where('staff_sn', ($staffSn ?: $user->staff_sn))
             ->filterByQueryString()
             ->withPagination();
 
-        return response()->json($items);
+        return response()->json($items, 200);
     }
 
     /**

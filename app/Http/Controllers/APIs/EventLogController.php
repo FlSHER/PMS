@@ -5,10 +5,10 @@ namespace App\Http\Controllers\APIs;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Services\EventApprove;
-use App\Repositories\EventLogRepository;
-use App\Http\Requests\API\StoreEventLogRequest;
 use App\Models\Event as EventModel;
+use App\Repositories\EventLogRepository;
 use App\Models\EventLog as EventLogModel;
+use App\Http\Requests\API\StoreEventLogRequest;
 
 class EventLogController extends Controller
 {
@@ -64,23 +64,34 @@ class EventLogController extends Controller
             $eventlog->save();
             $eventlog->addressee()->createMany($addressees);
             $eventlog->participant()->createMany($data['participants']);
-
-            if ($eventlog->first_approver_sn === $user->staff_sn) {
-                $approveService = new EventApprove($eventlog);
-                $approveService->firstApprove([
-                    'remark' => '初审人与记录人相同，系统自动通过。'
-                ]);
-            }
-
-            if ($eventlog->final_approver_sn === $user->staff_sn) {
-                $approveService = new EventApprove($eventlog);
-                $approveService->finalApprove([
-                    'remark' => '终审人与记录人相同，系统自动通过。'
-                ]);
-            }
+            $this->makeApprove($user, $eventlog);
         });
 
         return response()->json(['message' => '添加成功'], 201);
+    }
+
+    /**
+     * 自动审核判定.
+     *
+     * @return void
+     */
+    protected function makeApprove($user, $logModel)
+    {
+        $firstSn = $logModel->first_approver_sn;
+        $finalSn = $logModel->final_approver_sn;
+        $approveService = new EventApprove($logModel);
+
+        // 记录人、初审人相同时 初审通过
+        if ($user->staff_sn === $firstSn) {
+            $approveService->firstApprove(['remark' => '初审人与记录人相同，系统自动通过。']);
+        } elseif ($finalSn === $firstSn) {
+            $approveService->firstApprove(['remark' => '初审人与终审人相同，系统自动通过。']);
+        }
+        
+        // 记录人等于终审人且等于初审人,终审通过
+        if ($user->staff_sn === $finalSn && $user->staff_sn === $firstSn) {
+            $approveService->finalApprove(['remark' => '终审人与记录人相同，系统自动通过。']);
+        }
     }
 
     /**
@@ -91,7 +102,7 @@ class EventLogController extends Controller
     public function mergeAddressees(...$params)
     {
         $addressees = array_merge(
-            array_filter((array)$params[0]), 
+            array_filter((array)$params[0]),
             array_filter((array)$params[1])
         );
         $tmpArr = [];

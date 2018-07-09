@@ -3,18 +3,18 @@
 namespace App\Console\Commands;
 
 use Carbon\Carbon;
+use App\Models\CommonConfig;
 use Illuminate\Http\Request;
 use Illuminate\Console\Command;
-use App\Models\ArtisanCommandLog;
-use App\Models\CommonConfig;
 use App\Models\CertificateStaff;
+use App\Models\ArtisanCommandLog;
 use App\Models\AuthorityGroupHasStaff;
 use App\Services\Point\Types\BasePoint;
 
 
 class CalculateStaffBasePoint extends Command
 {
-	protected $signature = 'pms:calculate-staff-basepoint';
+    protected $signature = 'pms:calculate-staff-basepoint';
     protected $description = 'Calculate staff base point';
 
     public function __construct()
@@ -30,16 +30,16 @@ class CalculateStaffBasePoint extends Command
         $ratio = CommonConfig::byNamespace('basepoint')->byName('ratio')->value('value');
         // 所有权限分组员工
         $staff_sns = AuthorityGroupHasStaff::pluck('staff_sn')->unique()->values()->toJson();
-        $users = app('api')->client()->getStaff(['filters' => 'staff_sn='.$staff_sns]);
+        $users = app('api')->client()->getStaff(['filters' => 'staff_sn=' . $staff_sns]);
 
         $commandModel = $this->createLog();
 
         try {
             \DB::beginTransaction();
-            
+
             foreach ($users as $key => &$val) {
                 $val['base_point'] = 0;
-                
+
                 $configs->map(function ($config) use (&$val, $ratio) {
 
                     // json 转数组
@@ -96,7 +96,7 @@ class CalculateStaffBasePoint extends Command
         }
 
     }
-	
+
 
     /**
      * 创建积分日志.
@@ -104,15 +104,15 @@ class CalculateStaffBasePoint extends Command
      * @author 28youth
      * @return ArtisanCommandLog
      */
-	public function createLog(): ArtisanCommandLog
-	{
-		$commandModel = new ArtisanCommandLog();
+    public function createLog() : ArtisanCommandLog
+    {
+        $commandModel = new ArtisanCommandLog();
         $commandModel->command_sn = 'pms:calculate-staff-basepoint';
         $commandModel->created_at = Carbon::now();
-        $commandModel->title = Carbon::now()->month.'月基础分结算';
+        $commandModel->title = Carbon::now()->month . '月基础分结算';
         $commandModel->status = 0;
         $commandModel->save();
 
         return $commandModel;
-	}
+    }
 }

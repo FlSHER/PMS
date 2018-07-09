@@ -3,8 +3,8 @@
 namespace App\Services;
 
 use Carbon\Carbon;
-use App\Models\EventLog as EventLogModel;
 use App\Services\Point\Types\Event;
+use App\Models\EventLog as EventLogModel;
 
 /**
  * 审核服务.
@@ -64,9 +64,9 @@ class EventApprove
                 'message' => '终审已通过'
             ], 422);
         }
-        $this->logModel->recorder_point = $params['recorder_point'] ?? 0;
-        $this->logModel->first_approver_point = $params['first_approver_point'] ?? 0;
-        $this->logModel->final_approve_remark = $params['remark'] ?? '准予通过';
+        $this->logModel->recorder_point = $params['recorder_point'] ?: 0;
+        $this->logModel->first_approver_point = $params['first_approver_point'] ?: 0;
+        $this->logModel->final_approve_remark = $params['remark'];
         $this->logModel->final_approved_at = Carbon::now();
         $this->logModel->status_id = 2;
         $this->logModel->save();

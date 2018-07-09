@@ -9,12 +9,12 @@
 | routes are loaded by the RouteServiceProvider within a group which
 | is assigned the "api" middleware group. Enjoy building your API!
 |
-*/
+ */
 
 use Illuminate\Http\Request;
+use App\Http\Controllers\APIs;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Contracts\Routing\Registrar as RouteContract;
-use App\Http\Controllers\APIs;
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
@@ -82,10 +82,14 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
         // get /api/points/ranking/show
         $api->get('ranking/show', APIs\PointRankController::class . '@show');
 
-        // 员工分组排行榜
+        // 认证员工分组排行榜
         // get /api/points/ranking/staff
         $api->get('ranking/staff', APIs\PointRankController::class . '@staff');
-
+        
+        // 查看员工统计排行
+        // get /api/points/statistic/ranking
+        $api->get('statistic/ranking', APIs\StatisticController::class . '@staff');
+        
         // 我的积分首页
         // get /api/points/statistic/mine
         $api->get('statistic/mine', APIs\StaffPointController::class . '@index');
@@ -99,12 +103,13 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
         $api->get('statistic/{pointlog}', APIs\StaffPointController::class . '@detail');
     });
 
+
     // 当前员工积分指标
     // @get /api/staff/target
-    $api->get('user/target', APIs\TargetController::class.'@index');
+    $api->get('user/target', APIs\TargetController::class . '@index');
 
-    // 获取员工权限分组
-    // get /api/staff/authority-groups
-    $api->get('authority-groups', APIs\AuthorityController::class . '@index');
+    // 获取员工积分排名权限分组
+    // get /api/authority-group/rank
+    $api->get('authority-group/rank', APIs\AuthorityController::class . '@index');
 
 });

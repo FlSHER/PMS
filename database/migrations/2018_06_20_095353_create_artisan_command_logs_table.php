@@ -19,7 +19,7 @@ class CreateArtisanCommandLogsTable extends Migration
             $table->char('title', 50)->comment('标题');
             $table->string('description')->default('')->comment('说明');
             $table->string('options')->default('')->comment('选项');
-            $table->unsignedSmallInteger('status')->default(0)->comment('状态 0-未完成 1-已完成');
+            $table->unsignedSmallInteger('status')->default(0)->comment('状态 0-未完成 1-已完成 2-失败');
             $table->timestamps();
         });
     }

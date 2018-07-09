@@ -4,9 +4,9 @@ namespace App\Console\Commands;
 
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Console\Command;
-use function App\monthBetween;
 use App\Models\PointLogSource;
+use function App\monthBetween;
+use Illuminate\Console\Command;
 use App\Models\ArtisanCommandLog;
 use App\Models\PointLog as PointLogModel;
 use App\Models\PersonalPointStatistic as StatisticModel;
@@ -25,7 +25,7 @@ class CalculateStaffPoint extends Command
 
     public function handle()
     {
-    	$this->calculateMonthPoint();
+        $this->calculateMonthPoint();
     }
 
     public function calculateMonthPoint()
@@ -42,7 +42,7 @@ class CalculateStaffPoint extends Command
                 ->select('staff_sn', 'point_a', 'point_b_monthly', 'point_b_total', 'source_b_monthly', 'source_b_total')
                 ->whereBetween('calculated_at', [$lastDaily->created_at, $calculatedAt])
                 ->get();
-            
+
             $lastStatis->map(function ($item) use (&$statistics, &$lastMonth, $lastDaily) {
 
                 // 判断跨月清空数据
@@ -50,7 +50,7 @@ class CalculateStaffPoint extends Command
                     // 生成上月月结数据
                     $lastMonth[$item->staff_sn] = $item->toArray();
                     $lastMonth[$item->staff_sn]['date'] = Carbon::create(null, null, 02)->subMonth();
-                    
+
                     $item->point_a = 0;
                     $item->point_b_monthly = 0;
                     $item->source_b_monthly = PointLogSource::get();
@@ -123,14 +123,14 @@ class CalculateStaffPoint extends Command
             \DB::rollBack();
         }
     }
-    
+
     /**
      * 创建积分日志.
      * 
      * @author 28youth
      * @return ArtisanCommandLog
      */
-    public function createLog(): ArtisanCommandLog
+    public function createLog() : ArtisanCommandLog
     {
         $commandModel = new ArtisanCommandLog();
         $commandModel->command_sn = 'pms:calculate-staff-point';
@@ -148,7 +148,7 @@ class CalculateStaffPoint extends Command
      * @author 28youth
      * @return array
      */
-    public function checkStaff(int $staff_sn): array
+    public function checkStaff(int $staff_sn) : array
     {
         $user = app('api')->client()->getStaff($staff_sn);
 
@@ -197,7 +197,7 @@ class CalculateStaffPoint extends Command
     }
 
     // 更新日结数据
-    public function saveDailyLog( $statistic, $key )
+    public function saveDailyLog($statistic, $key)
     {
         $staff = $this->checkStaff($key);
 
