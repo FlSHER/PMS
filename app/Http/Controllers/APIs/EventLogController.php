@@ -84,6 +84,8 @@ class EventLogController extends Controller
         // 记录人、初审人相同时 初审通过
         if ($user->staff_sn === $firstSn) {
             $approveService->firstApprove(['remark' => '初审人与记录人相同，系统自动通过。']);
+        } elseif ($finalSn === $firstSn) {
+            $approveService->firstApprove(['remark' => '初审人与终审人相同，系统自动通过。']);
         }
         
         // 记录人等于终审人且等于初审人,终审通过
