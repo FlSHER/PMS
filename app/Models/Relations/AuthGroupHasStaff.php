@@ -38,7 +38,7 @@ trait AuthGroupHasStaff
     public function stafflist()
     {
         $cacheKey = sprintf('auth-group-staff:%s', $this->id);
-        if ($cacheKey && !empty($cacheKey)) {
+        if (Cache::has($cacheKey)) {
             return Cache::get($cacheKey);
         }
         
