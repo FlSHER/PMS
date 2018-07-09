@@ -41,6 +41,6 @@ class AuthorityGroup extends Model
 
     public function Administrator()
     {
-        return $this->hasMany(AuthorityTaskPublish::class, 'group_id', 'id');
+        return $this->hasMany(TaskPublishingAuthorities::class, 'group_id', 'id');
     }
 }
