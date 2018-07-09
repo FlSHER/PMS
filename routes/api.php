@@ -87,7 +87,7 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
         $api->get('ranking/staff', APIs\PointRankController::class . '@staff');
         
         // 查看员工统计排行
-        // get /api/statistic/ranking
+        // get /api/points/statistic/ranking
         $api->get('statistic/ranking', APIs\StatisticController::class . '@staff');
         
         // 我的积分首页

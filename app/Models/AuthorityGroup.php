@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
-use App\Models\Traits\ListScopes;
 use Illuminate\Database\Eloquent\Model;
 
 class AuthorityGroup extends Model
 {
-    use ListScopes;
+    use Traits\ListScopes;
+    use Relations\AuthGroupHasStaff;
     /**
      * Indicates if the model should be timestamped.
      *
@@ -18,17 +18,6 @@ class AuthorityGroup extends Model
     protected $fillable = ['name'];
 
     /**
-     * has department.
-     *
-     * @author 28youth
-     * @return \Illuminate\Database\Eloquent\Relations\hasmany
-     */
-    public function departments()
-    {
-        return $this->hasMany(AuthorityGroupHasDepartment::class, 'authority_group_id', 'id');
-    }
-
-    /**
      * 统计审查权限分组人员.
      *
      * @author 28youth
@@ -37,14 +26,6 @@ class AuthorityGroup extends Model
     public function checking()
     {
         return $this->hasMany(StatisticCheckingAuthorities::class, 'group_id', 'id');
-    }
-
-    /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function staff()
-    {
-        return $this->hasMany(AuthorityGroupHasStaff::class, 'authority_group_id', 'id');
     }
 
     public function Administrator()
