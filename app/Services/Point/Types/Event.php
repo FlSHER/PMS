@@ -87,7 +87,7 @@ class Event extends Log
      * @param  \App\Models\EventLog $eventlog
      * @return array
      */
-    protected function fillBaseData(EventLogModel $eventlog): array
+    protected function fillBaseData(EventLogModel $eventlog) : array
     {
         return [
             'source_id' => self::EVENT_POINT,
