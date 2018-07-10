@@ -106,10 +106,10 @@ class StoreEventLogRequest extends FormRequest
             'final_approver_name.required' => '终审人姓名不能为空',
             'addressees.array' => '抄送人格式错误',
             'participants.required' => '事件参与人不能为空',
-            'participants.*.point_a.max' => '参与人 A 分不能大于默认值:max',
-            'participants.*.point_a.min' => '参与人 A 分不能小于默认值:min',
-            'participants.*.point_b.max' => '参与人 B 分不能大于默认值:max',
-            'participants.*.point_b.min' => '参与人 B 分不能小于默认值:min',
+            'participants.*.point_a.max' => '参与人 A 分不能大于:max',
+            'participants.*.point_a.min' => '参与人 A 分不能小于:min',
+            'participants.*.point_b.max' => '参与人 B 分不能大于:max',
+            'participants.*.point_b.min' => '参与人 B 分不能小于:min',
             'executed_at.required' => '事件执行时间不能为空',
             'executed_at.before' => '事件执行时间不能大于当前时间'
         ];
