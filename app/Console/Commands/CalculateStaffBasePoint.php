@@ -3,13 +3,13 @@
 namespace App\Console\Commands;
 
 use Carbon\Carbon;
+use App\Jobs\BasePoint;
 use App\Models\CommonConfig;
 use Illuminate\Http\Request;
 use Illuminate\Console\Command;
 use App\Models\CertificateStaff;
 use App\Models\ArtisanCommandLog;
 use App\Models\AuthorityGroupHasStaff;
-use App\Services\Point\Types\BasePoint;
 
 
 class CalculateStaffBasePoint extends Command
@@ -29,9 +29,8 @@ class CalculateStaffBasePoint extends Command
         // 基础工龄系数
         $ratio = CommonConfig::byNamespace('basepoint')->byName('ratio')->value('value');
         // 所有权限分组员工
-        $staff_sns = AuthorityGroupHasStaff::pluck('staff_sn')->unique()->values()->toJson();
-        $users = app('api')->client()->getStaff(['filters' => 'staff_sn=' . $staff_sns]);
-
+        $staff_sns = AuthorityGroupHasStaff::pluck('staff_sn')->unique()->values();
+        $users = app('api')->client()->getStaff(['filters' => "staff_sn={$staff_sns};status_id>=0"]);
         $commandModel = $this->createLog();
 
         try {
@@ -81,7 +80,7 @@ class CalculateStaffBasePoint extends Command
                     $val['base_point'] += $certificate_total;
                 }
 
-                app(BasePoint::class)->record($val);
+                BasePoint::dispatch($val);
             }
 
             $commandModel->status = 1;
