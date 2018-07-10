@@ -19,7 +19,7 @@ class CreateStatisticCheckingAuthoritiesTable extends Migration
             $table->char('admin_name', 10)->comment('统计查看者姓名');
             $table->timestamps();
             $table->foreign('group_id')->references('id')->on('authority_groups');
-            $table->index(['group_id', 'admin_sn']);
+            $table->primary(['group_id', 'admin_sn']);
         });
     }
 
