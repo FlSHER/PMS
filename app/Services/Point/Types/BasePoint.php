@@ -9,7 +9,7 @@ use App\Models\PointLog as PointLogModel;
 
 class BasePoint extends Log
 {
-    
+
     /**
      * 基础分记录.
      * 
@@ -21,7 +21,7 @@ class BasePoint extends Log
     {
         $model = new PointLogModel();
 
-        $model->title = Carbon::now()->month.'月基础分统计';
+        $model->title = Carbon::now()->month . '月基础分统计';
         $model->staff_sn = $staff['staff_sn'];
         $model->staff_name = $staff['realname'];
         $model->brand_id = $staff['brand']['id'];
