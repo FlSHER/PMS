@@ -31,7 +31,7 @@ class EventRequest extends FormRequest
                 Rule::unique('events', 'name')
                     ->where('type_id', $this->get('type_id'))
                     ->whereNull('deleted_at')
-                    ->ignore('id', $this->route('id', 0))
+                    ->ignore($this->route('id', 0))
             ],
             'type_id' => 'required|numeric',
             'point_a_min' => 'required|numeric',
