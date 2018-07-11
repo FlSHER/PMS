@@ -101,12 +101,16 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
         // 积分详情
         // get /api/points/statistic/:pointlog
         $api->get('statistic/{pointlog}', APIs\StaffPointController::class . '@detail');
+
+        // 积分分类来源
+        // get /api/points/source
+        $api->get('source', APIs\StaffPointController::class . '@source');
     });
 
 
     // 当前员工积分指标
     // @get /api/staff/target
-    $api->get('user/target', APIs\TargetController::class . '@index');
+    $api->get('staff/target', APIs\TargetController::class . '@index');
 
     // 获取员工积分排名权限分组
     // get /api/authority-group/rank

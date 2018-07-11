@@ -36,15 +36,12 @@ class CalculateStaffPoint extends Command
         $lastDaily = ArtisanCommandLog::bySn('pms:calculate-staff-point')->latest('id')->first();
 
         if ($lastDaily !== null) {
-
             // 获取上次结算的所有数据
             $lastStatis = StatisticModel::query()
                 ->select('staff_sn', 'point_a', 'point_b_monthly', 'point_b_total', 'source_b_monthly', 'source_b_total')
                 ->whereBetween('calculated_at', [$lastDaily->created_at, $calculatedAt])
                 ->get();
-
             $lastStatis->map(function ($item) use (&$statistics, &$lastMonth, $lastDaily) {
-
                 // 判断跨月清空数据
                 if (!Carbon::parse($lastDaily->created_at)->isCurrentMonth()) {
                     // 生成上月月结数据
@@ -153,8 +150,8 @@ class CalculateStaffPoint extends Command
         $user = app('api')->client()->getStaff($staff_sn);
 
         return [
-            'staff_sn' => $user['staff_sn'] ?? 0,
-            'staff_name' => $user['realname'] ?? '',
+            'staff_sn' => $user['staff_sn'],
+            'staff_name' => $user['realname'],
             'brand_id' => $user['brand']['id'] ?? 0,
             'brand_name' => $user['brand']['name'] ?? '',
             'department_id' => $user['department']['id'] ?? 0,

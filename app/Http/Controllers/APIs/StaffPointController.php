@@ -4,6 +4,7 @@ namespace App\Http\Controllers\APIs;
 
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use App\Models\PointLogSource;
 use function App\monthBetween;
 use function App\stageBetween;
 use App\Models\PointLog as PointLogModel;
@@ -23,11 +24,12 @@ class StaffPointController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $datetime = $request->query('datetime');
-        
+        $datetime = Carbon::parse($request->query('datetime'));
+
         if (Carbon::parse($datetime)->isCurrentMonth()) {
             $monthly = StatisticModel::query()
                 ->where('staff_sn', $user->staff_sn)
+                ->whereBetween('calculated_at', monthBetween($datetime))
                 ->orderBy('calculated_at', 'desc')
                 ->first();
         } else {
@@ -37,10 +39,10 @@ class StaffPointController extends Controller
                 ->first();
         }
 
-        // 前4个月积分趋势数据
-        $monthly->trend = $this->statistics();
-
-        return response()->json($monthly, 200);
+        return response()->json([
+            'monthly' => $monthly,
+            'trend' => $this->statistics()
+        ], 200);
     }
 
     /**
@@ -80,7 +82,7 @@ class StaffPointController extends Controller
         $user = $request->user();
         $staffSn = $request->query('staff_sn');
         $groupId = $request->query('group_id');
-        if ($staffSn && $groupId) {
+        /* if ($staffSn && $groupId) {
             $group = GroupModel::where('id', $groupId)
                 ->whereHas('checking', function ($query) use ($user) {
                     $query->where('admin_sn', $user->staff_sn);
@@ -88,10 +90,10 @@ class StaffPointController extends Controller
             if ($group === null || ($group && !in_array($staffSn, $group->stafflist()))) {
                 return response()->json(['message' => '无权查看当前员工'], 403);
             }
-        }
-        
+        } */
+
         $items = PointLogModel::query()
-            ->where('staff_sn', ($staffSn ?: $user->staff_sn))
+            ->where('staff_sn', ($staffSn ? : $user->staff_sn))
             ->filterByQueryString()
             ->withPagination();
 
@@ -110,5 +112,18 @@ class StaffPointController extends Controller
         $pointlog->load('source');
 
         return response()->json($pointlog);
+    }
+
+    /**
+     * 获取积分来源分类.
+     *
+     * @param \App\Models\PointLogSource $sourceModel
+     * @return mixed
+     */
+    public function source(PointLogSource $sourceModel)
+    {
+        $items = $sourceModel->get();
+
+        return response()->json($items, 200);
     }
 }

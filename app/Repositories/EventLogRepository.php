@@ -33,7 +33,6 @@ class EventLogRepository
      */
     public function getPaginateList(Request $request)
     {
-        $filters = $request->query('filters');
         return $this->eventlog->filterByQueryString()
             ->sortByQueryString()
             ->withPagination();
@@ -48,8 +47,6 @@ class EventLogRepository
      */
     public function getAllList(Request $request)
     {
-        $filters = $request->query('filters');
-        
         return $this->eventlog->filterByQueryString()
             ->sortByQueryString()
             ->withPagination();
@@ -65,7 +62,6 @@ class EventLogRepository
     public function getParticipantList(Request $request)
     {
         $user = $request->user();
-        $filters = $request->query('filters');
 
         return $this->eventlog->filterByQueryString()
             ->whereHas('participant', function ($query) use ($user) {
@@ -84,7 +80,6 @@ class EventLogRepository
     public function getRecordedList(Request $request)
     {
         $user = $request->user();
-        $filters = $request->query('filters');
 
         return $this->eventlog->filterByQueryString()
             ->where('recorder_sn', $user->staff_sn)
@@ -102,20 +97,21 @@ class EventLogRepository
     public function getApprovedList(Request $request)
     {
         $user = $request->user();
-        $filters = $request->query('filters');
 
         return $this->eventlog->filterByQueryString()
             ->where(function ($query) use ($user) {
-                $query->where('first_approver_sn', $user->staff_sn)
-                    ->whereNotNull('first_approved_at');
-            })
-            ->orWhere(function ($query) use ($user) {
-                $query->where('final_approver_sn', $user->staff_sn)
-                    ->whereNotNull('final_approved_at');
-            })
-            ->orWhere(function ($query) use ($user) {
-                $query->where('rejecter_sn', $user->staff_sn)
-                    ->whereNotNull('rejected_at');
+                $query->where(function ($query) use ($user) {
+                    $query->where('first_approver_sn', $user->staff_sn)
+                        ->whereNotNull('first_approved_at');
+                })
+                    ->orWhere(function ($query) use ($user) {
+                        $query->where('final_approver_sn', $user->staff_sn)
+                            ->whereNotNull('final_approved_at');
+                    })
+                    ->orWhere(function ($query) use ($user) {
+                        $query->where('rejecter_sn', $user->staff_sn)
+                            ->whereNotNull('rejected_at');
+                    });
             })
             ->sortByQueryString()
             ->withPagination();
@@ -154,11 +150,13 @@ class EventLogRepository
 
         return $this->eventlog->filterByQueryString()
             ->where(function ($query) use ($user) {
-                $query->where('first_approver_sn', $user->staff_sn)->byAudit(0);
+                $query->where(function ($query) use ($user) {
+                    $query->where('first_approver_sn', $user->staff_sn)->byAudit(0);
 
-            })
-            ->orWhere(function ($query) use ($user) {
-                $query->where('final_approver_sn', $user->staff_sn)->byAudit(1);
+                })
+                    ->orWhere(function ($query) use ($user) {
+                        $query->where('final_approver_sn', $user->staff_sn)->byAudit(1);
+                    });
             })
             ->sortByQueryString()
             ->withPagination();

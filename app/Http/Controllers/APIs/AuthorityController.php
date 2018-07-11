@@ -26,11 +26,9 @@ class AuthorityController extends Controller
             ->orWhereHas('departments', function ($query) use ($user) {
                 $query->where('department_id', $user->department['id']);
             })->get();
-            // 员工统计查看权限分组
-        $statisGroup = AuthorityGroup::query()
-            ->whereHas('checking', function ($query) use ($user) {
-                $query->where('admin_sn', $user->staff_sn);
-            })->get();
+            
+        // 所有分组
+        $statisGroup = AuthorityGroup::get();
 
         return response()->json([
             'auth_group' => $authGroup,
