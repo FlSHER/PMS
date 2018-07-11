@@ -106,7 +106,7 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
 
     // 当前员工积分指标
     // @get /api/staff/target
-    $api->get('user/target', APIs\TargetController::class . '@index');
+    $api->get('staff/target', APIs\TargetController::class . '@index');
 
     // 获取员工积分排名权限分组
     // get /api/authority-group/rank
