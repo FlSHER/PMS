@@ -33,7 +33,7 @@ class CalculateStaffPoint extends Command
         $lastMonth = [];
         $statistics = [];
         $calculatedAt = Carbon::now();
-        $lastDaily = ArtisanCommandLog::bySn('pms:calculate-staff-point')->latest('id')->first();
+        $lastDaily = ArtisanCommandLog::bySn('pms:calculate-staff-point')->where('status', 1)->latest('id')->first();
 
         if ($lastDaily !== null) {
             // 获取上次结算的所有数据
