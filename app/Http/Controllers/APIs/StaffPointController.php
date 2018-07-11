@@ -4,6 +4,7 @@ namespace App\Http\Controllers\APIs;
 
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use App\Models\PointLogSource;
 use function App\monthBetween;
 use function App\stageBetween;
 use App\Models\PointLog as PointLogModel;
@@ -111,5 +112,18 @@ class StaffPointController extends Controller
         $pointlog->load('source');
 
         return response()->json($pointlog);
+    }
+
+    /**
+     * 获取积分来源分类.
+     *
+     * @param \App\Models\PointLogSource $sourceModel
+     * @return mixed
+     */
+    public function source(PointLogSource $sourceModel)
+    {
+        $items = $sourceModel->get();
+
+        return response()->json($items, 200);
     }
 }
