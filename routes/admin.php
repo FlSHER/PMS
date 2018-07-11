@@ -7,11 +7,11 @@
 |
 | 后台功能路由
 |
- */
+*/
 
-use App\Http\Controllers\Admin;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Contracts\Routing\Registrar as RouteContract;
+use App\Http\Controllers\Admin;
 
 Route::options('{a?}/{b?}/{c?}', function () {
     return response('', 204);
@@ -41,17 +41,29 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $admin) {
     $admin->put('auth/groups/{id}', Admin\AuthorityController::class . '@editGroup');//编辑权限分组
     $admin->delete('auth/groups/{id}', Admin\AuthorityController::class . '@deleteGroup');//删除分组
     //积分变动日志
-    $admin->get('point-log', Admin\PointController::class . '@index');//积分变动列表
-    $admin->get('point-log/{id}', Admin\PointController::class . '@details');//积分变动详情页面
-    $admin->get('point/export', Admin\PointController::class . '@export');//积分变动导出 暂时不用
+    $admin->get('point-log', Admin\pointController::class . '@index');//积分变动列表
+    $admin->get('point-log/{id}', Admin\pointController::class . '@details');//积分变动详情页面
+    $admin->get('point/export', Admin\pointController::class . '@export');//积分变动导出 暂时不用
     //奖扣任务
-    $admin->get('targets', Admin\PointTargetController::class . '@targets');//获取奖扣指标列表  页面左侧
+    $admin->get('targets', Admin\PointTargetController::class . '@targets');//获取奖扣指标列表
     $admin->get('targets/{id}', Admin\PointTargetController::class . '@targetsDetails');//获取奖扣指标详情
-    $admin->post('targets', Admin\PointTargetController::class . '@storeTarget');//添加奖扣指标
+    $admin->post('targets', Admin\PointTargetController::class . '@storeTarget');//添加奖扣指标  全局分值值结算的时候要存储到数据库
     $admin->put('targets/{id}', Admin\PointTargetController::class . '@editTarget');//修改奖扣指标
     $admin->put('targets/{id}/staff', Admin\PointTargetController::class . '@editStaff');//修改奖扣指标关联人员
     $admin->delete('targets/{id}', Admin\PointTargetController::class . '@deleteTarget');//删除奖扣指标     PointTargetCommand
     $admin->get('target', Admin\PointTargetController::class . '@test');//测试
+    $admin->delete('targets/{id}', Admin\PointTargetController::class . '@deleteTarget');//删除奖扣指标
+    $admin->get('target', Admin\PointTargetController::class . '@test');//测试
+    //任务分配权限
+    $admin->get('task/authority', Admin\TaskAuthorityController::class . '@index');//任务分配list页面
+    $admin->post('task/authority', Admin\TaskAuthorityController::class . '@store');//增加
+    $admin->put('task/authority', Admin\TaskAuthorityController::class . '@edit');//编辑
+    $admin->delete('task/authority/{admin_sn}', Admin\TaskAuthorityController::class . '@delete');//删除
+    //统计查看权限
+    $admin->get('statistic', Admin\StatisticController::class . '@index');//获取统计权限列表
+    $admin->post('statistic', Admin\StatisticController::class . '@store');//添加统计权限
+    $admin->put('statistic', Admin\StatisticController::class . '@edit');//编辑统计权限
+    $admin->delete('statistic/{admin_sn}', Admin\StatisticController::class . '@delete');//删除统计权限
     // 获取基础分配置
     // @get /admin/base-points/setting
     $admin->get('base-points/setting', Admin\BasePointController::class . '@index');
@@ -98,7 +110,7 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $admin) {
 
     // 获取任务执行记录
     // @get /admin/commadn-logs
-    $admin->get('commadn-logs', Admin\CommandLogController::class . '@index');
+    $admin->get('commadn-logs', Admin\CommandController::class . '@index');
 });
 
 Route::get('events/example', Admin\EventController::class . '@example');//导出模板范例ok  record
