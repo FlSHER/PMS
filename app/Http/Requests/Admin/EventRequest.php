@@ -24,13 +24,14 @@ class EventRequest extends FormRequest
      */
     public function rules()
     {
-        $finalApproverSn =$this->final_approver_sn == true ? $this->final_approver_sn : 0;
+        $finalApproverSn = $this->final_approver_sn == true ? $this->final_approver_sn : 0;
         $final = FinalApprover::where('staff_sn', $finalApproverSn)->first();
         return [
             'name' => ['required', 'max:40',
                 Rule::unique('events', 'name')
-                    ->where('type_id', $this->all('type_id'))
-                    ->ignore('id', $this->get('id', 0))
+                    ->where('type_id', $this->get('type_id'))
+                    ->whereNull('deleted_at')
+                    ->ignore('id', $this->route('id', 0))
             ],
             'type_id' => 'required|numeric',
             'point_a_min' => 'required|numeric',
@@ -53,7 +54,7 @@ class EventRequest extends FormRequest
                     }
                 },
             ],
-            'point_a_default' => 'required|numeric|between:'.$this->point_a_min.','.$this->point_a_max,
+            'point_a_default' => 'required|numeric|between:' . $this->point_a_min . ',' . $this->point_a_max,
             'point_b_min' => 'required|numeric',
             'point_b_max' => ['required', 'numeric',
                 function ($attribute, $value, $fail) use ($final) {
@@ -74,21 +75,21 @@ class EventRequest extends FormRequest
                     }
                 }
             ],
-            'point_b_default' => 'required|numeric|between:'.$this->point_b_min.','.$this->point_b_max,
-            'first_approver_sn'=>[
-                function($attribute, $value, $event){
-                    if($value!=''){
-                        try{
-                            $oaData=app('api')->withRealException()->getStaff($value);
-                            if((bool)$oaData == false){
+            'point_b_default' => 'required|numeric|between:' . $this->point_b_min . ',' . $this->point_b_max,
+            'first_approver_sn' => [
+                function ($attribute, $value, $event) {
+                    if ($value != '') {
+                        try {
+                            $oaData = app('api')->withRealException()->getStaff($value);
+                            if ((bool)$oaData == false) {
                                 return $event('初审人错误');
                             }
-                        }catch (\Exception $e){
+                        } catch (\Exception $e) {
                             return $event('初审人错误');
                         }
                     }
                 }
-                ],
+            ],
 //            'first_approver_name'=>'',
             'final_approver_sn' => ['string',
                 function ($attribute, $value, $event) use ($final) {
@@ -122,7 +123,7 @@ class EventRequest extends FormRequest
             'point_b_min' => 'B分最小值',
             'point_b_max' => 'B分最大值',
             'point_b_default' => 'B分默认值',
-            'first_approver_sn'=>'初审人编号',
+            'first_approver_sn' => '初审人编号',
 //            'first_approver_name'=>'初审人姓名',
             'final_approver_sn' => '终审人编号',
 //            'final_approver_name'=>'终审人姓名',
