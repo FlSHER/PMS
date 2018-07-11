@@ -23,11 +23,12 @@ class StaffPointController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $datetime = $request->query('datetime');
-        
+        $datetime = Carbon::parse($request->query('datetime'));
+
         if (Carbon::parse($datetime)->isCurrentMonth()) {
             $monthly = StatisticModel::query()
                 ->where('staff_sn', $user->staff_sn)
+                ->whereBetween('calculated_at', monthBetween($datetime))
                 ->orderBy('calculated_at', 'desc')
                 ->first();
         } else {
@@ -37,10 +38,10 @@ class StaffPointController extends Controller
                 ->first();
         }
 
-        // 前4个月积分趋势数据
-        $monthly->trend = $this->statistics();
-
-        return response()->json($monthly, 200);
+        return response()->json([
+            'monthly' => $monthly,
+            'trend' => $this->statistics()
+        ], 200);
     }
 
     /**
@@ -89,9 +90,9 @@ class StaffPointController extends Controller
                 return response()->json(['message' => '无权查看当前员工'], 403);
             }
         } */
-        
+
         $items = PointLogModel::query()
-            ->where('staff_sn', ($staffSn ?: $user->staff_sn))
+            ->where('staff_sn', ($staffSn ? : $user->staff_sn))
             ->filterByQueryString()
             ->withPagination();
 
