@@ -66,7 +66,7 @@ class Event extends Log
         // 根据事件执行时间 月结后自动顺延到本月一号
         $setDay = config('command.monthly_date');
         $curDay = Carbon::now()->daysInMonth;
-        $changedAt = Carbon::parse($log['changed_at']);
+        $changedAt = Carbon::parse($log['executed_at']);
         $curMonth = Carbon::now()->startOfMonth();
 
         if ($curDay >= $setDay && $changedAt->lt($curMonth)) {
@@ -87,7 +87,7 @@ class Event extends Log
      * @param  \App\Models\EventLog $eventlog
      * @return array
      */
-    protected function fillBaseData(EventLogModel $eventlog) : array
+    protected function fillBaseData(EventLogModel $eventlog): array
     {
         return [
             'source_id' => self::EVENT_POINT,
