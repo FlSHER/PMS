@@ -117,7 +117,7 @@ class PointTargetController extends Controller
                 $this->addTargetLogs($v);
             }
         }
-        $hasStaff=\App\Models\PointManagementTargetHasStaff::with('targets.targetLogs')->get();
+        $hasStaff=\App\Models\PointManagementTargetHasStaff::with('targets.nextMonth')->get();
         if($hasStaff->all() != false){
             foreach ($hasStaff as $k=>$v){
                 $this->addStaffLogs($v);
@@ -128,7 +128,7 @@ class PointTargetController extends Controller
     {
         $logs=new \App\Models\PointManagementTargetLogs();
         $logs->target_id=$v['id'];
-        $logs->date=date('Y-m-d');
+        $logs->date=date('Y-m-1');
         $logs->point_b_awarding_target=$v['point_b_awarding_target'];
         $logs->point_b_deducting_target=$v['point_b_deducting_target'];
         $logs->event_count_target=$v['event_count_target'];
@@ -141,7 +141,7 @@ class PointTargetController extends Controller
         $logsStaff=new \App\Models\PointManagementTargetLogHasStaff();
         $oaStaff=app('api')->withRealException()->getStaff($all->staff_sn);
         $logsStaff->target_id=$all->targets['id'];
-        $logsStaff->target_log_id=$all->targets->targetLogs[0]['id'];
+        $logsStaff->target_log_id=$all->targets->nextMonth['id'];
         $logsStaff->date=date('Y-m-1');
         $logsStaff->staff_sn=$oaStaff['staff_sn'];
         $logsStaff->staff_name=$oaStaff['realname'];

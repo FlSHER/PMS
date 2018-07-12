@@ -74,13 +74,19 @@ class PointTargetService
     public function editStaff($request)
     {
         $staff = $request->all();
-        if ($staff == true) {
-            $id = $request->route('id');
-            $this->targetRepository->deleteStaff($id);
-            foreach ($staff as $k => $v) {
-                $this->targetRepository->updateStaff($id, $v);
+        if ((bool)$staff == true) {
+            \DB::beginTransaction();
+            try{
+                $id = $request->route('id');
+                $this->targetRepository->deleteStaff($id);
+                foreach ($staff as $k => $v) {
+                    $this->targetRepository->updateStaff($id, $v);
+                }
+                \DB::commit();
+            }catch (\Exception $e){
+                \DB::rollback();
             }
-            return response('修改成功', 201);
+            return response($this->targetRepository->getNextStaff($id), 201);
         }
     }
 }

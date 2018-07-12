@@ -40,9 +40,9 @@ class PointTargetRepository
      */
     public function targetDetails($request)
     {
-        return $this->targetModel->with(['targetLogs' => function ($query) {
+        return $this->targetModel->with(['nextMonth' => function ($query) {
             $query->whereYear('date', date('Y'))->whereMonth('date', date('m'));
-        }])->with('targetHasStaff')->with(['targetLogHasStaff' => function ($quest) {
+        }])->with('nextMonthStaff')->with(['thisMonthStaff' => function ($quest) {
             $quest->whereYear('date', date('Y'))->whereMonth('date', date('m'));
         }])->where('id', $request->route('id'))->first();
     }
@@ -80,7 +80,7 @@ class PointTargetRepository
         $this->targetModel->event_count_target = $request->event_count_target;
         $this->targetModel->deducting_percentage_target = $request->deducting_percentage_target;
         $bool = $this->targetModel->save();
-        return true == (bool)$bool ? response('添加成功', 201) : response('添加失败', 400);
+        return true == (bool)$bool ? response($bool, 201) : response('添加失败', 400);
     }
 
     /**
@@ -100,11 +100,18 @@ class PointTargetRepository
 
     public function updateStaff($id, $v)
     {
-        $this->hasStaff->target_id = $id;
-        $this->hasStaff->staff_sn = $v['staff_sn'];
-        $this->hasStaff->staff_name = $v['staff_name'];
-        if ($this->hasStaff->save() == false) {
+        $sql=[
+            'target_id'=>$id,
+            'staff_sn'=>$v['staff_sn'],
+            'staff_name'=>$v['staff_name']
+        ];
+        if ($this->hasStaff->create($sql) == false) {
             abort(400, $v['staff_sn'] . '更新出错');
         };
+    }
+
+    public function getNextStaff($id)
+    {
+        return $this->hasStaff->where('target_id',$id)->get();
     }
 }
