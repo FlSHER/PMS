@@ -41,6 +41,9 @@ class PointTargetService
     public function deleteMission($request)
     {
         $deleteId = $request->route('id');
+        if ((bool)$this->targetRepository->firstThisTargets($deleteId) == false) {
+            abort(404, '提供无效参数');
+        }
         $this->targetRepository->deleteStaff($deleteId);
         $this->targetRepository->deleteTarget($deleteId);
         return response('', 204);
@@ -76,14 +79,14 @@ class PointTargetService
         $staff = $request->all();
         if ((bool)$staff == true) {
             \DB::beginTransaction();
-            try{
+            try {
                 $id = $request->route('id');
                 $this->targetRepository->deleteStaff($id);
                 foreach ($staff as $k => $v) {
                     $this->targetRepository->updateStaff($id, $v);
                 }
                 \DB::commit();
-            }catch (\Exception $e){
+            } catch (\Exception $e) {
                 \DB::rollback();
             }
             return response($this->targetRepository->getNextStaff($id), 201);

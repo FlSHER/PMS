@@ -79,8 +79,12 @@ class PointTargetRepository
         $this->targetModel->point_b_deducting_target = $request->point_b_deducting_target;
         $this->targetModel->event_count_target = $request->event_count_target;
         $this->targetModel->deducting_percentage_target = $request->deducting_percentage_target;
+        $this->targetModel->point_b_awarding_coefficient = $request->point_b_awarding_coefficient;
+        $this->targetModel->point_b_deducting_coefficient = $request->point_b_deducting_coefficient;
+        $this->targetModel->event_count_mission = $request->event_count_mission;
+        $this->targetModel->deducting_percentage_ratio = $request->deducting_percentage_ratio;
         $bool = $this->targetModel->save();
-        return true == (bool)$bool ? response($bool, 201) : response('添加失败', 400);
+        return true == (bool)$bool ? response($this->targetModel, 201) : response('添加失败', 400);
     }
 
     /**
@@ -100,10 +104,10 @@ class PointTargetRepository
 
     public function updateStaff($id, $v)
     {
-        $sql=[
-            'target_id'=>$id,
-            'staff_sn'=>$v['staff_sn'],
-            'staff_name'=>$v['staff_name']
+        $sql = [
+            'target_id' => $id,
+            'staff_sn' => $v['staff_sn'],
+            'staff_name' => $v['staff_name']
         ];
         if ($this->hasStaff->create($sql) == false) {
             abort(400, $v['staff_sn'] . '更新出错');
@@ -112,6 +116,11 @@ class PointTargetRepository
 
     public function getNextStaff($id)
     {
-        return $this->hasStaff->where('target_id',$id)->get();
+        return $this->hasStaff->where('target_id', $id)->get();
+    }
+
+    public function firstThisTargets($id)
+    {
+        return $this->targetModel->where('id', $id)->first();
     }
 }
