@@ -22,7 +22,7 @@ class CreateEventLogParticipantTable extends Migration
             $table->unsignedMediumInteger('count')->default(1)->comment('完成次数');
 
             $table->foreign('event_log_id')->references('id')->on('event_logs');
-            $table->index('staff_sn');
+            $table->primary(['event_log_id', 'staff_sn']);
         });
     }
 

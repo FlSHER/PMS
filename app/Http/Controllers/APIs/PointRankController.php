@@ -98,6 +98,7 @@ class PointRankController extends Controller
 
         $response = [
             'list' => $items,
+            'group_id' => $group->id,
             'user' => [
                 'rank' => $user->rank ?? 1,
                 'name' => $user->realname,
@@ -138,6 +139,7 @@ class PointRankController extends Controller
 
         return response()->json([
             'list' => $items,
+            'group_id' => $group->id,
             'user' => [
                 'rank' => $user->rank ?? 1,
                 'name' => $user->realname,
@@ -172,6 +174,7 @@ class PointRankController extends Controller
 
         return response()->json([
             'list' => $items,
+            'group_id' => $group->id,
             'user' => [
                 'rank' => $user->rank ?? 1,
                 'name' => $user->realname,
