@@ -39,7 +39,6 @@ class CalculateStaffPoint extends Command
             // 获取上次结算的所有数据
             $lastStatis = StatisticModel::query()
                 ->select('staff_sn', 'point_a', 'point_b_monthly', 'point_b_total', 'source_b_monthly', 'source_b_total')
-                ->whereBetween('calculated_at', [$lastDaily->created_at, $calculatedAt])
                 ->get();
             $lastStatis->map(function ($item) use (&$statistics, &$lastMonth, $lastDaily) {
                 // 判断跨月清空数据
@@ -123,11 +122,11 @@ class CalculateStaffPoint extends Command
 
     /**
      * 创建积分日志.
-     * 
+     *
      * @author 28youth
      * @return ArtisanCommandLog
      */
-    public function createLog() : ArtisanCommandLog
+    public function createLog(): ArtisanCommandLog
     {
         $commandModel = new ArtisanCommandLog();
         $commandModel->command_sn = 'pms:calculate-staff-point';
@@ -141,11 +140,11 @@ class CalculateStaffPoint extends Command
 
     /**
      * 获取结算所需用户信息.
-     * 
+     *
      * @author 28youth
      * @return array
      */
-    public function checkStaff(int $staff_sn) : array
+    public function checkStaff(int $staff_sn): array
     {
         $user = app('api')->client()->getStaff($staff_sn);
 
@@ -163,7 +162,7 @@ class CalculateStaffPoint extends Command
 
     /**
      * 来源积分统计.
-     * 
+     *
      * @author 28youth
      * @return array
      */
