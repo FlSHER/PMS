@@ -20,6 +20,10 @@ class CreatePointManagementTargetsTable extends Migration
             $table->unsignedInteger('point_b_deducting_target')->comment('扣分指标');
             $table->unsignedInteger('event_count_target')->comment('奖扣次数指标');
             $table->decimal('deducting_percentage_target', 5, 2)->comment('扣分比例指标,n%');
+            $table->string('point_b_awarding_coefficient',10)->comment('奖分未完成扣分');
+            $table->string('point_b_deducting_coefficient',10)->comment('扣分未完成扣分');
+            $table->string('event_count_mission',10)->comment('未完成扣分人次');
+            $table->string('deducting_percentage_ratio',10)->comment('未完成扣分');
             $table->timestamps();
             $table->softDeletes();
         });
