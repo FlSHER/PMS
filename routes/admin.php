@@ -47,13 +47,11 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $admin) {
     //奖扣任务
     $admin->get('targets', Admin\PointTargetController::class . '@targets');//获取奖扣指标列表
     $admin->get('targets/{id}', Admin\PointTargetController::class . '@targetsDetails');//获取奖扣指标详情
-    $admin->post('targets', Admin\PointTargetController::class . '@storeTarget');//添加奖扣指标  全局分值值结算的时候要存储到数据库
+    $admin->post('targets', Admin\PointTargetController::class . '@storeTarget');//添加奖扣指标
     $admin->put('targets/{id}', Admin\PointTargetController::class . '@editTarget');//修改奖扣指标
     $admin->put('targets/{id}/staff', Admin\PointTargetController::class . '@editStaff');//修改奖扣指标关联人员
-    $admin->delete('targets/{id}', Admin\PointTargetController::class . '@deleteTarget');//删除奖扣指标     PointTargetCommand
-    $admin->get('target', Admin\PointTargetController::class . '@test');//测试
     $admin->delete('targets/{id}', Admin\PointTargetController::class . '@deleteTarget');//删除奖扣指标
-    $admin->get('target', Admin\PointTargetController::class . '@test');//测试
+    $admin->get('target', Admin\PointTargetController::class . '@test');//测试    PointTargetCommand
     //任务分配权限
     $admin->get('task/authority', Admin\TaskAuthorityController::class . '@index');//任务分配list页面
     $admin->post('task/authority', Admin\TaskAuthorityController::class . '@store');//增加
