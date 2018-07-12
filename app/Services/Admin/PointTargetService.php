@@ -30,6 +30,9 @@ class PointTargetService
      */
     public function getSingle($request)
     {
+        if((bool)$this->targetRepository->firstThisTargets($request->route('id')) == false){
+            abort(404,'提供无效参数');
+        }
         return $this->targetRepository->targetDetails($request);
     }
 
