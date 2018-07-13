@@ -1,18 +1,18 @@
 <?php
+
 /**
  * 权限，简单的表单验证
  */
 
 namespace App\Http\Controllers\Admin;
 
-use App\Services\Admin\EventService;
-
-use Illuminate\Validation\Rule;
 use Validator;
-use App\Models\FinalApprover;
-use App\Http\Requests\Admin\EventRequest;
-use App\Services\Admin\EventTypeService;
+
 use Illuminate\Http\Request;
+use App\Services\Admin\EventService;
+use App\Services\Admin\EventTypeService;
+use App\Http\Requests\Admin\EventRequest;
+use App\Services\EventApprove;
 
 class EventController extends Controller
 {
@@ -176,5 +176,37 @@ class EventController extends Controller
             'new_data.*.name' => '名字',
             'new_data.*.sort' => '排序',
         ]);
+    }
+
+    /**
+     * 撤销操作.
+     *
+     * @return void
+     */
+    public function revoke(Request $request, EventLogModel $eventlog)
+    {
+        $rules = [
+            'first_approver_point' => 'integer|min:0',
+            'final_approver_point' => 'integer|min:0',
+            'recorder_point' => 'integer|min:0',
+        ];
+        $messages = [
+            'recorder_point.min' => '记录人扣分值不能小于:min',
+            'first_approver_point.min' => '初审人扣分值不能小于:min',
+            'final_approver_point.min' => '终审人扣分值不能小于:min',
+        ];
+        $this->validate($request, $rules, $messages);
+
+        $custom = $request->only(['recorder_point', 'first_approver_point', 'final_approver_point']);
+        $eventlog->recorder_point = $custom['recorder_point'] ?: $eventlog->recorder_point;
+        $eventlog->first_approver_point = $custom['first_approver_point'] ?: $eventlog->first_approver_point;
+        $eventlog->final_approver_point = $custom['final_approver_point'] ?: $eventlog->final_approver_point;
+
+        $eventlog->getConnection()->transaction(function () use ($eventlog) {
+            $approveService = new EventApprove($eventlog);
+            $approveService->revokeApprove();
+        });
+
+        return response()->json(['message' => '操作成功'], 204);
     }
 }

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Services\Admin\PointService;
 use Illuminate\Http\Request;
+use App\Services\Admin\PointService;
 
 class PointController extends Controller
 {

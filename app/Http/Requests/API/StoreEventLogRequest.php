@@ -3,8 +3,8 @@
 namespace App\Http\Requests\API;
 
 use Illuminate\Validation\Rule;
-use Illuminate\Foundation\Http\FormRequest;
 use App\Models\Event as EventModel;
+use Illuminate\Foundation\Http\FormRequest;
 use App\Models\FinalApprover as FinalApproverModel;
 
 class StoreEventLogRequest extends FormRequest
@@ -56,11 +56,14 @@ class StoreEventLogRequest extends FormRequest
                 'bail',
                 'numeric',
                 function ($attribute, $value, $fail) use ($final) {
-                    if ($value > 0 && $value > $final->point_a_awarding_limit) {
-                        return $fail('终审人分值审核上限不能大于' . $final->point_a_awarding_limit);
-                    }
-                    if ($value < 0 && $value < -$final->point_a_deducting_limit) {
-                        return $fail('终审人分值审核下限不能小于' . -$final->point_a_deducting_limit);
+                    // 只有其他类型事件才需要判断分值权限
+                    if (in_array($this->event_id, [398])) {
+                        if ($value > 0 && $value > $final->point_a_awarding_limit) {
+                            return $fail('终审人分值审核上限不能大于' . $final->point_a_awarding_limit);
+                        }
+                        if ($value < 0 && $value < -$final->point_a_deducting_limit) {
+                            return $fail('终审人分值审核下限不能小于' . -$final->point_a_deducting_limit);
+                        }
                     }
                 },
                 'max:' . $event->point_a_max,
