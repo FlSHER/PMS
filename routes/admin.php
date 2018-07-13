@@ -41,9 +41,9 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $admin) {
     $admin->put('auth/groups/{id}', Admin\AuthorityController::class . '@editGroup');//编辑权限分组
     $admin->delete('auth/groups/{id}', Admin\AuthorityController::class . '@deleteGroup');//删除分组
     //积分变动日志
-    $admin->get('point-log', Admin\pointController::class . '@index');//积分变动列表
-    $admin->get('point-log/{id}', Admin\pointController::class . '@details');//积分变动详情页面
-    $admin->get('point/export', Admin\pointController::class . '@export');//积分变动导出 暂时不用
+    $admin->get('point-log', Admin\PointController::class . '@index');//积分变动列表
+    $admin->get('point-log/{id}', Admin\PointController::class . '@details');//积分变动详情页面
+    $admin->get('point/export', Admin\PointController::class . '@export');//积分变动导出 暂时不用
     //奖扣任务
     $admin->get('targets', Admin\PointTargetController::class . '@targets');//获取奖扣指标列表
     $admin->get('targets/{id}', Admin\PointTargetController::class . '@targetsDetails');//获取奖扣指标详情
@@ -108,7 +108,7 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $admin) {
 
     // 获取任务执行记录
     // @get /admin/commadn-logs
-    $admin->get('commadn-logs', Admin\CommandController::class . '@index');
+    $admin->get('commadn-logs', Admin\CommandLogController::class . '@index');
 });
 
 Route::get('events/example', Admin\EventController::class . '@example');//导出模板范例ok  record
