@@ -9,9 +9,9 @@
 |
 */
 
+use App\Http\Controllers\Admin;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Contracts\Routing\Registrar as RouteContract;
-use App\Http\Controllers\Admin;
 
 Route::options('{a?}/{b?}/{c?}', function () {
     return response('', 204);
@@ -30,6 +30,8 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $admin) {
     $admin->post('/events/types', Admin\EventController::class . '@storeType');//事件分类添加ok
     $admin->put('/events/types/{id}', Admin\EventController::class . '@updateType');//编辑事件分类ok
     $admin->delete('/events/types/{id}', Admin\EventController::class . '@deleteType');//删除事件分类ok
+    $admin->post('events/{eventlog}/revoke', Admin\EventController::class . '@revoke'); //撤销事件操作
+
     //终审人接口
     $admin->get('/finals', Admin\FinalsController::class . '@index');//终审人列表
     $admin->post('/finals', Admin\FinalsController::class . '@store');//添加终审人

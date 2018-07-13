@@ -51,6 +51,62 @@ class Event extends Log
     }
 
     /**
+     * 记录撤销奖扣操作 
+     *
+     * @param EventLogModel $eventlog
+     * @return void
+     */
+    public function revoke(EventLogModel $eventlog)
+    {
+        $baseData = $this->fillBaseData($eventlog);
+
+        $logs = $eventlog->participant->map(function ($item) use ($baseData) {
+            if ($item->point_a <= 0 && $item->point_b <= 0) {
+                unset($item);
+            } else {
+                $eventData = $item->toArray();
+                $eventData['point_a'] = -round($eventData['point_a'] * $eventData['count']);
+                $eventData['point_b'] = -round($eventData['point_b'] * $eventData['count']);
+                return array_merge($eventData, $baseData);
+            }
+        })->filter()->toArray();
+        
+        // 初审人扣分
+        if ($eventlog->first_approver_point && $eventlog->first_approver_point >= 0) {
+            $logs[] = array_merge($baseData, [
+                'point_a' => 0,
+                'point_b' => -$eventlog->first_approver_point,
+                'staff_sn' => $eventlog->first_approver_sn,
+                'source_id' => self::SYSTEM_POINT,
+                'title' => '撤销初审奖扣: ' . $eventlog->event_name
+            ]);
+        }
+
+        // 终审人扣分
+        if ($eventlog->final_approver_point && $eventlog->final_approver_point >= 0) {
+            $logs[] = array_merge($baseData, [
+                'point_a' => 0,
+                'point_b' => -$eventlog->final_approver_point,
+                'staff_sn' => $eventlog->final_approver_sn,
+                'source_id' => self::SYSTEM_POINT,
+                'title' => '撤销初审奖扣: ' . $eventlog->event_name
+            ]);
+        }
+
+        // 记录人扣分
+        if ($eventlog->recorder_point && $eventlog->recorder_point >= 0) {
+            $logs[] = array_merge($baseData, [
+                'point_a' => 0,
+                'point_b' => -$eventlog->recorder_point,
+                'staff_sn' => $eventlog->recorder_sn,
+                'source_id' => self::SYSTEM_POINT,
+                'title' => '撤销记录奖扣: ' . $eventlog->event_name
+            ]);
+        }
+        array_walk($logs, [$this, 'createLog']);
+    }
+
+    /**
      * 创建积分变更日志.
      *
      * @author 28youth
