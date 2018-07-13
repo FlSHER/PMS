@@ -37,6 +37,7 @@ class CreateEventLogTable extends Migration
             $table->timestamp('executed_at')->nullable()->comment('执行时间');
             $table->mediumInteger('recorder_point')->default(0)->comment('记录人得分');
             $table->mediumInteger('first_approver_point')->default(0)->comment('初审人得分');
+            $table->mediumInteger('final_approver_point')->default(0)->comment('终审人分数');
             $table->timestamps();
             /* 索引和外键 */
             $table->foreign('event_id')->references('id')->on('events');
