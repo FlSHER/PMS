@@ -3,9 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
-use App\Services\EventApprove;
 use App\Services\Admin\PointService;
-use App\Models\EventLog as EventLogModel;
 
 class PointController extends Controller
 {

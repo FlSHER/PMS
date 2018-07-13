@@ -23,6 +23,7 @@ class Event extends Log
         // 事件参与人得分
         $logs = $eventlog->participant->map(function ($item) use ($baseData) {
             $eventData = $item->toArray();
+            $eventData['title'] = '参与奖扣: ' . $eventData['title'];
             $eventData['point_a'] = round($eventData['point_a'] * $eventData['count']);
             $eventData['point_b'] = round($eventData['point_b'] * $eventData['count']);
             $item = array_merge($eventData, $baseData);
@@ -36,7 +37,7 @@ class Event extends Log
             'point_b' => $eventlog->first_approver_point,
             'staff_sn' => $eventlog->first_approver_sn,
             'source_id' => self::SYSTEM_POINT,
-            'title' => '初审奖扣: ' . $eventlog->event_name
+            'title' => '奖扣-初审人: ' . $eventlog->event_name
         ]);
         // 记录人得分
         $logs[] = array_merge($baseData, [
@@ -44,14 +45,14 @@ class Event extends Log
             'point_b' => $eventlog->recorder_point,
             'staff_sn' => $eventlog->recorder_sn,
             'source_id' => self::SYSTEM_POINT,
-            'title' => '记录奖扣: ' . $eventlog->event_name
+            'title' => '奖扣-记录人: ' . $eventlog->event_name
         ]);
 
         array_walk($logs, [$this, 'createLog']);
     }
 
     /**
-     * 记录撤销奖扣操作 
+     * 记录撤销奖扣操作
      *
      * @param EventLogModel $eventlog
      * @return void
@@ -65,12 +66,13 @@ class Event extends Log
                 unset($item);
             } else {
                 $eventData = $item->toArray();
+                $eventData['title'] = '撤销奖扣: ' . $eventData['title'];
                 $eventData['point_a'] = -round($eventData['point_a'] * $eventData['count']);
                 $eventData['point_b'] = -round($eventData['point_b'] * $eventData['count']);
                 return array_merge($eventData, $baseData);
             }
         })->filter()->toArray();
-        
+
         // 初审人扣分
         if ($eventlog->first_approver_point && $eventlog->first_approver_point >= 0) {
             $logs[] = array_merge($baseData, [
@@ -78,7 +80,7 @@ class Event extends Log
                 'point_b' => -$eventlog->first_approver_point,
                 'staff_sn' => $eventlog->first_approver_sn,
                 'source_id' => self::SYSTEM_POINT,
-                'title' => '撤销初审奖扣: ' . $eventlog->event_name
+                'title' => '撤销奖扣-初审人: ' . $eventlog->event_name
             ]);
         }
 
@@ -89,7 +91,7 @@ class Event extends Log
                 'point_b' => -$eventlog->final_approver_point,
                 'staff_sn' => $eventlog->final_approver_sn,
                 'source_id' => self::SYSTEM_POINT,
-                'title' => '撤销初审奖扣: ' . $eventlog->event_name
+                'title' => '撤销奖扣-终审人: ' . $eventlog->event_name
             ]);
         }
 
@@ -100,7 +102,7 @@ class Event extends Log
                 'point_b' => -$eventlog->recorder_point,
                 'staff_sn' => $eventlog->recorder_sn,
                 'source_id' => self::SYSTEM_POINT,
-                'title' => '撤销记录奖扣: ' . $eventlog->event_name
+                'title' => '撤销奖扣-记录人: ' . $eventlog->event_name
             ]);
         }
         array_walk($logs, [$this, 'createLog']);
@@ -143,11 +145,10 @@ class Event extends Log
      * @param  \App\Models\EventLog $eventlog
      * @return array
      */
-    protected function fillBaseData(EventLogModel $eventlog) : array
+    protected function fillBaseData(EventLogModel $eventlog): array
     {
         return [
             'source_id' => self::EVENT_POINT,
-            'title' => '参与奖扣: ' . $eventlog->event_name,
             'source_foreign_key' => $eventlog->id,
             'first_approver_sn' => $eventlog->first_approver_sn,
             'first_approver_name' => $eventlog->first_approver_name,

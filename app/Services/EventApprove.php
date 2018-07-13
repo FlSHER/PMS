@@ -88,7 +88,7 @@ class EventApprove
     {
         if ($this->logModel->status_id !== 2) {
             return response()->json([
-                'message' => '非终审状态无法撤销'
+                'message' => '非终审状态无法撤销'
             ], 401);
         }
         // 保存前删除不存在的字段

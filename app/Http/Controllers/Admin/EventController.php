@@ -9,11 +9,10 @@ namespace App\Http\Controllers\Admin;
 use Validator;
 
 use Illuminate\Http\Request;
-use App\Models\FinalApprover;
-use Illuminate\Validation\Rule;
 use App\Services\Admin\EventService;
 use App\Services\Admin\EventTypeService;
 use App\Http\Requests\Admin\EventRequest;
+use App\Services\EventApprove;
 
 class EventController extends Controller
 {
@@ -70,7 +69,7 @@ class EventController extends Controller
      */
     public function import(Request $request)
     {
-        $this->validate($request, ['file' => 'required', ], [], ['file' => '文件', ]);
+        $this->validate($request, ['file' => 'required',], [], ['file' => '文件',]);
         return $this->eventService->excelImport();
     }
 
@@ -199,9 +198,9 @@ class EventController extends Controller
         $this->validate($request, $rules, $messages);
 
         $custom = $request->only(['recorder_point', 'first_approver_point', 'final_approver_point']);
-        $eventlog->recorder_point = $custom['recorder_point'] ? : $eventlog->recorder_point;
-        $eventlog->first_approver_point = $custom['first_approver_point'] ? : $eventlog->first_approver_point;
-        $eventlog->final_approver_point = $custom['final_approver_point'] ? : $eventlog->final_approver_point;
+        $eventlog->recorder_point = $custom['recorder_point'] ?: $eventlog->recorder_point;
+        $eventlog->first_approver_point = $custom['first_approver_point'] ?: $eventlog->first_approver_point;
+        $eventlog->final_approver_point = $custom['final_approver_point'] ?: $eventlog->final_approver_point;
 
         $eventlog->getConnection()->transaction(function () use ($eventlog) {
             $approveService = new EventApprove($eventlog);
