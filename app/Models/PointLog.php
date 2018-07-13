@@ -46,6 +46,6 @@ class PointLog extends Model
 
     public function getChangedAtAttribute($value)
     {
-        return $value->format('Y-m-d');
+        return date('Y-m-d', time($value));
     }
 }
