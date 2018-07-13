@@ -91,7 +91,7 @@ class EventRequest extends FormRequest
                 }
             ],
 //            'first_approver_name'=>'',
-            'final_approver_sn' => ['string',
+            'final_approver_sn' => [
                 function ($attribute, $value, $event) use ($final) {
                     if ($final == null) {
                         return $event('终审人：' . $final . '不存在');
