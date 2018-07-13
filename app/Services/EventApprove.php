@@ -84,23 +84,21 @@ class EventApprove
      * @param  array $params
      * @return mixed
      */
-    public function revokeApprove()
+    public function revokeApprove(array $params)
     {
         if ($this->logModel->status_id !== 2) {
             return response()->json([
                 'message' => '非终审状态无法撤销'
             ], 401);
         }
-        // 保存前删除不存在的字段
-        $finalPoint = $this->logModel->final_approver_point;
-        unset($this->logModel->final_approver_point);
+
+        $this->logModel->recorder_point += -(int)$params['recorder_point'];
+        $this->logModel->first_approver_point += -(int)$params['first_approver_point'];
+        $this->logModel->final_approver_point += -(int)$params['final_approver_point'];
         $this->logModel->status_id = -3;
         $this->logModel->save();
-
-        // 保存后存放终审人扣分字段
-        $this->logModel->final_approver_point = $finalPoint;
         
         // 撤销操作
-        app(Event::class)->revoke($this->logModel);
+        app(Event::class)->revoke($this->logModel, $params);
     }
 }
