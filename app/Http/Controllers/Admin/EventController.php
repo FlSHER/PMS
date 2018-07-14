@@ -9,10 +9,11 @@ namespace App\Http\Controllers\Admin;
 use Validator;
 
 use Illuminate\Http\Request;
+use App\Services\EventApprove;
 use App\Services\Admin\EventService;
 use App\Services\Admin\EventTypeService;
 use App\Http\Requests\Admin\EventRequest;
-use App\Services\EventApprove;
+use App\Models\EventLog as EventLogModel;
 
 class EventController extends Controller
 {
@@ -198,13 +199,16 @@ class EventController extends Controller
         $this->validate($request, $rules, $messages);
 
         $custom = $request->only(['recorder_point', 'first_approver_point', 'final_approver_point']);
-        $eventlog->recorder_point = $custom['recorder_point'] ?: $eventlog->recorder_point;
-        $eventlog->first_approver_point = $custom['first_approver_point'] ?: $eventlog->first_approver_point;
-        $eventlog->final_approver_point = $custom['final_approver_point'] ?: $eventlog->final_approver_point;
 
-        $eventlog->getConnection()->transaction(function () use ($eventlog) {
+        $params = [
+            'recorder_point' => $custom['recorder_point'] ? : $eventlog->recorder_point,
+            'first_approver_point' => $custom['first_approver_point'] ? : $eventlog->first_approver_point,
+            'final_approver_point' => $custom['final_approver_point'] ? : $eventlog->final_approver_point
+        ];
+        
+        $eventlog->getConnection()->transaction(function () use ($eventlog, $params) {
             $approveService = new EventApprove($eventlog);
-            $approveService->revokeApprove();
+            $approveService->revokeApprove($params);
         });
 
         return response()->json(['message' => '操作成功'], 204);
