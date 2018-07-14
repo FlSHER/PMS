@@ -161,4 +161,14 @@ class EventLogRepository
             ->sortByQueryString()
             ->withPagination();
     }
+
+    public function getEventLogList($request)
+    {
+        return $this->eventlog->with('eventType')->with('event')->filterByQueryString()->withPagination($request->get('pagesize', 10));
+    }
+
+    public function getEventLogSingleness($id)
+    {
+        return $this->eventlog->with('eventType')->with('event')->where('id',$id)->first();
+    }
 }

@@ -65,6 +65,11 @@ class EventLog extends Model
      */
     public function event()
     {
-        return $this->hasOne(Event::class, 'id', 'event_id');
+        return $this->belongsTo(Event::class, 'event_id');
+    }
+
+    public function eventType()
+    {
+        return $this->belongsTo(EventType::class,'event_type_id');
     }
 }
