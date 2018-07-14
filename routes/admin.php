@@ -64,6 +64,9 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $admin) {
     $admin->post('statistic', Admin\StatisticController::class . '@store');//添加统计权限
     $admin->put('statistic', Admin\StatisticController::class . '@edit');//编辑统计权限
     $admin->delete('statistic/{admin_sn}', Admin\StatisticController::class . '@delete');//删除统计权限
+    //事件日志
+    $admin->get('event/log',Admin\EventLogController::class.'@index');//事件获取列表
+    $admin->get('event/log/{id}',Admin\EventLogController::class.'@details');//事件单条详情
     // 获取基础分配置
     // @get /admin/base-points/setting
     $admin->get('base-points/setting', Admin\BasePointController::class . '@index');
