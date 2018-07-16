@@ -87,9 +87,7 @@ class EventApprove
     public function revokeApprove(array $params)
     {
         if ($this->logModel->status_id !== 2) {
-            return response()->json([
-                'message' => '非终审状态无法撤销'
-            ], 401);
+            abort(400, '不可作废未完成的奖扣事件');
         }
 
         $this->logModel->recorder_point += -(int)$params['recorder_point'];
@@ -97,7 +95,7 @@ class EventApprove
         $this->logModel->final_approver_point += -(int)$params['final_approver_point'];
         $this->logModel->status_id = -3;
         $this->logModel->save();
-        
+
         // 撤销操作
         app(Event::class)->revoke($this->logModel, $params);
     }

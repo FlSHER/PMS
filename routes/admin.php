@@ -30,7 +30,6 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $admin) {
     $admin->post('/events/types', Admin\EventController::class . '@storeType');//事件分类添加ok
     $admin->put('/events/types/{id}', Admin\EventController::class . '@updateType');//编辑事件分类ok
     $admin->delete('/events/types/{id}', Admin\EventController::class . '@deleteType');//删除事件分类ok
-    $admin->post('events/{eventlog}/revoke', Admin\EventController::class . '@revoke'); //撤销事件操作
 
     //终审人接口
     $admin->get('/finals', Admin\FinalsController::class . '@index');//终审人列表
@@ -65,8 +64,9 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $admin) {
     $admin->put('statistic', Admin\StatisticController::class . '@edit');//编辑统计权限
     $admin->delete('statistic/{admin_sn}', Admin\StatisticController::class . '@delete');//删除统计权限
     //事件日志
-    $admin->get('event-logs',Admin\EventLogController::class.'@index');//事件获取列表
-    $admin->get('event-logs/{id}',Admin\EventLogController::class.'@details');//事件单条详情
+    $admin->get('event-logs', Admin\EventLogController::class . '@index');//事件获取列表
+    $admin->get('event-logs/{id}', Admin\EventLogController::class . '@details');//事件单条详情
+    $admin->post('event-logs/{eventlog}/revoke', Admin\EventLogController::class . '@revoke'); //作废事件操作
     // 获取基础分配置
     // @get /admin/base-points/setting
     $admin->get('base-points/setting', Admin\BasePointController::class . '@index');
