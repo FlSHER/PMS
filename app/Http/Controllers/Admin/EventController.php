@@ -211,6 +211,6 @@ class EventController extends Controller
             $approveService->revokeApprove($params);
         });
 
-        return response()->json(['message' => '操作成功'], 204);
+        return response()->json($eventlog, 201);
     }
 }
