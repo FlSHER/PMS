@@ -39,6 +39,14 @@ class StaffPointController extends Controller
                 ->first();
         }
 
+        $monthly['add_point_total'] = array_reduce($monthly->source_b_monthly, function ($carry, $item) {
+            return $carry + $item['add_point'];
+        });
+
+        $monthly['sub_point_total'] = array_reduce($monthly->source_b_monthly, function ($carry, $item) {
+            return $carry + $item['sub_point'];
+        });
+
         return response()->json([
             'monthly' => $monthly,
             'trend' => $this->statistics()
