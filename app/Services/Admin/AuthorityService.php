@@ -40,7 +40,7 @@ class AuthorityService
         $arrayId = (array)$this->authRepository->addAuthority($request);
         $authorityId = implode($arrayId);
         if ($request->staff != null) {
-            try{
+            try {
                 DB::beginTransaction();
                 foreach ($request->staff as $k => $v) {
                     $bool = $this->authRepository->staffOnly($authorityId, $v['staff_sn']);
@@ -51,13 +51,13 @@ class AuthorityService
                     $this->authRepository->editStaffGroup($authorityId, $v);
                 }
                 DB::commit();
-            }catch (\Exception $e){
+            } catch (\Exception $e) {
                 DB::rollback();
                 abort(400, $v['staff_sn'] . '添加失败');
             }
         }
         if ($request->departments != null) {
-            try{
+            try {
                 DB::beginTransaction();
                 foreach ($request->departments as $key => $val) {
                     $departmentBool = $this->authRepository->departmentOnly($authorityId, $val['department_id']);
@@ -68,7 +68,7 @@ class AuthorityService
                     $this->authRepository->editDepartmentGroup($authorityId, $val);
                 }
                 DB::commit();
-            }catch (\Exception $e){
+            } catch (\Exception $e) {
                 DB::rollback();
                 abort(400, $val['department_id'] . '添加失败');
             }
@@ -91,7 +91,7 @@ class AuthorityService
                 abort(400, '分组操作失败');
             }
         }
-        if ($request->staff != null) {
+        if (is_array($request->staff)) {
             try {
                 DB::beginTransaction();//开始
                 $this->authRepository->deleteStaffGroup($id);
@@ -104,7 +104,7 @@ class AuthorityService
                 abort(400, '分组员工操作失败');
             }
         }
-        if ($request->departments != null) {
+        if (is_array($request->departments)) {
             try {
                 DB::beginTransaction();//开始
                 $this->authRepository->deleteDepartmentGroup($id);
