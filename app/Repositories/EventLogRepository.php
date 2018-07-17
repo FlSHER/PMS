@@ -162,6 +162,7 @@ class EventLogRepository
     public function getEventLogList($request)
     {
         return $this->eventlog
+            ->with('participant')
             ->filterByQueryString()
             ->sortByQueryString()
             ->withPagination($request->get('pagesize', 10));
