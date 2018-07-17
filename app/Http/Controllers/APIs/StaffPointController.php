@@ -8,7 +8,6 @@ use App\Models\PointLogSource;
 use function App\monthBetween;
 use function App\stageBetween;
 use App\Models\PointLog as PointLogModel;
-use App\Models\AuthorityGroup as GroupModel;
 use App\Models\PersonalPointStatistic as StatisticModel;
 use App\Models\PersonalPointStatisticLog as StatisticLogModel;
 
@@ -55,7 +54,7 @@ class StaffPointController extends Controller
 
     /**
      * 获取某一段时间统计结果.
-     * 
+     *
      * @author 28youth
      * @return mixed
      */
@@ -101,8 +100,9 @@ class StaffPointController extends Controller
         } */
 
         $items = PointLogModel::query()
-            ->where('staff_sn', ($staffSn ? : $user->staff_sn))
+            ->where('staff_sn', ($staffSn ?: $user->staff_sn))
             ->filterByQueryString()
+            ->sortByQueryString()
             ->withPagination();
 
         return response()->json($items, 200);
@@ -110,7 +110,7 @@ class StaffPointController extends Controller
 
     /**
      * 积分详情.
-     * 
+     *
      * @author 28youth
      * @param  \App\Models\PointLog $pointlog
      * @return mixed
