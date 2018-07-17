@@ -9,6 +9,7 @@ use App\Models\Event as EventModel;
 use App\Repositories\EventLogRepository;
 use App\Models\EventLog as EventLogModel;
 use App\Http\Requests\API\StoreEventLogRequest;
+use App\Models\EventLogConcern as EventLogConcernModel;
 
 class EventLogController extends Controller
 {
@@ -51,23 +52,70 @@ class EventLogController extends Controller
     {
         $user = $request->user();
         $data = $request->all();
-        $event = EventModel::find($request->event_id);
-
         $eventlog->fill($data);
-        $eventlog->event_name = $event->name;
-        $eventlog->event_type_id = $event->type_id;
-        $eventlog->recorder_sn = $user->staff_sn;
-        $eventlog->recorder_name = $user->realname;
-        $addressees = $this->mergeAddressees($event->default_cc_addressees, $data['addressees']);
 
-        $eventlog->getConnection()->transaction(function () use ($eventlog, $data, $user, $addressees) {
-            $eventlog->save();
-            $eventlog->addressee()->createMany($addressees);
-            $eventlog->participant()->createMany($data['participants']);
-            $this->makeApprove($user, $eventlog);
-        });
+        try {
+            \DB::beginTransaction();
+            
+            $concern = $this->fillEventLogConcernData($request);
+            $concern->save();
+
+            foreach ($data['events'] as $key => $val) {
+                $event = EventModel::find($val['event_id']);
+                
+                $eventlog->concern_id = $concern->id;
+                $eventlog->event_id = $event->id;
+                $eventlog->event_name = $event->name;
+                $eventlog->event_type_id = $event->type_id;
+                $eventlog->recorder_sn = $user->staff_sn;
+                $eventlog->recorder_name = $user->realname;
+                $eventlog->description = $val['description'];
+                $eventlog->save();
+
+                // 自动审核
+                $this->makeApprove($user, $eventlog);
+
+                // 添加事件抄送人
+                $eventlog->addressee()->createMany(
+                    $this->mergeAddressees(
+                        $event->default_cc_addressees, 
+                        $data['addressees']
+                    )
+                );
+
+                // 添加事件参与人
+                $eventlog->participant()->createMany(
+                    $val['participants']
+                );
+            }
+            \DB::commit();
+
+        } catch (Exception $e) {
+
+            \DB::rollBack();
+            
+            return response()->json(['message' => '服务器错误'], 500);
+        }
 
         return response()->json(['message' => '添加成功'], 201);
+    }
+
+    /**
+     * 填充奖扣关联表数据.
+     * 
+     * @author 28youth
+     * @param  array $data
+     */
+    public function fillEventLogConcernData($request) : EventLogConcernModel
+    {
+        $user = $request->user();
+
+        $concern = new EventLogConcernModel();
+        $concern = $concern->fill($request->all());
+        $concern->recorder_sn = $user->staff_sn;
+        $concern->recorder_name = $user->realname;
+
+        return $concern;
     }
 
     /**
