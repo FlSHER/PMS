@@ -27,6 +27,7 @@ class PointLog extends Model
         'department_id',
         'department_name',
         'source_foreign_key',
+        'changed_at',
         'first_approver_sn',
         'first_approver_name',
         'final_approver_sn',
@@ -46,6 +47,6 @@ class PointLog extends Model
 
     public function getChangedAtAttribute($value)
     {
-        return date('Y-m-d', time($value));
+        return date('Y-m-d', strtotime($value));
     }
 }
