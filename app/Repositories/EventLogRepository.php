@@ -8,8 +8,6 @@ use App\Models\EventLog as EventLogModel;
 
 class EventLogRepository
 {
-    use Traits\Filterable;
-
     /**
      * EventLog model
      */
@@ -127,7 +125,6 @@ class EventLogRepository
     public function getAddresseeList(Request $request)
     {
         $user = $request->user();
-        $filters = $request->query('filters');
 
         return $this->eventlog->filterByQueryString()
             ->whereHas('addressee', function ($query) use ($user) {
@@ -164,11 +161,14 @@ class EventLogRepository
 
     public function getEventLogList($request)
     {
-        return $this->eventlog->with('eventType')->with('event')->filterByQueryString()->withPagination($request->get('pagesize', 10));
+        return $this->eventlog
+            ->filterByQueryString()
+            ->sortByQueryString()
+            ->withPagination($request->get('pagesize', 10));
     }
 
     public function getEventLogSingleness($id)
     {
-        return $this->eventlog->with('eventType')->with('event')->where('id',$id)->first();
+        return $this->eventlog->with('eventType')->with('event')->where('id', $id)->first();
     }
 }

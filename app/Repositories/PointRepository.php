@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class PointRepository
 {
-    use Traits\Filterable;
     protected $point;
 
     public function __construct(PointLog $pointLog)
@@ -24,7 +23,10 @@ class PointRepository
      */
     public function getPointList($request)
     {
-        return $this->point->filterByQueryString()->withPagination($request->get('pagesize', 10));
+        return $this->point
+            ->filterByQueryString()
+            ->sortByQueryString()
+            ->withPagination($request->get('pagesize', 10));
     }
 
     /**
