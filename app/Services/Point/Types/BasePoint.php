@@ -33,6 +33,7 @@ class BasePoint extends Log
         $model->point_b = $staff['base_point'];
         $model->source_id = self::FIXED_POINT;
         $model->changed_at = Carbon::now();
+        $model->type_id = 0;
         $model->save();
     }
 }
