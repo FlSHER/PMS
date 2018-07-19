@@ -37,11 +37,8 @@ class EventApprove
      */
     public function firstApprove(array $params): EventLogConcernModel
     {
-        if ($this->concern->first_approved_at !== null) {
-            return response()->json([
-                'message' => '初审已通过'
-            ], 422);
-        }
+        abort_if($this->concern->first_approved_at !== null, 422, '初审已通过');
+
         $makeData = [
             'first_approve_remark' => $params['remark'] ?: '准予通过',
             'first_approved_at' => now(),
@@ -65,16 +62,13 @@ class EventApprove
      * @param  array $params
      * @return mixed
      */
-    public function finalApprove(array $params): EventLogConcernModel
+    public function finalApprove(array $params)
     {
-        if ($this->concern->final_approved_at !== null) {
-            return response()->json([
-                'message' => '终审已通过'
-            ], 422);
-        }
+        abort_if($this->concern->final_approved_at !== null, 422, '终审已通过');
+
         $makeData = [
-            'recorder_point' => empty($params['recorder_point']) ? 0 : $params['recorder_point'],
-            'first_approver_point' => empty($params['first_approver_point']) ? 0 : $params['first_approver_point'],
+            'recorder_point' => $params['recorder_point'] ? : 0,
+            'first_approver_point' => $params['first_approver_point'] ? : 0,
             'final_approve_remark' => $params['remark'],
             'final_approved_at' => now(),
             'status_id' => 2,
@@ -105,9 +99,8 @@ class EventApprove
      */
     public function revokeApprove(array $params)
     {
-        if ($this->concern->status_id !== 2) {
-            abort(400, '不可作废未完成的奖扣事件');
-        }
+        abort_if($this->concern->status_id !== 2, 400, '不可作废未完成的奖扣事件');
+
         $makeData = [
             'recorder_point' => $this->concern->recorder_point + -(int)$params['recorder_point'],
             'first_approver_point' => $this->concern->first_approver_point + -(int)$params['first_approver_point'],
