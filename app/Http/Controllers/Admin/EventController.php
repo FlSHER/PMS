@@ -117,7 +117,7 @@ class EventController extends Controller
      * @param Request $request
      * 添加事件分类
      */
-    public function storeType(EventRequest $request)
+    public function storeType(Request $request)
     {
         $all = $request->all();
         $this->eventTypeVerify($request);
