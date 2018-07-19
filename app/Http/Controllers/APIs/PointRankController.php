@@ -24,7 +24,7 @@ class PointRankController extends Controller
         $user = $request->user();
         $monthly = StatisticModel::query()
             ->where('staff_sn', $user->staff_sn)
-            ->orderBy('calculated_at', 'desc')
+            ->orderBy('date', 'desc')
             ->first();
 
         return response()->json($monthly);
@@ -80,7 +80,7 @@ class PointRankController extends Controller
                 ->where(function ($query) use ($staffSns, $departmentIds) {
                     $query->whereIn('staff_sn', $staffSns)->orWhereIn('department_id', $departmentIds);
                 })
-                ->whereBetween('calculated_at', monthBetween())
+                ->whereBetween('date', monthBetween())
                 ->orderBy('total', 'desc')
                 ->get();
         } else {
@@ -107,7 +107,7 @@ class PointRankController extends Controller
             ],
         ];
         if (Carbon::parse($datetime)->isCurrentMonth()) {
-            $response['calculated_at'] = $calculatedAt;
+            $response['date'] = $calculatedAt;
         }
 
         return response()->json($response, 200);
@@ -180,7 +180,7 @@ class PointRankController extends Controller
                 'name' => $user->realname,
                 'total' => $user->total,
             ],
-            'calculated_at' => $calculatedAt
+            'date' => $calculatedAt
         ], 200);
     }
 
