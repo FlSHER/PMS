@@ -206,7 +206,7 @@ class CalculateStaffPoint extends Command
             $this->daily[$log->staff_sn]['source_b_total'] = $this->monthlySource($log, 'source_b_total', 'daily');
         }
 
-        $current['date'] = $now;
+        $this->daily[$log->staff_sn]['date'] = $now;
     }
 
     /**
