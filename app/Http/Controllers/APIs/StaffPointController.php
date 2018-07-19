@@ -28,8 +28,8 @@ class StaffPointController extends Controller
         if (Carbon::parse($datetime)->isCurrentMonth()) {
             $monthly = StatisticModel::query()
                 ->where('staff_sn', $user->staff_sn)
-                ->whereBetween('calculated_at', monthBetween($datetime))
-                ->orderBy('calculated_at', 'desc')
+                ->whereBetween('date', monthBetween($datetime))
+                ->orderBy('date', 'desc')
                 ->first();
         } else {
             $monthly = StatisticLogModel::query()
@@ -62,19 +62,34 @@ class StaffPointController extends Controller
     {
         $user = request()->user();
         $etime = Carbon::parse(request()->query('datetime'));
+        if ($etime->isCurrentMonth()) {
+            $etime->subMonth();
+        }
         $stime = clone $etime;
+        $monthly = [];
+        for ($i=0; $i <= 3; $i++) { 
+            $monthly[]['month'] = $i ? $stime->subMonth()->month : $stime->month;
+        }
 
         $items = StatisticLogModel::query()
             ->select('point_a', 'point_b_monthly as total', 'date')
             ->where('staff_sn', $user->staff_sn)
-            ->whereBetween('date', stageBetween($stime->subMonth(4), $etime))
+            ->whereBetween('date', stageBetween($stime->startOfMonth(), $etime->endOfMonth()))
             ->get();
 
-        return $items->map(function ($item) {
-            $item->month = Carbon::parse($item->date)->month;
+        $items->map(function ($item) use (&$monthly) {
+            $current = Carbon::parse($item->date)->month;
+            foreach ($monthly as $key => &$month) {
+                $month['point_a'] = 0;
+                $month['point_b'] = 0;
+                if ($current == $month['month']) {
+                    $month['point_a'] = $item->point_a;
+                    $month['point_b'] = $item->total;
+                }
+            }
+        });
 
-            return $item;
-        })->toArray();
+        return $monthly;
     }
 
     /**
