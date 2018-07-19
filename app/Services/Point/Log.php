@@ -47,4 +47,26 @@ class Log
             'shop_name' => $user['shop']['name'],
         ];
     }
+
+    /**
+     * 获取结算所需用户信息.
+     *
+     * @author 28youth
+     * @return array
+     */
+    public function checkClientStaff(int $staff_sn): array
+    {
+        $user = app('api')->client()->getStaff($staff_sn);
+
+        return [
+            'staff_sn' => $user['staff_sn'],
+            'staff_name' => $user['realname'],
+            'brand_id' => $user['brand']['id'] ?? 0,
+            'brand_name' => $user['brand']['name'] ?? '',
+            'department_id' => $user['department']['id'] ?? 0,
+            'department_name' => $user['department']['full_name'] ?? '',
+            'shop_sn' => $user['shop']['shop_sn'] ?? '',
+            'shop_name' => $user['shop']['shop_name'] ?? '',
+        ];
+    }
 }
