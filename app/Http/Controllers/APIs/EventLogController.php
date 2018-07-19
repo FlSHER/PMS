@@ -6,17 +6,18 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Services\EventApprove;
 use App\Models\Event as EventModel;
-use App\Repositories\EventLogRepository;
 use App\Models\EventLog as EventLogModel;
 use App\Http\Requests\API\StoreEventLogRequest;
+use App\Models\EventLogConcern as EventLogConcernModel;
+use App\Repositories\EventLogConcern as EventLogConcernRepository;
 
 class EventLogController extends Controller
 {
-    protected $eventLogRepository;
+    protected $concernRepository;
 
-    public function __construct(EventLogRepository $eventlog)
+    public function __construct(EventLogConcernRepository $concernRepository)
     {
-        $this->eventLogRepository = $eventlog;
+        $this->concernRepository = $concernRepository;
     }
 
     /**
@@ -31,7 +32,7 @@ class EventLogController extends Controller
         $type = $request->query('type', 'all');
 
         $items = app()->call([
-            $this->eventLogRepository,
+            $this->concernRepository,
             camel_case('get_' . $type . '_list')
         ]);
 
@@ -51,23 +52,71 @@ class EventLogController extends Controller
     {
         $user = $request->user();
         $data = $request->all();
-        $event = EventModel::find($request->event_id);
-
         $eventlog->fill($data);
-        $eventlog->event_name = $event->name;
-        $eventlog->event_type_id = $event->type_id;
-        $eventlog->recorder_sn = $user->staff_sn;
-        $eventlog->recorder_name = $user->realname;
-        $addressees = $this->mergeAddressees($event->default_cc_addressees, $data['addressees']);
 
-        $eventlog->getConnection()->transaction(function () use ($eventlog, $data, $user, $addressees) {
-            $eventlog->save();
-            $eventlog->addressee()->createMany($addressees);
-            $eventlog->participant()->createMany($data['participants']);
-            $this->makeApprove($user, $eventlog);
-        });
+        try {
+            \DB::beginTransaction();
+
+            $concern = $this->fillEventLogConcernData($request);
+            $concern->save();
+
+            foreach ($data['events'] as $key => $val) {
+                $event = EventModel::find($val['event_id']);
+
+                $eventlog->concern_id = $concern->id;
+                $eventlog->event_id = $event->id;
+                $eventlog->event_name = $event->name;
+                $eventlog->event_type_id = $event->type_id;
+                $eventlog->recorder_sn = $user->staff_sn;
+                $eventlog->recorder_name = $user->realname;
+                $eventlog->description = $val['description'];
+                $eventlog->save();
+
+                // 添加事件抄送人
+                $eventlog->addressee()->createMany(
+                    $this->mergeAddressees(
+                        $event->default_cc_addressees,
+                        $data['addressees']
+                    )
+                );
+
+                // 添加事件参与人
+                $eventlog->participant()->createMany(
+                    $val['participants']
+                );
+            }
+            
+            // 自动审核
+            $this->makeApprove($user, $concern);
+
+            \DB::commit();
+
+        } catch (Exception $e) {
+
+            \DB::rollBack();
+
+            return response()->json(['message' => '服务器错误'], 500);
+        }
 
         return response()->json(['message' => '添加成功'], 201);
+    }
+
+    /**
+     * 填充奖扣关联表数据.
+     * 
+     * @author 28youth
+     * @param  array $data
+     */
+    public function fillEventLogConcernData($request) : EventLogConcernModel
+    {
+        $user = $request->user();
+
+        $concern = new EventLogConcernModel();
+        $concern = $concern->fill($request->all());
+        $concern->recorder_sn = $user->staff_sn;
+        $concern->recorder_name = $user->realname;
+
+        return $concern;
     }
 
     /**
@@ -75,11 +124,11 @@ class EventLogController extends Controller
      *
      * @return void
      */
-    protected function makeApprove($user, $logModel)
+    protected function makeApprove($user, $concern)
     {
-        $firstSn = $logModel->first_approver_sn;
-        $finalSn = $logModel->final_approver_sn;
-        $approveService = new EventApprove($logModel);
+        $firstSn = $concern->first_approver_sn;
+        $finalSn = $concern->final_approver_sn;
+        $approveService = new EventApprove($concern);
 
         // 记录人、初审人相同时 初审通过
         if ($user->staff_sn === $firstSn) {
@@ -122,15 +171,15 @@ class EventLogController extends Controller
      *
      * @author 28youth
      * @param  \Illuminate\Http\Request $request
-     * @param  \App\Models\EventLog $eventlog
+     * @param  \App\Models\EventLogConcernModel $concern
      * @return mixed
      */
-    public function show(Request $request, EventLogModel $eventlog)
+    public function show(Request $request, EventLogConcernModel $concern)
     {
-        $eventlog->load('participant', 'addressee', 'event');
-        $eventlog->executed_at = Carbon::parse($eventlog->executed_at)->toDateString();
+        $concern->load('logs.participant', 'logs.addressee', 'logs.event');
+        $concern->executed_at = Carbon::parse($concern->executed_at)->toDateString();
 
-        return response()->json($eventlog);
+        return response()->json($concern);
     }
 
     /**
@@ -138,13 +187,12 @@ class EventLogController extends Controller
      *
      * @author 28youth
      * @param  \Illuminate\Http\Request $request
-     * @param  \App\Models\EventLog $eventlog
+     * @param  \App\Models\EventLogConcernModel $concern
      * @return mixed
      */
-    public function firstApprove(Request $request, EventLogModel $eventlog)
+    public function firstApprove(Request $request, EventLogConcernModel $concern)
     {
-        $approveService = new EventApprove($eventlog);
-
+        $approveService = new EventApprove($concern);
         $response = $approveService->firstApprove([
             'remark' => $request->remark
         ]);
@@ -157,13 +205,13 @@ class EventLogController extends Controller
      *
      * @author 28youth
      * @param  \Illuminate\Http\Request $request
-     * @param  \App\Models\EventLog $eventlog
+     * @param  \App\Models\EventLogConcernModel $concern
      * @return mixed
      */
-    public function finalApprove(Request $request, EventLogModel $eventlog)
+    public function finalApprove(Request $request, EventLogConcernModel $concern)
     {
-        $eventlog->getConnection()->transaction(function () use ($eventlog, $request) {
-            $approveService = new EventApprove($eventlog);
+        $concern->getConnection()->transaction(function () use ($concern, $request) {
+            $approveService = new EventApprove($concern);
             $approveService->finalApprove([
                 'first_approver_point' => $request->first_approver_point,
                 'recorder_point' => $request->recorder_point,
@@ -179,33 +227,42 @@ class EventLogController extends Controller
      *
      * @author 28youth
      * @param  \Illuminate\Http\Request $request
-     * @param  \App\Models\EventLog $eventlog
+     * @param  \App\Models\EventLogConcernModel $concern
      * @return mixed
      */
-    public function reject(Request $request, EventLogModel $eventlog)
+    public function reject(Request $request, EventLogConcernModel $concern)
     {
         $user = $request->user();
 
-        if ($eventlog->status_id === 0 && $user->staff_sn !== $eventlog->first_approver_sn) {
+        if ($concern->status_id === 0 && $user->staff_sn !== $concern->first_approver_sn) {
             return response()->json([
                 'message' => '非初审人无权驳回'
             ], 401);
         }
 
-        if ($eventlog->status_id === 1 && $user->staff_sn !== $eventlog->final_approver_sn) {
+        if ($concern->status_id === 1 && $user->staff_sn !== $concern->final_approver_sn) {
             return response()->json([
                 'message' => '非终审人无权驳回'
             ], 401);
         }
 
-        $eventlog->rejecter_sn = $user->staff_sn;
-        $eventlog->rejecter_name = $user->realname;
-        $eventlog->reject_remark = $request->remark;
-        $eventlog->rejected_at = Carbon::now();
-        $eventlog->status_id = -1;
-        $eventlog->save();
+        $makeData = [
+            'rejecter_sn' => $user->staff_sn,
+            'rejecter_name' => $user->realname,
+            'reject_remark' => $request->remark,
+            'rejected_at' => now(),
+            'status_id' => -1,
+        ];
+        $concern->rejecter_sn = $makeData['rejecter_sn'];
+        $concern->rejecter_name = $makeData['rejecter_name'];
+        $concern->reject_remark = $makeData['reject_remark'];
+        $concern->rejected_at = now();
+        $concern->status_id = -1;
+        $concern->save();
 
-        return response()->json($eventlog, 201);
+        EventModel::where('concern_id', $concern->id)->update($makeData);
+
+        return response()->json($concern, 201);
     }
 
     /**
@@ -213,29 +270,31 @@ class EventLogController extends Controller
      *
      * @author 28youth
      * @param  \Illuminate\Http\Request $request
-     * @param  \App\Models\EventLog $eventlog
+     * @param  \App\Models\EventLogConcernModel $eventlog
      * @return mixed
      */
-    public function withdraw(Request $request, EventLogModel $eventlog)
+    public function withdraw(Request $request, EventLogConcernModel $concern)
     {
         $user = $request->user();
 
-        if ($eventlog->status_id === 2 || $eventlog->status_id === -2) {
+        if ($concern->status_id === 2 || $concern->status_id === -2) {
             return response()->json([
                 'message' => '已终审或已撤回'
             ], 422);
         }
 
-        if ($eventlog->recorder_sn !== $user->staff_sn) {
+        if ($concern->recorder_sn !== $user->staff_sn) {
             return response()->json([
                 'message' => '非记录人无权撤回'
             ], 401);
         }
 
-        $eventlog->status_id = -2;
-        $eventlog->save();
+        $concern->status_id = -2;
+        $concern->save();
 
-        return response()->json($eventlog, 201);
+        EventModel::where('concern_id', $concern->id)->update(['status_id' => -2]);
+
+        return response()->json($concern, 201);
     }
 
 }

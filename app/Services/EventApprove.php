@@ -4,7 +4,8 @@ namespace App\Services;
 
 use Carbon\Carbon;
 use App\Services\Point\Types\Event;
-use App\Models\EventLog as EventLogModel;
+use App\Models\EventLog as EventModel;
+use App\Models\EventLogConcern as EventLogConcernModel;
 
 /**
  * 审核服务.
@@ -12,19 +13,19 @@ use App\Models\EventLog as EventLogModel;
 class EventApprove
 {
     /**
-     * @var App\Models\EventLog
+     * @var App\Models\EventLogConcern
      */
-    protected $logModel;
+    protected $concern;
 
     /**
      * 注入事件日志模型.
      *
      * @author 28youth
-     * @param  App\Models\EventLog $eventlog
+     * @param  App\Models\EventLogConcern $concern
      */
-    public function __construct(EventLogModel $eventlog)
+    public function __construct(EventLogConcernModel $concern)
     {
-        $this->logModel = $eventlog;
+        $this->concern = $concern;
     }
 
     /**
@@ -32,21 +33,28 @@ class EventApprove
      *
      * @author 28youth
      * @param  array $params
-     * @return EventLogModel
+     * @return EventLogConcernModel
      */
-    public function firstApprove(array $params): EventLogModel
+    public function firstApprove(array $params): EventLogConcernModel
     {
-        if ($this->logModel->first_approved_at !== null) {
+        if ($this->concern->first_approved_at !== null) {
             return response()->json([
                 'message' => '初审已通过'
             ], 422);
         }
-        $this->logModel->first_approve_remark = $params['remark'] ?? '准予通过';
-        $this->logModel->first_approved_at = Carbon::now();
-        $this->logModel->status_id = 1;
-        $this->logModel->save();
+        $makeData = [
+            'first_approve_remark' => $params['remark'] ?: '准予通过',
+            'first_approved_at' => now(),
+            'status_id' => 1,
+        ];
+        $this->concern->first_approve_remark = $makeData['first_approve_remark'];
+        $this->concern->first_approved_at = $makeData['first_approved_at'];
+        $this->concern->status_id = $makeData['status_id'];
+        $this->concern->save();
 
-        return $this->logModel;
+        EventModel::where('concern_id', $this->concern->id)->update($makeData);
+        
+        return $this->concern;
     }
 
 
@@ -57,24 +65,35 @@ class EventApprove
      * @param  array $params
      * @return mixed
      */
-    public function finalApprove(array $params): EventLogModel
+    public function finalApprove(array $params): EventLogConcernModel
     {
-        if ($this->logModel->final_approved_at !== null) {
+        if ($this->concern->final_approved_at !== null) {
             return response()->json([
                 'message' => '终审已通过'
             ], 422);
         }
-        $this->logModel->recorder_point = empty($params['recorder_point']) ? 0 : $params['recorder_point'];
-        $this->logModel->first_approver_point = empty($params['first_approver_point']) ? 0 : $params['first_approver_point'];
-        $this->logModel->final_approve_remark = $params['remark'];
-        $this->logModel->final_approved_at = Carbon::now();
-        $this->logModel->status_id = 2;
-        $this->logModel->save();
+        $makeData = [
+            'recorder_point' => empty($params['recorder_point']) ? 0 : $params['recorder_point'],
+            'first_approver_point' => empty($params['first_approver_point']) ? 0 : $params['first_approver_point'],
+            'final_approve_remark' => $params['remark'],
+            'final_approved_at' => now(),
+            'status_id' => 2,
+        ];
+        $this->concern->recorder_point = $makeData['recorder_point'];
+        $this->concern->first_approver_point = $makeData['first_approver_point'];;
+        $this->concern->final_approve_remark = $makeData['final_approve_remark'];
+        $this->concern->final_approved_at = $makeData['final_approved_at'];
+        $this->concern->status_id = $makeData['status_id'];
+        $this->concern->save();
 
-        // 事件参与者记录积分
-        app(Event::class)->record($this->logModel);
+        EventModel::where('concern_id', $this->concern->id)->update($makeData);
 
-        return $this->logModel;
+        $this->concern->logs->map(function ($item) {
+            // 事件参与者记录积分
+            app(Event::class)->record($item);
+        });
+
+        return $this->concern;
     }
 
     /**
@@ -86,17 +105,26 @@ class EventApprove
      */
     public function revokeApprove(array $params)
     {
-        if ($this->logModel->status_id !== 2) {
+        if ($this->concern->status_id !== 2) {
             abort(400, '不可作废未完成的奖扣事件');
         }
-
-        $this->logModel->recorder_point += -(int)$params['recorder_point'];
-        $this->logModel->first_approver_point += -(int)$params['first_approver_point'];
-        $this->logModel->final_approver_point += -(int)$params['final_approver_point'];
-        $this->logModel->status_id = -3;
-        $this->logModel->save();
-
-        // 撤销操作
-        app(Event::class)->revoke($this->logModel, $params);
+        $makeData = [
+            'recorder_point' => $this->concern->recorder_point + -(int)$params['recorder_point'],
+            'first_approver_point' => $this->concern->first_approver_point + -(int)$params['first_approver_point'],
+            'final_approver_point' => $this->concern->final_approver_point + -(int)$params['final_approver_point'],
+            'status_id' => -3
+        ];
+        $this->concern->recorder_point = $makeData['recorder_point'];
+        $this->concern->first_approver_point = $makeData['first_approver_point'];
+        $this->concern->final_approver_point = $makeData['final_approver_point'];
+        $this->concern->status_id = $makeData['status_id'];
+        $this->concern->save();
+        
+        EventModel::where('concern_id', $this->concern->id)->update($makeData);
+        
+        $this->concern->logs->map(function ($item, $params) {
+            // 撤销操作
+            app(Event::class)->revoke($item, $params);
+        });
     }
 }

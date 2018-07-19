@@ -56,23 +56,23 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
 
         // 奖扣事件详情
         // @get /api/event-logs/:eventlog
-        $api->get('{eventlog}', APIs\EventLogController::class . '@show');
+        $api->get('{concern}', APIs\EventLogController::class . '@show');
 
         // 初审奖扣事件
         // @put /api/event-logs/:eventlog/first-approve
-        $api->put('{eventlog}/first-approve', APIs\EventLogController::class . '@firstApprove');
+        $api->put('{concern}/first-approve', APIs\EventLogController::class . '@firstApprove');
 
         // 终审奖扣事件
         // @put /api/event-logs/:eventlog/final-approve
-        $api->put('{eventlog}/final-approve', APIs\EventLogController::class . '@finalApprove');
+        $api->put('{concern}/final-approve', APIs\EventLogController::class . '@finalApprove');
 
         // 驳回奖扣事件
         // @put /api/event-logs/:eventlog/reject
-        $api->put('{eventlog}/reject', APIs\EventLogController::class . '@reject');
+        $api->put('{concern}/reject', APIs\EventLogController::class . '@reject');
 
         // 撤回奖扣事件
         // @put /api/event-logs/:eventlog/withdraw
-        $api->put('{eventlog}/withdraw', APIs\EventLogController::class . '@withdraw');
+        $api->put('{concern}/withdraw', APIs\EventLogController::class . '@withdraw');
     });
 
     // route 积分制

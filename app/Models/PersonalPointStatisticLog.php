@@ -24,6 +24,8 @@ class PersonalPointStatisticLog extends Model
     ];
 
     protected $casts = [
+        'source_a_total' => 'array',
+        'source_a_monthly' => 'array',
         'source_b_total' => 'array',
         'source_b_monthly' => 'array'
     ];

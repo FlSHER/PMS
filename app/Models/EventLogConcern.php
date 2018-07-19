@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class EventLogConcern extends Model
 {
+    use Traits\ListScopes;
 
     /**
      * 批量赋值的属性
