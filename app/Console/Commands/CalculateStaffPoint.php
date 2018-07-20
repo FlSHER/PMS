@@ -5,14 +5,13 @@ namespace App\Console\Commands;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\PointLogSource;
-use function App\monthBetween;
 use Illuminate\Console\Command;
 use App\Models\ArtisanCommandLog;
 use App\Models\PointLog as PointLogModel;
+use App\Models\PointType as PointTypeModel;
 use App\Jobs\StatisticPoint as StatisticPointJob;
 use App\Jobs\StatisticLogPoint as StatisticLogPointJob;
 use App\Models\PersonalPointStatistic as StatisticModel;
-use App\Models\PersonalPointStatisticLog as StatisticLogModel;
 
 class CalculateStaffPoint extends Command
 {
@@ -55,9 +54,9 @@ class CalculateStaffPoint extends Command
                     $this->monthly[$item->staff_sn] = $item->toArray();
 
                     $item->point_a = 0;
-                    $item->source_a_monthly = $this->makeSourceData();
+                    $item->source_a_monthly = $this->makePointTypeData();
                     $item->point_b_monthly = 0;
-                    $item->source_b_monthly = $this->makeSourceData();
+                    $item->source_b_monthly = $this->makePointTypeData();
                 }
                 $this->daily[$item->staff_sn] = $item->toArray();
             });
@@ -240,6 +239,36 @@ class CalculateStaffPoint extends Command
     }
 
     /**
+     * 初始化统计分类数据.
+     * 
+     * @author 28youth
+     * @return array
+     */
+    public function makePointTypeData()
+    {
+        $cacheKey = 'default_point_type_source';
+
+        if (Cache::has($cacheKey)) {
+            return Cache::get($cacheKey);
+        }
+        $source = PointTypeModel::get()->map(function ($item) {
+            $item->add_point = 0;
+            $item->sub_point = 0;
+            $item->add_a_point = 0;
+            $item->sub_a_point = 0;
+            $item->point_a_total = 0;
+            $item->point_b_total = 0;
+
+            return $item;
+        })->toArray();
+
+        $expiresAt = now()->addDay();
+        Cache::put($cacheKey, $source, $expiresAt);
+
+        return $source;
+    }
+
+    /**
      * 来源积分统计.
      *
      * @author 28youth
@@ -247,17 +276,9 @@ class CalculateStaffPoint extends Command
      */
     public function monthlySource($log, $type, $cate = 'monthly')
     {
-        $current = $this->{$cate}[$log->staff_sn][$type] ?? $this->makeSourceData();
-
-        $fields = ['add_point', 'sub_point', 'add_a_point', 'sub_a_point', 'point_a_total', 'point_b_total'];
+        $current = $this->{$cate}[$log->staff_sn][$type] ?? $this->makePointTypeData();
 
         foreach ($current as $k => &$v) {
-            
-            // start 兼容性代码后期可以去掉
-            foreach ($fields as $key => $field) {
-                $v[$field] = $v[$field] ?? 0;
-            }
-            // end 兼容代码
 
             if ($v['id'] === $log->source_id) {
                 $v['point_a_total'] += $log->point_a;

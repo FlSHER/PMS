@@ -4,6 +4,7 @@ namespace App\Services\Point\Types;
 
 use Carbon\Carbon;
 use App\Services\Point\Log;
+use function App\monthBetween;
 use App\Models\PointLogSource;
 use Illuminate\Support\Facades\Cache;
 use App\Models\PersonalPointStatistic as StatisticModel;
@@ -29,11 +30,6 @@ class StatisticPoint extends Log
         }
         $logModel->fill($staff + $daily);
 
-        // 兼容老数据缺失字段
-        $logModel->point_a_total = $logModel->point_a_total ? : $logModel->point_a;
-        $logModel->source_a_total = $logModel->source_a_total ? : $this->makeSourceData();
-        $logModel->source_a_monthly = $logModel->source_a_monthly ? : $this->makeSourceData();
-
         $logModel->save();
     }
 
@@ -58,42 +54,7 @@ class StatisticPoint extends Log
         }
         $logModel->fill($staff + $monthly);
 
-        // 兼容老数据缺失字段
-        $logModel->point_a_total = $logModel->point_a_total ? : $logModel->point_a;
-        $logModel->source_a_total = $logModel->source_a_total ? : $this->makeSourceData();
-        $logModel->source_a_monthly = $logModel->source_a_monthly ? : $this->makeSourceData();
-
         $logModel->save();
     }
 
-
-    /**
-     * 初始化默认积分来源信息.
-     * 
-     * @author 28youth
-     * @return array
-     */
-    public function makeSourceData()
-    {
-        $cacheKey = 'default_point_log_source';
-
-        if (Cache::has($cacheKey)) {
-            return Cache::get($cacheKey);
-        }
-        $source = PointLogSource::get()->map(function ($item) {
-            $item->add_point = 0;
-            $item->sub_point = 0;
-            $item->add_a_point = 0;
-            $item->sub_a_point = 0;
-            $item->point_a_total = 0;
-            $item->point_b_total = 0;
-
-            return $item;
-        })->toArray();
-
-        $expiresAt = now()->addDay();
-        Cache::put($cacheKey, $source, $expiresAt);
-
-        return $source;
-    }
 }
