@@ -60,6 +60,8 @@ class Event extends Log
      */
     public function revoke(EventLogModel $eventlog, $params)
     {
+        $this->changeRevokeStatus($eventlog->id);
+        
         $baseData = $this->fillBaseData($eventlog);
 
         $logs = $eventlog->participant->map(function ($item) use ($baseData, $eventlog) {
@@ -198,5 +200,19 @@ class Event extends Log
         }
 
         return $type;
+    }
+
+
+    /**
+     * 修改被撤销对应的加分记录状态.
+     * 
+     * @author 28youth
+     * @return array
+     */
+    public function changeRevokeStatus(int $eventlog_id)
+    {
+        return PointLogModel::query()
+            ->where('source_foreign_key', $eventlog_id)
+            ->update(['is_revoke' => 1]);
     }
 }

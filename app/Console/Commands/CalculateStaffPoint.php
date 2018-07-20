@@ -68,6 +68,7 @@ class CalculateStaffPoint extends Command
             ->when($this->preNode(), function ($query) use ($now) {
                 $query->whereBetween('created_at', [$this->preNode()->created_at, $now]);
             })
+            ->where('is_revoke', 0)
             ->get();
 
         $logs->map(function ($item) use ($now) {

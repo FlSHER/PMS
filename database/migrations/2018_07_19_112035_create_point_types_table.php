@@ -20,8 +20,10 @@ class CreatePointTypesTable extends Migration
             $table->unique('id');
         });
 
+        // 兼容性代码新增字段 (新增后删除)
         Schema::table('point_logs', function (Blueprint $table) {
             $table->unsignedSmallInteger('type_id')->comment('分类ID');
+            $table->unsignedSmallInteger('is_revoke')->default(0)->comment('是否撤回记录 0-否 1-是');
         });
     }
 
