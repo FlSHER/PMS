@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class AuthorityGroup extends Model
 {
     use Traits\ListScopes;
     use Relations\AuthGroupHasStaff;
+    use SoftDeletes;
     /**
      * Indicates if the model should be timestamped.
      *

@@ -17,6 +17,7 @@ class CreateAuthorityGroupsTable extends Migration
             $table->increments('id');
             $table->char('name', 20)->comment('分组名称');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
