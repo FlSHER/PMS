@@ -22,6 +22,7 @@ class EventController extends Controller
 	{
 		$items = EventModel::query()
 			->filterByQueryString()
+            ->sortByQueryString()
 			->withPagination();
 
 		return response()->json($items, 200);
