@@ -22,7 +22,7 @@ class Event extends Log
         $baseData = $this->fillBaseData($eventlog);
 
         // 事件参与人得分
-        $logs = $eventlog->participant->map(function ($item) use ($baseData, $eventlog) {
+        $logs = $eventlog->participants->map(function ($item) use ($baseData, $eventlog) {
             $eventData = $item->toArray();
             $eventData['title'] = '参与奖扣: ' . $eventlog->event_name;
             $eventData['point_a'] = round($eventData['point_a'] * $eventData['count']);
@@ -64,7 +64,7 @@ class Event extends Log
         
         $baseData = $this->fillBaseData($eventlog);
 
-        $logs = $eventlog->participant->map(function ($item) use ($baseData, $eventlog) {
+        $logs = $eventlog->participants->map(function ($item) use ($baseData, $eventlog) {
             $eventData = $item->toArray();
             $eventData['title'] = '撤销奖扣: ' . $eventlog->event_name;
             $eventData['point_a'] = -round($eventData['point_a'] * $eventData['count']);

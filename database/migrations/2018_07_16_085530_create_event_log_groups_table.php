@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateEventLogConcernsTable extends Migration
+class CreateEventLogGroupsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,7 @@ class CreateEventLogConcernsTable extends Migration
      */
     public function up()
     {
-        Schema::create('event_log_concerns', function (Blueprint $table) {
+        Schema::create('event_log_groups', function (Blueprint $table) {
             $table->increments('id');
             $table->char('title', 50)->comment('标题');
             $table->char('remark', 255)->default('')->comment('备注');
@@ -54,6 +54,6 @@ class CreateEventLogConcernsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('event_log_concerns');
+        Schema::dropIfExists('event_log_groups');
     }
 }

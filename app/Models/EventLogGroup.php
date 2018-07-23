@@ -3,8 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 
-class EventLogConcern extends Model
+class EventLogGroup extends Model
 {
     use Traits\ListScopes;
 
@@ -33,7 +34,7 @@ class EventLogConcern extends Model
      */
     public function logs()
     {
-        return $this->hasMany(EventLog::class, 'concern_id', 'id');
+        return $this->hasMany(EventLog::class, 'event_log_group_id', 'id');
     }
 
     /**
@@ -45,6 +46,17 @@ class EventLogConcern extends Model
     public function addressees()
     {
         return $this->hasMany(EventLogAddressee::class, 'event_log_id', 'id');
+    }
+
+    /**
+     * 复用状态筛选.
+     *
+     * @author 28youth
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeByAudit(Builder $query, int $status): Builder
+    {
+        return $query->where('status_id', $status);
     }
 
 }

@@ -62,7 +62,7 @@ class EventLogRepository
         $user = $request->user();
 
         return $this->eventlog->filterByQueryString()
-            ->whereHas('participant', function ($query) use ($user) {
+            ->whereHas('participants', function ($query) use ($user) {
                 return $query->where('staff_sn', $user->staff_sn);
             })
             ->sortByQueryString()
@@ -162,7 +162,7 @@ class EventLogRepository
     public function getEventLogList($request)
     {
         return $this->eventlog
-            ->with('participant')
+            ->with('participants')
             ->filterByQueryString()
             ->sortByQueryString()
             ->withPagination($request->get('pagesize', 10));

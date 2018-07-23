@@ -16,7 +16,7 @@ class CreateEventLogTable extends Migration
         Schema::create('event_logs', function (Blueprint $table) {
             $table->increments('id');
             $table->unsignedInteger('event_id')->comment('事件ID');
-            $table->unsignedInteger('concern_id')->comment('事件关系id');
+            $table->unsignedInteger('event_log_group_id')->comment('事件分组id');
             $table->unsignedSmallInteger('event_type_id')->comment('事件类型ID');
             $table->char('event_name', 50)->comment('事件名称');
             $table->char('description', 255)->default('')->comment('事件说明');
