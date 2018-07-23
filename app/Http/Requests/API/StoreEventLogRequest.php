@@ -29,6 +29,7 @@ class StoreEventLogRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'title' => 'bail|required|string',
             'first_approver_sn' => [
                 'bail',
                 'required',
@@ -67,6 +68,7 @@ class StoreEventLogRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'title.required' => '主题不能为空',
             'events.*.event_id.required' => '事件编号不能为空',
             'events.*.event_id.exists' => '事件编号不存在',
             'first_approver_sn.required' => '初审人编号不能为空',
