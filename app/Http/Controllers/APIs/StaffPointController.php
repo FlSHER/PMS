@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\PointLogSource;
 use function App\monthBetween;
 use function App\stageBetween;
+use App\Http\Resources\StatisticResource;
 use App\Models\PointLog as PointLogModel;
 use App\Models\PersonalPointStatistic as StatisticModel;
 use App\Models\PersonalPointStatisticLog as StatisticLogModel;
@@ -22,32 +23,24 @@ class StaffPointController extends Controller
      */
     public function index(Request $request)
     {
-        $user = $request->user();
+        $user = $request->staff_sn ?: $request->user()->staff_sn;
         $datetime = Carbon::parse($request->query('datetime'));
 
         if (Carbon::parse($datetime)->isCurrentMonth()) {
             $monthly = StatisticModel::query()
-                ->where('staff_sn', $user->staff_sn)
+                ->where('staff_sn', $user)
                 ->whereBetween('date', monthBetween($datetime))
                 ->orderBy('date', 'desc')
                 ->first();
         } else {
             $monthly = StatisticLogModel::query()
-                ->where('staff_sn', $user->staff_sn)
+                ->where('staff_sn', $user)
                 ->whereBetween('date', monthBetween($datetime))
                 ->first();
         }
 
-        $monthly['add_point_total'] = array_reduce($monthly->source_b_monthly, function ($carry, $item) {
-            return $carry + $item['add_point'];
-        });
-
-        $monthly['sub_point_total'] = array_reduce($monthly->source_b_monthly, function ($carry, $item) {
-            return $carry + $item['sub_point'];
-        });
-
         return response()->json([
-            'monthly' => $monthly,
+            'monthly' => new StatisticResource($monthly),
             'trend' => $this->statistics()
         ], 200);
     }
@@ -60,28 +53,27 @@ class StaffPointController extends Controller
      */
     public function statistics()
     {
-        $user = request()->user();
+        $user = request()->staff_sn ? : request()->user()->staff_sn;
         $etime = Carbon::parse(request()->query('datetime'));
         if ($etime->isCurrentMonth()) {
             $etime->subMonth();
         }
         $stime = clone $etime;
         $monthly = [];
-        for ($i=0; $i <= 3; $i++) { 
-            $monthly[]['month'] = $i ? $stime->subMonth()->month : $stime->month;
+        for ($i=0; $i <= 3; $i++) {
+            $monthly[$i]['point_a'] = 0;
+            $monthly[$i]['point_b'] = 0;
+            $monthly[$i]['month'] = $i ? $stime->subMonth()->month : $stime->month;
         }
-
         $items = StatisticLogModel::query()
             ->select('point_a', 'point_b_monthly as total', 'date')
-            ->where('staff_sn', $user->staff_sn)
+            ->where('staff_sn', $user)
             ->whereBetween('date', stageBetween($stime->startOfMonth(), $etime->endOfMonth()))
             ->get();
-
+            
         $items->map(function ($item) use (&$monthly) {
             $current = Carbon::parse($item->date)->month;
             foreach ($monthly as $key => &$month) {
-                $month['point_a'] = 0;
-                $month['point_b'] = 0;
                 if ($current == $month['month']) {
                     $month['point_a'] = $item->point_a;
                     $month['point_b'] = $item->total;

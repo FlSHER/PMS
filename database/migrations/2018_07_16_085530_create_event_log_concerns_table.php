@@ -36,6 +36,8 @@ class CreateEventLogConcernsTable extends Migration
             $table->mediumInteger('recorder_point')->default(0)->comment('记录人得分');
             $table->mediumInteger('first_approver_point')->default(0)->comment('初审人得分');
             $table->mediumInteger('final_approver_point')->default(0)->comment('终审人分数');
+            $table->unsignedSmallInteger('event_count')->default(0)->comment('事件数');
+            $table->unsignedSmallInteger('participant_count')->default(0)->comment('事件参与人数');
             
             $table->index('first_approver_sn');
             $table->index('final_approver_sn');

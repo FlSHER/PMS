@@ -27,10 +27,6 @@ class CreateChangeFieldsTable extends Migration
             $table->renameColumn('calculated_at', 'date');
         });
 
-        Schema::table('event_log_concerns', function (Blueprint $table) {
-            $table->unsignedSmallInteger('event_count')->default(0)->comment('事件数');
-            $table->unsignedSmallInteger('participant_count')->default(0)->comment('事件参与人数');
-        });
     }
 
     /**
