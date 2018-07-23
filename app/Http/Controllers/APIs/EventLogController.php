@@ -72,20 +72,15 @@ class EventLogController extends Controller
                 $eventlog->description = $val['description'];
                 $eventlog->save();
 
-                // 添加事件抄送人
-                $eventlog->addressee()->createMany(
-                    $this->mergeAddressees(
-                        $event->default_cc_addressees,
-                        $data['addressees']
-                    )
-                );
-
                 // 添加事件参与人
                 $eventlog->participant()->createMany(
                     $val['participants']
                 );
             }
             
+            // 添加事件抄送人
+            $concern->addressees()->createMany($data['addressees']);
+
             // 自动审核
             $this->makeApprove($user, $concern);
 
@@ -176,7 +171,7 @@ class EventLogController extends Controller
      */
     public function show(Request $request, EventLogConcernModel $concern)
     {
-        $concern->load('logs.participant', 'logs.addressee', 'logs.event');
+        $concern->load('addressees', 'logs.participant', 'logs.event');
         $concern->executed_at = Carbon::parse($concern->executed_at)->toDateString();
 
         return response()->json($concern);

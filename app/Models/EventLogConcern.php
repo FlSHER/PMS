@@ -36,4 +36,15 @@ class EventLogConcern extends Model
         return $this->hasMany(EventLog::class, 'concern_id', 'id');
     }
 
+    /**
+     * 事件抄送者.
+     *
+     * @author 28youth
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function addressees()
+    {
+        return $this->hasMany(EventLogAddressee::class, 'event_log_id', 'id');
+    }
+
 }

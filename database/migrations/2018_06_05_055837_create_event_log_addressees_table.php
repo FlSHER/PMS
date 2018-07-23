@@ -18,7 +18,7 @@ class CreateEventLogAddresseesTable extends Migration
             $table->unsignedMediumInteger('staff_sn')->comment('抄送人人编号');
             $table->char('staff_name', 10)->comment('抄送人人姓名');
 
-            $table->foreign('event_log_id')->references('id')->on('event_logs');
+            $table->foreign('event_log_id')->references('id')->on('event_log_concerns');
             $table->index('staff_sn');
         });
     }
