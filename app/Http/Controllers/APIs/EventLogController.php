@@ -44,8 +44,6 @@ class EventLogController extends Controller
      *
      * @author 28youth
      * @param  \App\Http\Requests\API\StoreEventLogRequest $request
-     * @param  \App\Models\EventLog $eventlog
-     * @param  \App\Models\Event $event
      * @return mixed
      */
     public function store(StoreEventLogRequest $request)
@@ -254,9 +252,11 @@ class EventLogController extends Controller
         $group->reject_remark = $makeData['reject_remark'];
         $group->rejected_at = now();
         $group->status_id = -1;
-        $group->save();
+        $group->getConnection()->transaction(function () use ($group, $makeData) {
+            $group->save();
 
-        EventLogModel::where('event_log_group_id', $group->id)->update($makeData);
+            EventLogModel::where('event_log_group_id', $group->id)->update($makeData);
+        });
 
         return response()->json($group, 201);
     }
@@ -284,11 +284,12 @@ class EventLogController extends Controller
                 'message' => '非记录人无权撤回'
             ], 401);
         }
-
         $group->status_id = -2;
-        $group->save();
+        $group->getConnection()->transaction(function () use ($group) {
+            $group->save();
 
-        EventLogModel::where('event_log_group_id', $group->id)->update(['status_id' => -2]);
+            EventLogModel::where('event_log_group_id', $group->id)->update(['status_id' => -2]);
+        });
 
         return response()->json($group, 201);
     }
