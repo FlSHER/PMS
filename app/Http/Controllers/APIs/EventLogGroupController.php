@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\APIs;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\EventLogGroup as EventLogGroupModel;
 use App\Repositories\EventLogGroup as EventLogGroupRepository;

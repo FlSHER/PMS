@@ -56,7 +56,7 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
 
         // 奖扣事件详情
         // @get /api/event-logs/:eventlog
-        $api->get('{eventlog}', APIs\EventLogController::class . '@show');
+        $api->get('{eventlog}', APIs\EventLogController::class . '@show')->where(['eventlog' => '[0-9]+']);
 
         // 初审奖扣事件
         // @put /api/event-logs/:eventlog/first-approve
@@ -76,11 +76,11 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
 
         // 事件日志分组列表
         // @get /api/event-logs/group
-        $api->get('group', APIs\EventLogGroupController::class . '@index'); 
+        $api->get('groups', APIs\EventLogGroupController::class . '@index'); 
 
         // 事件日志分组详情
         // @get /api/event-logs/group/:group
-        $api->get('group/{group}', APIs\EventLogGroupController::class . '@show'); 
+        $api->get('groups/{group}', APIs\EventLogGroupController::class . '@show'); 
     });
 
     // route 积分制
