@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\PointLogSource;
 use Illuminate\Console\Command;
 use App\Models\ArtisanCommandLog;
+use Illuminate\Support\Facades\Cache;
 use App\Models\PointLog as PointLogModel;
 use App\Models\PointType as PointTypeModel;
 use App\Jobs\StatisticPoint as StatisticPointJob;
@@ -278,6 +279,7 @@ class CalculateStaffPoint extends Command
     public function monthlySource($log, $type, $cate = 'monthly')
     {
         $current = $this->{$cate}[$log->staff_sn][$type] ?? $this->makePointTypeData();
+        $current = empty($current) ? $this->makePointTypeData() : $current;
 
         foreach ($current as $k => &$v) {
 

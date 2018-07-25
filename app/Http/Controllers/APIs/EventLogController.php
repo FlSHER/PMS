@@ -92,7 +92,7 @@ class EventLogController extends Controller
             return response()->json(['message' => '服务器错误'], 500);
         }
 
-        return response()->json(['message' => '添加成功'], 201);
+        return response()->json($group->load('logs', 'addressees'), 201);
     }
 
     /**
@@ -285,6 +285,7 @@ class EventLogController extends Controller
             ], 401);
         }
         $group->status_id = -2;
+        $group->first_approved_at = null;
         $group->getConnection()->transaction(function () use ($group) {
             $group->save();
 
