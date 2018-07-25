@@ -9,7 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use App\Services\Point\Types\StatisticPoint as StatisticPointService;
 
-class StatisticPoint implements ShouldQueue
+class StatisticLogPoint implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 

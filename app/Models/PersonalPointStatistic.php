@@ -28,6 +28,9 @@ class PersonalPointStatistic extends Model
         'point_b_total',
         'source_b_monthly',
         'source_b_total',
+        'point_a_total',
+        'source_a_monthly',
+        'source_a_total',
         'date'
     ];
 }
