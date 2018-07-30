@@ -22,11 +22,11 @@ class CreateEventLogTable extends Migration
             $table->char('description', 255)->default('')->comment('事件说明');
             $table->unsignedMediumInteger('first_approver_sn')->comment('初审人编号');
             $table->char('first_approver_name', 10)->comment('初审人姓名');
-            $table->char('first_approve_remark', 255)->default('')->comment('初审人备注');
+            $table->char('first_approve_remark', 255)->nullable()->comment('初审人备注');
             $table->timestamp('first_approved_at')->nullable()->comment('初审通过时间');
             $table->unsignedMediumInteger('final_approver_sn')->comment('终审人编号');
             $table->char('final_approver_name', 10)->comment('终审人姓名');
-            $table->char('final_approve_remark', 255)->default('')->comment('终审人备注');
+            $table->char('final_approve_remark', 255)->nullable()->comment('终审人备注');
             $table->timestamp('final_approved_at')->nullable()->comment('终审通过时间');
             $table->unsignedMediumInteger('rejecter_sn')->nullable()->comment('驳回人编号');
             $table->char('rejecter_name', 10)->nullable()->comment('驳回人姓名');
