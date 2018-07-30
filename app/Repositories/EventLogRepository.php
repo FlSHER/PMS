@@ -62,6 +62,7 @@ class EventLogRepository
         $user = $request->user();
 
         return $this->eventlog->filterByQueryString()
+            ->with('participants')
             ->whereHas('participants', function ($query) use ($user) {
                 return $query->where('staff_sn', $user->staff_sn);
             })

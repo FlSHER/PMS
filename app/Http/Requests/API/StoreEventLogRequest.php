@@ -51,7 +51,7 @@ class StoreEventLogRequest extends FormRequest
                 'required',
                 'array'
             ],
-            'events' => [new ValidateParticipant($this->all())],
+            'events' => ['required', new ValidateParticipant($this->all())],
             'executed_at' => 'bail|required|date|before:' . date('Y-m-d H:i'),
             'first_approver_name' => 'required|string',
             'final_approver_name' => 'required|string',
@@ -69,6 +69,7 @@ class StoreEventLogRequest extends FormRequest
     {
         return [
             'title.required' => '主题不能为空',
+            'events.required' => '事件不能为空',
             'events.*.event_id.required' => '事件编号不能为空',
             'events.*.event_id.exists' => '事件编号不存在',
             'first_approver_sn.required' => '初审人编号不能为空',

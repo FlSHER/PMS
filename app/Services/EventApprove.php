@@ -40,7 +40,7 @@ class EventApprove
         abort_if($this->group->first_approved_at !== null, 422, '初审已通过');
 
         $makeData = [
-            'first_approve_remark' => $params['remark'] ?: '准予通过',
+            'first_approve_remark' => !empty($params['remark']) ? $params['remark'] : '准予通过',
             'first_approved_at' => now(),
             'status_id' => 1,
         ];
@@ -67,9 +67,9 @@ class EventApprove
         abort_if($this->group->final_approved_at !== null, 422, '终审已通过');
 
         $makeData = [
-            'recorder_point' => $params['recorder_point'] ? : 0,
-            'first_approver_point' => $params['first_approver_point'] ? : 0,
-            'final_approve_remark' => $params['remark'],
+            'recorder_point' => !empty($params['recorder_point']) ? $params['recorder_point'] : 0,
+            'first_approver_point' => !empty($params['first_approver_point']) ? $params['first_approver_point'] : 0,
+            'final_approve_remark' => !empty($params['remark']) ? $params['remark'] : '',
             'final_approved_at' => now(),
             'status_id' => 2,
         ];
