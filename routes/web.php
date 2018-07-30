@@ -10,6 +10,6 @@
 | contains the "web" middleware group. Now create something great!
 |
 */
-use App\Http\Controllers\APIs;
+use App\Http\Controllers as Http;
 
-Route::get('/', APIs\TaskController::class. '@field');
+Route::get('/', Http\HomeController::class. '@field');
