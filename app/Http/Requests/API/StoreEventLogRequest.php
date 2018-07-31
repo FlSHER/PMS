@@ -29,7 +29,7 @@ class StoreEventLogRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'bail|required|string',
+            'title' => 'bail|required|string|max:50',
             'first_approver_sn' => [
                 'bail',
                 'required',
@@ -56,7 +56,7 @@ class StoreEventLogRequest extends FormRequest
             'first_approver_name' => 'required|string',
             'final_approver_name' => 'required|string',
             'addressees' => 'nullable|array',
-            
+            'remark' => 'max:255'
         ];
     }
 
@@ -69,6 +69,7 @@ class StoreEventLogRequest extends FormRequest
     {
         return [
             'title.required' => '主题不能为空',
+            'title.max' => '主题字数不能超过:max个字',
             'events.required' => '事件不能为空',
             'events.*.event_id.required' => '事件编号不能为空',
             'events.*.event_id.exists' => '事件编号不存在',
@@ -81,6 +82,7 @@ class StoreEventLogRequest extends FormRequest
             'events.*.participants.array' => '事件参与人格式错误',
             'executed_at.required' => '事件执行时间不能为空',
             'executed_at.before' => '事件执行时间不能大于当前时间',
+            'remark.max' => '事件备注不能超过:max个字',
         ];
     }
 
