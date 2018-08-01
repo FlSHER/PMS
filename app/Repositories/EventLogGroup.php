@@ -98,36 +98,41 @@ class EventLogGroup
         $user = $request->user();
         $cate = $request->query('cate');
         $step = $request->query('step');
-        
+
         $builder = $this->group->query();
-        $builder->where(function ($query) use ($user) {
-            $query->where(function ($query) use ($user) {
+        $builder->where(function ($query) use ($user, $step) {
+            if ($step != 'final')
+                $query->where(function ($query) use ($user) {
                 $query->where('first_approver_sn', $user->staff_sn)
-                ->whereNotNull('first_approved_at');
-            })
-            ->orWhere(function ($query) use ($user) {
+                    ->where('final_approver_sn', '!=', $user->staff_sn)
+                    ->where('recorder_sn', '!=', $user->staff_sn)
+                    ->where(function ($query) use ($user) {
+                        $query->whereNotNull('first_approved_at')
+                            ->orWhere('rejecter_sn', $user->staff_sn);
+                    });
+            });
+            if ($step != 'first')
+                $query->orWhere(function ($query) use ($user) {
                 $query->where('final_approver_sn', $user->staff_sn)
-                ->whereNotNull('final_approved_at');
-            })
-            ->orWhere(function ($query) use ($user) {
-                $query->where('rejecter_sn', $user->staff_sn);
+                    ->where(function ($query) use ($user) {
+                        $query->where('recorder_sn', '!=', $user->staff_sn)
+                            ->orWhere('first_approver_sn', '!=', $user->staff_sn);
+                    })->where(function ($query) use ($user) {
+                        $query->whereNotNull('final_approved_at')
+                            ->orWhere('rejecter_sn', $user->staff_sn);
+                    });
             });
         });
-        $builder->when($step, function ($query) use ($step, $user) {
-            if ($step == 'first') {
-                $query->where('first_approver_sn', $user->staff_sn);
-            } else if ($step == 'final') {
-                $query->where('final_approver_sn', $user->staff_sn);
-            }
-        });
+
         $builder->when($cate, function ($query) use ($cate, $user) {
             if ($cate == 'audit') {
-                $query->where('rejecter_sn', '!=', $user->staff_sn);
-            } else if($cate == 'reject') {
+                $query->where('rejecter_sn', '!=', $user->staff_sn)
+                    ->whereNull('rejecter_sn');
+            } else if ($cate == 'reject') {
                 $query->where('rejecter_sn', $user->staff_sn);
             }
         });
-        
+
         return $builder->sortByQueryString()->withPagination();
     }
 
@@ -143,6 +148,12 @@ class EventLogGroup
         $user = $request->user();
 
         return $this->group->filterByQueryString()
+            ->where(function ($query) {
+                $query->whereNotNull('final_approved_at');
+            })
+            ->orWhere(function ($query) {
+                $query->whereNotNull('rejected_at');
+            })
             ->whereHas('addressees', function ($query) use ($user) {
                 $query->where('staff_sn', $user->staff_sn);
             })
