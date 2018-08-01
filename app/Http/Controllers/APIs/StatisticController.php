@@ -61,7 +61,7 @@ class StatisticController extends Controller
                 ->where(function ($query) use ($staffSns, $departmentIds) {
                     $query->whereIn('staff_sn', $staffSns)->orWhereIn('department_id', $departmentIds);
                 })
-                ->whereBetween('calculated_at', monthBetween())
+                ->whereBetween('date', monthBetween())
                 ->orderBy('total', 'desc')
                 ->get();
         } else {
@@ -82,7 +82,7 @@ class StatisticController extends Controller
             'group_id' => $group->id
         ];
         if (Carbon::parse($datetime)->isCurrentMonth()) {
-            $response['calculated_at'] = $calculatedAt;
+            $response['date'] = $calculatedAt;
         }
 
         return response()->json($response, 200);
@@ -145,7 +145,7 @@ class StatisticController extends Controller
         return response()->json([
             'list' => $items,
             'group_id' => $group->id,
-            'calculated_at' => $calculatedAt
+            'date' => $calculatedAt
         ], 200);
     }
 

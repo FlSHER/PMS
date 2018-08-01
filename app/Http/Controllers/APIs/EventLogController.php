@@ -6,17 +6,18 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Services\EventApprove;
 use App\Models\Event as EventModel;
-use App\Repositories\EventLogRepository;
 use App\Models\EventLog as EventLogModel;
 use App\Http\Requests\API\StoreEventLogRequest;
+use App\Models\EventLogGroup as EventLogGroupModel;
+use App\Repositories\EventLogRepository as EventLogRepository;
 
 class EventLogController extends Controller
 {
-    protected $eventLogRepository;
+    protected $eventlog;
 
-    public function __construct(EventLogRepository $eventlog)
+    public function __construct(EventLogRepository $eventlogRepository)
     {
-        $this->eventLogRepository = $eventlog;
+        $this->eventlog = $eventlogRepository;
     }
 
     /**
@@ -31,7 +32,7 @@ class EventLogController extends Controller
         $type = $request->query('type', 'all');
 
         $items = app()->call([
-            $this->eventLogRepository,
+            $this->eventlog,
             camel_case('get_' . $type . '_list')
         ]);
 
@@ -43,31 +44,73 @@ class EventLogController extends Controller
      *
      * @author 28youth
      * @param  \App\Http\Requests\API\StoreEventLogRequest $request
-     * @param  \App\Models\EventLog $eventlog
-     * @param  \App\Models\Event $event
      * @return mixed
      */
-    public function store(StoreEventLogRequest $request, EventLogModel $eventlog)
+    public function store(StoreEventLogRequest $request)
     {
         $user = $request->user();
         $data = $request->all();
-        $event = EventModel::find($request->event_id);
 
-        $eventlog->fill($data);
-        $eventlog->event_name = $event->name;
-        $eventlog->event_type_id = $event->type_id;
-        $eventlog->recorder_sn = $user->staff_sn;
-        $eventlog->recorder_name = $user->realname;
-        $addressees = $this->mergeAddressees($event->default_cc_addressees, $data['addressees']);
+        try {
+            \DB::beginTransaction();
 
-        $eventlog->getConnection()->transaction(function () use ($eventlog, $data, $user, $addressees) {
-            $eventlog->save();
-            $eventlog->addressee()->createMany($addressees);
-            $eventlog->participant()->createMany($data['participants']);
-            $this->makeApprove($user, $eventlog);
-        });
+            $group = $this->fillEventLogGroupData($request);
+            $group->save();
 
-        return response()->json(['message' => '添加成功'], 201);
+            foreach ($data['events'] as $key => $val) {
+                $event = EventModel::find($val['event_id']);
+                $eventlog = new EventLogModel();
+
+                $eventlog->fill($data);
+                $eventlog->event_log_group_id = $group->id;
+                $eventlog->event_id = $event->id;
+                $eventlog->event_name = $event->name;
+                $eventlog->event_type_id = $event->type_id;
+                $eventlog->recorder_sn = $user->staff_sn;
+                $eventlog->recorder_name = $user->realname;
+                $eventlog->description = $val['description'];
+                $eventlog->save();
+
+                // 添加事件参与人
+                $eventlog->participants()->createMany(
+                    $val['participants']
+                );
+            }
+            
+            // 添加事件抄送人
+            $group->addressees()->createMany($data['addressees']);
+
+            // 自动审核
+            $this->makeApprove($user, $group);
+
+            \DB::commit();
+
+        } catch (Exception $e) {
+
+            \DB::rollBack();
+
+            return response()->json(['message' => '服务器错误'], 500);
+        }
+
+        return response()->json($group->load('logs', 'addressees'), 201);
+    }
+
+    /**
+     * 填充奖扣关联表数据.
+     * 
+     * @author 28youth
+     * @param  array $data
+     */
+    public function fillEventLogGroupData($request) : EventLogGroupModel
+    {
+        $user = $request->user();
+
+        $group = new EventLogGroupModel();
+        $group = $group->fill($request->all());
+        $group->recorder_sn = $user->staff_sn;
+        $group->recorder_name = $user->realname;
+
+        return $group;
     }
 
     /**
@@ -75,11 +118,11 @@ class EventLogController extends Controller
      *
      * @return void
      */
-    protected function makeApprove($user, $logModel)
+    protected function makeApprove($user, $group)
     {
-        $firstSn = $logModel->first_approver_sn;
-        $finalSn = $logModel->final_approver_sn;
-        $approveService = new EventApprove($logModel);
+        $firstSn = $group->first_approver_sn;
+        $finalSn = $group->final_approver_sn;
+        $approveService = new EventApprove($group);
 
         // 记录人、初审人相同时 初审通过
         if ($user->staff_sn === $firstSn) {
@@ -122,12 +165,12 @@ class EventLogController extends Controller
      *
      * @author 28youth
      * @param  \Illuminate\Http\Request $request
-     * @param  \App\Models\EventLog $eventlog
+     * @param  \App\Models\EventLogModel $eventlog
      * @return mixed
      */
     public function show(Request $request, EventLogModel $eventlog)
     {
-        $eventlog->load('participant', 'addressee', 'event');
+        $eventlog->load('group.addressees', 'participants');
         $eventlog->executed_at = Carbon::parse($eventlog->executed_at)->toDateString();
 
         return response()->json($eventlog);
@@ -138,13 +181,12 @@ class EventLogController extends Controller
      *
      * @author 28youth
      * @param  \Illuminate\Http\Request $request
-     * @param  \App\Models\EventLog $eventlog
+     * @param  \App\Models\EventLogGroupModel $group
      * @return mixed
      */
-    public function firstApprove(Request $request, EventLogModel $eventlog)
+    public function firstApprove(Request $request, EventLogGroupModel $group)
     {
-        $approveService = new EventApprove($eventlog);
-
+        $approveService = new EventApprove($group);
         $response = $approveService->firstApprove([
             'remark' => $request->remark
         ]);
@@ -157,13 +199,13 @@ class EventLogController extends Controller
      *
      * @author 28youth
      * @param  \Illuminate\Http\Request $request
-     * @param  \App\Models\EventLog $eventlog
+     * @param  \App\Models\EventLogGroupModel $group
      * @return mixed
      */
-    public function finalApprove(Request $request, EventLogModel $eventlog)
+    public function finalApprove(Request $request, EventLogGroupModel $group)
     {
-        $eventlog->getConnection()->transaction(function () use ($eventlog, $request) {
-            $approveService = new EventApprove($eventlog);
+        $group->getConnection()->transaction(function () use ($group, $request) {
+            $approveService = new EventApprove($group);
             $approveService->finalApprove([
                 'first_approver_point' => $request->first_approver_point,
                 'recorder_point' => $request->recorder_point,
@@ -179,33 +221,44 @@ class EventLogController extends Controller
      *
      * @author 28youth
      * @param  \Illuminate\Http\Request $request
-     * @param  \App\Models\EventLog $eventlog
+     * @param  \App\Models\EventLogGroupModel $group
      * @return mixed
      */
-    public function reject(Request $request, EventLogModel $eventlog)
+    public function reject(Request $request, EventLogGroupModel $group)
     {
         $user = $request->user();
 
-        if ($eventlog->status_id === 0 && $user->staff_sn !== $eventlog->first_approver_sn) {
+        if ($group->status_id === 0 && $user->staff_sn !== $group->first_approver_sn) {
             return response()->json([
                 'message' => '非初审人无权驳回'
             ], 401);
         }
 
-        if ($eventlog->status_id === 1 && $user->staff_sn !== $eventlog->final_approver_sn) {
+        if ($group->status_id === 1 && $user->staff_sn !== $group->final_approver_sn) {
             return response()->json([
                 'message' => '非终审人无权驳回'
             ], 401);
         }
 
-        $eventlog->rejecter_sn = $user->staff_sn;
-        $eventlog->rejecter_name = $user->realname;
-        $eventlog->reject_remark = $request->remark;
-        $eventlog->rejected_at = Carbon::now();
-        $eventlog->status_id = -1;
-        $eventlog->save();
+        $makeData = [
+            'rejecter_sn' => $user->staff_sn,
+            'rejecter_name' => $user->realname,
+            'reject_remark' => $request->remark,
+            'rejected_at' => now(),
+            'status_id' => -1,
+        ];
+        $group->rejecter_sn = $makeData['rejecter_sn'];
+        $group->rejecter_name = $makeData['rejecter_name'];
+        $group->reject_remark = $makeData['reject_remark'];
+        $group->rejected_at = now();
+        $group->status_id = -1;
+        $group->getConnection()->transaction(function () use ($group, $makeData) {
+            $group->save();
 
-        return response()->json($eventlog, 201);
+            EventLogModel::where('event_log_group_id', $group->id)->update($makeData);
+        });
+
+        return response()->json($group, 201);
     }
 
     /**
@@ -213,29 +266,33 @@ class EventLogController extends Controller
      *
      * @author 28youth
      * @param  \Illuminate\Http\Request $request
-     * @param  \App\Models\EventLog $eventlog
+     * @param  \App\Models\EventLogGroupModel $eventlog
      * @return mixed
      */
-    public function withdraw(Request $request, EventLogModel $eventlog)
+    public function withdraw(Request $request, EventLogGroupModel $group)
     {
         $user = $request->user();
 
-        if ($eventlog->status_id === 2 || $eventlog->status_id === -2) {
+        if ($group->status_id === 2 || $group->status_id === -2) {
             return response()->json([
                 'message' => '已终审或已撤回'
             ], 422);
         }
 
-        if ($eventlog->recorder_sn !== $user->staff_sn) {
+        if ($group->recorder_sn !== $user->staff_sn) {
             return response()->json([
                 'message' => '非记录人无权撤回'
             ], 401);
         }
+        $group->status_id = -2;
+        $group->first_approved_at = null;
+        $group->getConnection()->transaction(function () use ($group) {
+            $group->save();
 
-        $eventlog->status_id = -2;
-        $eventlog->save();
+            EventLogModel::where('event_log_group_id', $group->id)->update(['status_id' => -2]);
+        });
 
-        return response()->json($eventlog, 201);
+        return response()->json($group, 201);
     }
 
 }

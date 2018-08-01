@@ -12,7 +12,7 @@ use App\Models\PointManagementTargetLogHasStaff as TargetLogStaffModel;
 
 class TargetController extends Controller
 {
-    
+
     /**
      * 获取奖扣指标.
      * 
@@ -27,18 +27,14 @@ class TargetController extends Controller
 
         $target = TargetStaffModel::query()
             ->where('staff_sn', $user->staff_sn)
-            ->leftJoin(
-                'point_management_targets', 
-                'point_management_target_has_staff.target_id', '=', 'point_management_targets.id'
-            )
             ->first();
 
         if ($target === null) {
-            return response()->json(['messsage' => '还未被分配指标'], 404);
+            return response()->json(['message' => '还未被分配指标'], 403);
         }
 
         $data = TargetLogStaffModel::query()
-            ->with('targetlog')
+            ->with('target')
             ->where('staff_sn', $target->staff_sn)
             ->whereBetween('date', monthBetween($datetime))
             ->first();

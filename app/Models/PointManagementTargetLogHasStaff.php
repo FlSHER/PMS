@@ -14,4 +14,9 @@ class PointManagementTargetLogHasStaff extends Model
         'shop_name','point_b_awarding_result','point_b_deducting_result',
         'event_count_result','deducting_percentage_result'
     ];
+
+    public function target()
+    {
+    	return $this->belongsTo(PointManagementTargetLogs::class, 'target_log_id');
+    }
 }

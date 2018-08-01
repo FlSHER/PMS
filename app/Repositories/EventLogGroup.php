@@ -4,22 +4,23 @@ namespace App\Repositories;
 
 use Illuminate\Http\Request;
 use App\Models\EventLog as EventLogModel;
+use App\Models\EventLogGroup as EventLogGroupModel;
 
 
-class EventLogRepository
+class EventLogGroup
 {
     /**
      * EventLog model
      */
-    protected $eventlog;
+    protected $group;
 
     /**
      * EventLogRepository constructor.
-     * @param EventLog $eventlog
+     * @param EventLogGroupModel $group
      */
-    public function __construct(EventLogModel $eventlog)
+    public function __construct(EventLogGroupModel $group)
     {
-        $this->eventlog = $eventlog;
+        $this->group = $group;
     }
 
     /**
@@ -31,7 +32,7 @@ class EventLogRepository
      */
     public function getPaginateList(Request $request)
     {
-        return $this->eventlog->filterByQueryString()
+        return $this->group->filterByQueryString()
             ->sortByQueryString()
             ->withPagination();
     }
@@ -45,7 +46,7 @@ class EventLogRepository
      */
     public function getAllList(Request $request)
     {
-        return $this->eventlog->filterByQueryString()
+        return $this->group->filterByQueryString()
             ->sortByQueryString()
             ->withPagination();
     }
@@ -61,10 +62,9 @@ class EventLogRepository
     {
         $user = $request->user();
 
-        return $this->eventlog->filterByQueryString()
-            ->with('participants')
+        return EventLogModel::query()->filterByQueryString()
             ->whereHas('participants', function ($query) use ($user) {
-                return $query->where('staff_sn', $user->staff_sn);
+                $query->where('staff_sn', $user->staff_sn);
             })
             ->sortByQueryString()
             ->withPagination();
@@ -80,7 +80,7 @@ class EventLogRepository
     {
         $user = $request->user();
 
-        return $this->eventlog->filterByQueryString()
+        return $this->group->filterByQueryString()
             ->where('recorder_sn', $user->staff_sn)
             ->sortByQueryString()
             ->withPagination();
@@ -96,24 +96,44 @@ class EventLogRepository
     public function getApprovedList(Request $request)
     {
         $user = $request->user();
+        $cate = $request->query('cate');
+        $step = $request->query('step');
 
-        return $this->eventlog->filterByQueryString()
-            ->where(function ($query) use ($user) {
+        $builder = $this->group->query();
+        $builder->where(function ($query) use ($user, $step) {
+            if ($step != 'final')
                 $query->where(function ($query) use ($user) {
-                    $query->where('first_approver_sn', $user->staff_sn)
-                        ->whereNotNull('first_approved_at');
-                })
-                    ->orWhere(function ($query) use ($user) {
-                        $query->where('final_approver_sn', $user->staff_sn)
-                            ->whereNotNull('final_approved_at');
-                    })
-                    ->orWhere(function ($query) use ($user) {
-                        $query->where('rejecter_sn', $user->staff_sn)
-                            ->whereNotNull('rejected_at');
+                $query->where('first_approver_sn', $user->staff_sn)
+                    ->where('final_approver_sn', '!=', $user->staff_sn)
+                    ->where('recorder_sn', '!=', $user->staff_sn)
+                    ->where(function ($query) use ($user) {
+                        $query->whereNotNull('first_approved_at')
+                            ->orWhere('rejecter_sn', $user->staff_sn);
                     });
-            })
-            ->sortByQueryString()
-            ->withPagination();
+            });
+            if ($step != 'first')
+                $query->orWhere(function ($query) use ($user) {
+                $query->where('final_approver_sn', $user->staff_sn)
+                    ->where(function ($query) use ($user) {
+                        $query->where('recorder_sn', '!=', $user->staff_sn)
+                            ->orWhere('first_approver_sn', '!=', $user->staff_sn);
+                    })->where(function ($query) use ($user) {
+                        $query->whereNotNull('final_approved_at')
+                            ->orWhere('rejecter_sn', $user->staff_sn);
+                    });
+            });
+        });
+
+        $builder->when($cate, function ($query) use ($cate, $user) {
+            if ($cate == 'audit') {
+                $query->where('rejecter_sn', '!=', $user->staff_sn)
+                    ->whereNull('rejecter_sn');
+            } else if ($cate == 'reject') {
+                $query->where('rejecter_sn', $user->staff_sn);
+            }
+        });
+
+        return $builder->sortByQueryString()->withPagination();
     }
 
     /**
@@ -127,8 +147,14 @@ class EventLogRepository
     {
         $user = $request->user();
 
-        return $this->eventlog->filterByQueryString()
-            ->whereHas('addressee', function ($query) use ($user) {
+        return $this->group->filterByQueryString()
+            ->where(function ($query) {
+                $query->whereNotNull('final_approved_at');
+            })
+            ->orWhere(function ($query) {
+                $query->whereNotNull('rejected_at');
+            })
+            ->whereHas('addressees', function ($query) use ($user) {
                 $query->where('staff_sn', $user->staff_sn);
             })
             ->sortByQueryString()
@@ -146,7 +172,7 @@ class EventLogRepository
     {
         $user = $request->user();
 
-        return $this->eventlog->filterByQueryString()
+        return $this->group->filterByQueryString()
             ->where(function ($query) use ($user) {
                 $query->where(function ($query) use ($user) {
                     $query->where('first_approver_sn', $user->staff_sn)->byAudit(0);
@@ -162,15 +188,13 @@ class EventLogRepository
 
     public function getEventLogList($request)
     {
-        return $this->eventlog
-            ->with('participants')
-            ->filterByQueryString()
+        return $this->group->filterByQueryString()
             ->sortByQueryString()
-            ->withPagination($request->get('pagesize', 10));
+            ->withPagination();
     }
 
     public function getEventLogSingleness($id)
     {
-        return $this->eventlog->with('eventType')->with('event')->where('id', $id)->first();
+        return $this->group->with('eventType')->with('event')->where('id', $id)->first();
     }
 }

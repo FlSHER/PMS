@@ -10,5 +10,6 @@
 | contains the "web" middleware group. Now create something great!
 |
 */
+use App\Http\Controllers as Http;
 
-Route::get('/', 'HomeController@welcome');
+Route::get('/', Http\HomeController::class. '@field');

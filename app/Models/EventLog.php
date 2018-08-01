@@ -41,7 +41,7 @@ class EventLog extends Model
      * @author 28youth
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
-    public function participant()
+    public function participants()
     {
         return $this->hasMany(EventLogParticipant::class, 'event_log_id', 'id');
     }
@@ -72,4 +72,16 @@ class EventLog extends Model
     {
         return $this->belongsTo(EventType::class,'event_type_id');
     }
+
+    /**
+     * 事件分组.
+     * 
+     * @author 28youth
+     * @return \Illuminate\Database\Eloquent\Relations\belongsTo
+     */
+    public function group()
+    {
+        return $this->belongsTo(EventLogGroup::class, 'event_log_group_id');
+    }
+
 }

@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 class PersonalPointStatistic extends Model
 {
 	protected $casts = [
+        'source_a_total' => 'array',
+        'source_a_monthly' => 'array',
         'source_b_total' => 'array',
         'source_b_monthly' => 'array'
     ];
@@ -26,6 +28,9 @@ class PersonalPointStatistic extends Model
         'point_b_total',
         'source_b_monthly',
         'source_b_total',
-        'calculated_at'
+        'point_a_total',
+        'source_a_monthly',
+        'source_a_total',
+        'date'
     ];
 }

@@ -31,7 +31,8 @@ class PointLog extends Model
         'first_approver_sn',
         'first_approver_name',
         'final_approver_sn',
-        'final_approver_name'
+        'final_approver_name',
+        'type_id'
     ];
 
     /**

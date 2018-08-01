@@ -16,17 +16,17 @@ class CreateEventLogTable extends Migration
         Schema::create('event_logs', function (Blueprint $table) {
             $table->increments('id');
             $table->unsignedInteger('event_id')->comment('事件ID');
-            $table->unsignedInteger('concern_id')->comment('事件关系id');
+            $table->unsignedInteger('event_log_group_id')->comment('事件分组id');
             $table->unsignedSmallInteger('event_type_id')->comment('事件类型ID');
             $table->char('event_name', 50)->comment('事件名称');
             $table->char('description', 255)->default('')->comment('事件说明');
             $table->unsignedMediumInteger('first_approver_sn')->comment('初审人编号');
             $table->char('first_approver_name', 10)->comment('初审人姓名');
-            $table->char('first_approve_remark', 255)->default('')->comment('初审人备注');
+            $table->char('first_approve_remark', 255)->nullable()->comment('初审人备注');
             $table->timestamp('first_approved_at')->nullable()->comment('初审通过时间');
             $table->unsignedMediumInteger('final_approver_sn')->comment('终审人编号');
             $table->char('final_approver_name', 10)->comment('终审人姓名');
-            $table->char('final_approve_remark', 255)->default('')->comment('终审人备注');
+            $table->char('final_approve_remark', 255)->nullable()->comment('终审人备注');
             $table->timestamp('final_approved_at')->nullable()->comment('终审通过时间');
             $table->unsignedMediumInteger('rejecter_sn')->nullable()->comment('驳回人编号');
             $table->char('rejecter_name', 10)->nullable()->comment('驳回人姓名');

@@ -48,7 +48,7 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
 
         // 事件日志列表
         // @get /api/event-logs
-        $api->get('/', APIs\EventLogController::class . '@index');        
+        $api->get('/', APIs\EventLogController::class . '@index');   
 
         // 添加事件日志
         // @post /api/event-logs/event
@@ -56,23 +56,31 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
 
         // 奖扣事件详情
         // @get /api/event-logs/:eventlog
-        $api->get('{eventlog}', APIs\EventLogController::class . '@show');
+        $api->get('{eventlog}', APIs\EventLogController::class . '@show')->where(['eventlog' => '[0-9]+']);
 
         // 初审奖扣事件
         // @put /api/event-logs/:eventlog/first-approve
-        $api->put('{eventlog}/first-approve', APIs\EventLogController::class . '@firstApprove');
+        $api->put('{group}/first-approve', APIs\EventLogController::class . '@firstApprove');
 
         // 终审奖扣事件
         // @put /api/event-logs/:eventlog/final-approve
-        $api->put('{eventlog}/final-approve', APIs\EventLogController::class . '@finalApprove');
+        $api->put('{group}/final-approve', APIs\EventLogController::class . '@finalApprove');
 
         // 驳回奖扣事件
         // @put /api/event-logs/:eventlog/reject
-        $api->put('{eventlog}/reject', APIs\EventLogController::class . '@reject');
+        $api->put('{group}/reject', APIs\EventLogController::class . '@reject');
 
         // 撤回奖扣事件
         // @put /api/event-logs/:eventlog/withdraw
-        $api->put('{eventlog}/withdraw', APIs\EventLogController::class . '@withdraw');
+        $api->put('{group}/withdraw', APIs\EventLogController::class . '@withdraw');
+
+        // 事件日志分组列表
+        // @get /api/event-logs/group
+        $api->get('groups', APIs\EventLogGroupController::class . '@index'); 
+
+        // 事件日志分组详情
+        // @get /api/event-logs/group/:group
+        $api->get('groups/{group}', APIs\EventLogGroupController::class . '@show'); 
     });
 
     // route 积分制
