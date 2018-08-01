@@ -120,9 +120,12 @@ class Event extends Log
         $curDay = Carbon::now()->daysInMonth;
         $changedAt = Carbon::parse($log['changed_at']);
         $curMonth = Carbon::now()->startOfMonth();
+        $preMonth = Carbon::now()->subMonth()->startOfMonth();
 
         if ($curDay >= $setDay && $changedAt->lt($curMonth)) {
             $log['changed_at'] = $curMonth;
+        } elseif ($changedAt->lt($preMonth)) {
+            $log['changed_at'] = $preMonth;
         }
         // 最新用户信息
         $user = $this->checkStaff($log['staff_sn']);
