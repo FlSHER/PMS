@@ -30,11 +30,28 @@ class CalculateStaffPoint extends Command
      */
     protected $monthly;
 
+    /**
+     * 当前时间.
+     *
+     * @var datetime
+     */
+    protected $curtime;
+
+    /**
+     * 上次结算时间.
+     *
+     * @var datetime
+     */
+    protected $pretime;
+
     protected $signature = 'pms:calculate-staff-point';
     protected $description = 'Calculate staff point';
 
     public function __construct()
     {
+        $this->curtime = now();
+        $this->pretime = $this->preNode()->created_at ?? null;
+        
         parent::__construct();
     }
 
@@ -45,12 +62,11 @@ class CalculateStaffPoint extends Command
 
     public function calculateMonthPoint()
     {
-        $now = now();
         if ($this->preNode() !== null) {
             // 获取所有日结数据进行结算
             StatisticModel::get()->map(function ($item) {
                 // 判断跨月清空数据
-                if (!Carbon::parse($this->preNode()->created_at)->isCurrentMonth()) {
+                if (!Carbon::parse($this->pretime)->isCurrentMonth()) {
                     // 放入月结数据
                     $this->monthly[$item->staff_sn] = $item->toArray();
 
@@ -73,10 +89,15 @@ class CalculateStaffPoint extends Command
             ->get();
 
         $logs->map(function ($item) use ($now) {
-
-            $this->handleLastMonthlyStatisticData($item);
-
-            $this->handleLastStatisticData($item, $now);
+            // 非本月生效的积分日志
+            if (!Carbon::parse($item->changed_at)->isCurrentMonth()) {
+                $this->handleLastMonthlyStatisticData($item);
+            } else {
+                // 统计当月分
+                $this->monthStatisticData($item, $now);
+            }
+            // 统计累计分
+            $this->totalStatisticData($item, $now);
         });
 
         $commandModel = $this->createLog();
@@ -148,31 +169,30 @@ class CalculateStaffPoint extends Command
      */
     public function handleLastMonthlyStatisticData($log)
     {
-        // 非本月生效的积分日志
-        if (!Carbon::parse($log->changed_at)->isCurrentMonth()) {
+        // 是否存在上月结算员工
+        if (isset($this->monthly[$log->staff_sn])) {
+            $this->monthly[$log->staff_sn]['point_a'] += $log->point_a;
+            $this->monthly[$log->staff_sn]['point_a_total'] += $log->point_a;
+            $this->monthly[$log->staff_sn]['source_a_monthly'] = $this->monthlySource($log, 'source_a_monthly');
+            $this->monthly[$log->staff_sn]['source_a_total'] = $this->monthlySource($log, 'source_a_total');
 
-            // 是否存在上月结算员工
-            if (isset($this->monthly[$log->staff_sn])) {
-                $this->monthly[$log->staff_sn]['point_a'] += $log->point_a;
-                $this->monthly[$log->staff_sn]['point_a_total'] += $log->point_a;
-                $this->monthly[$log->staff_sn]['source_a_monthly'] = $this->monthlySource($log, 'source_a_monthly');
-                $this->monthly[$log->staff_sn]['source_a_total'] = $this->monthlySource($log, 'source_a_total');
+            $this->monthly[$log->staff_sn]['point_b_monthly'] += $log->point_b;
+            $this->monthly[$log->staff_sn]['point_b_total'] += $log->point_b;
+            $this->monthly[$log->staff_sn]['source_b_monthly'] = $this->monthlySource($log, 'source_b_monthly');
+            $this->monthly[$log->staff_sn]['source_b_total'] = $this->monthlySource($log, 'source_b_total');
+        } else {
+            $this->monthly[$log->staff_sn]['point_a'] = $log->point_a;
+            $this->monthly[$log->staff_sn]['point_a_total'] = $log->point_a;
+            $this->monthly[$log->staff_sn]['source_a_monthly'] = $this->monthlySource($log, 'source_a_monthly');
+            $this->monthly[$log->staff_sn]['source_a_total'] = $this->monthlySource($log, 'source_a_total');
 
-                $this->monthly[$log->staff_sn]['point_b_monthly'] += $log->point_b;
-                $this->monthly[$log->staff_sn]['point_b_total'] += $log->point_b;
-                $this->monthly[$log->staff_sn]['source_b_monthly'] = $this->monthlySource($log, 'source_b_monthly');
-                $this->monthly[$log->staff_sn]['source_b_total'] = $this->monthlySource($log, 'source_b_total');
-            } else {
-                $this->monthly[$log->staff_sn]['point_a'] = $log->point_a;
-                $this->monthly[$log->staff_sn]['point_a_total'] = $log->point_a;
-                $this->monthly[$log->staff_sn]['source_a_monthly'] = $this->monthlySource($log, 'source_a_monthly');
-                $this->monthly[$log->staff_sn]['source_a_total'] = $this->monthlySource($log, 'source_a_total');
-
-                $this->monthly[$log->staff_sn]['point_b_monthly'] = $log->point_b;
-                $this->monthly[$log->staff_sn]['point_b_total'] = $log->point_b;
-                $this->monthly[$log->staff_sn]['source_b_monthly'] = $this->monthlySource($log, 'source_b_monthly');
-                $this->monthly[$log->staff_sn]['source_b_total'] = $this->monthlySource($log, 'source_b_total');
-            }
+            $this->monthly[$log->staff_sn]['point_b_monthly'] = $log->point_b;
+            $this->monthly[$log->staff_sn]['point_b_total'] = $log->point_b;
+            $this->monthly[$log->staff_sn]['source_b_monthly'] = $this->monthlySource($log, 'source_b_monthly');
+            $this->monthly[$log->staff_sn]['source_b_total'] = $this->monthlySource($log, 'source_b_total');
+            
+            // 新增的结算时间等于积分的生效时间
+            $this->monthly[$log->staff_sn]['date'] = Carbon::parse($log->changed_at)->startOfDay();
         }
     }
 
@@ -182,32 +202,47 @@ class CalculateStaffPoint extends Command
      * @author 28youth
      * @param  $log
      */
-    public function handleLastStatisticData($log, $now)
+    public function monthStatisticData($log, $now)
     {
         // 是否存在上次结算员工
         if (isset($this->daily[$log->staff_sn])) {
             $this->daily[$log->staff_sn]['point_a'] += $log->point_a;
-            $this->daily[$log->staff_sn]['point_a_total'] += $log->point_a;
             $this->daily[$log->staff_sn]['source_a_monthly'] = $this->monthlySource($log, 'source_a_monthly', 'daily');
-            $this->daily[$log->staff_sn]['source_a_total'] = $this->monthlySource($log, 'source_a_total', 'daily');
 
             $this->daily[$log->staff_sn]['point_b_monthly'] += $log->point_b;
-            $this->daily[$log->staff_sn]['point_b_total'] += $log->point_b;
             $this->daily[$log->staff_sn]['source_b_monthly'] = $this->monthlySource($log, 'source_b_monthly', 'daily');
-            $this->daily[$log->staff_sn]['source_b_total'] = $this->monthlySource($log, 'source_b_total', 'daily');
         } else {
             $this->daily[$log->staff_sn]['point_a'] = $log->point_a;
-            $this->daily[$log->staff_sn]['point_a_total'] = $log->point_a;
             $this->daily[$log->staff_sn]['source_a_monthly'] = $this->monthlySource($log, 'source_a_monthly', 'daily');
-            $this->daily[$log->staff_sn]['source_a_total'] = $this->monthlySource($log, 'source_a_total', 'daily');
 
             $this->daily[$log->staff_sn]['point_b_monthly'] = $log->point_b;
-            $this->daily[$log->staff_sn]['point_b_total'] = $log->point_b;
             $this->daily[$log->staff_sn]['source_b_monthly'] = $this->monthlySource($log, 'source_b_monthly', 'daily');
+        }
+        $this->daily[$log->staff_sn]['calculated_at'] = $this->curtime;
+    }
+
+    /**
+     * 处理总分结算.
+     *
+     * @return void
+     */
+    public function totalStatisticData($log, $now)
+    {
+        // 是否存在上次结算员工
+        if (isset($this->daily[$log->staff_sn])) {
+            $this->daily[$log->staff_sn]['point_a_total'] += $log->point_a;
+            $this->daily[$log->staff_sn]['source_a_total'] = $this->monthlySource($log, 'source_a_total', 'daily');
+
+            $this->daily[$log->staff_sn]['point_b_total'] += $log->point_b;
+            $this->daily[$log->staff_sn]['source_b_total'] = $this->monthlySource($log, 'source_b_total', 'daily');
+        } else {
+            $this->daily[$log->staff_sn]['point_a_total'] = $log->point_a;
+            $this->daily[$log->staff_sn]['source_a_total'] = $this->monthlySource($log, 'source_a_total', 'daily');
+
+            $this->daily[$log->staff_sn]['point_b_total'] = $log->point_b;
             $this->daily[$log->staff_sn]['source_b_total'] = $this->monthlySource($log, 'source_b_total', 'daily');
         }
-
-        $this->daily[$log->staff_sn]['date'] = $now;
+        $this->daily[$log->staff_sn]['calculated_at'] = $this->curtime;
     }
 
     /**

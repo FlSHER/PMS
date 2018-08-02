@@ -31,6 +31,6 @@ class PersonalPointStatistic extends Model
         'point_a_total',
         'source_a_monthly',
         'source_a_total',
-        'date'
+        'calculated_at'
     ];
 }

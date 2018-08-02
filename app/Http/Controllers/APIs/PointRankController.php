@@ -80,7 +80,7 @@ class PointRankController extends Controller
                 ->where(function ($query) use ($staffSns, $departmentIds) {
                     $query->whereIn('staff_sn', $staffSns)->orWhereIn('department_id', $departmentIds);
                 })
-                ->whereBetween('date', monthBetween())
+                ->whereBetween('calculated_at', monthBetween())
                 ->orderBy('total', 'desc')
                 ->get();
         } else {
@@ -107,7 +107,7 @@ class PointRankController extends Controller
             ],
         ];
         if (Carbon::parse($datetime)->isCurrentMonth()) {
-            $response['date'] = $calculatedAt;
+            $response['calculated_at'] = $calculatedAt;
         }
 
         return response()->json($response, 200);
@@ -127,7 +127,7 @@ class PointRankController extends Controller
 
         $items = StatisticLogModel::query()
             ->select(\DB::raw('staff_sn, staff_name, SUM(point_b_monthly) as total'))
-            ->whereBetween('date', stageBetween($stime, $etime))
+            ->whereBetween('calculated_at', stageBetween($stime, $etime))
             ->where(function ($query) use ($staffSns, $departmentIds) {
                 $query->whereIn('staff_sn', $staffSns)->orWhereIn('department_id', $departmentIds);
             })
@@ -180,7 +180,7 @@ class PointRankController extends Controller
                 'name' => $user->realname,
                 'total' => $user->total,
             ],
-            'date' => $calculatedAt
+            'calculated_at' => $calculatedAt
         ], 200);
     }
 

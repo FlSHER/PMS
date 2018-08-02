@@ -4,8 +4,8 @@ namespace App\Services\Point\Types;
 
 use Carbon\Carbon;
 use App\Services\Point\Log;
-use function App\monthBetween;
 use App\Models\PointLogSource;
+use function App\monthBetween;
 use Illuminate\Support\Facades\Cache;
 use App\Models\PersonalPointStatistic as StatisticModel;
 use App\Models\PersonalPointStatisticLog as StatisticLogModel;
