@@ -2,6 +2,7 @@
 
 namespace Fisher\SSO\Services;
 
+use Cache;
 use Illuminate\Http\Request;
 use Fisher\SSO\Traits\UserHelper;
 use Fisher\SSO\Traits\ResourceLibrary;
@@ -27,14 +28,20 @@ class RequestSSOService
      */
     public function client()
     {
-        $response = $this->request('post', '/oauth/token', [
-            'headers' => ['Accept' => 'application/json'],
-            'form_params' => [
-                'grant_type' => 'client_credentials',
-                'client_id' => config('sso.client_id'),
-                'client_secret' => config('sso.client_secret'),
-            ]
-        ]);
+        $cacheKey = 'oauth_token';
+        if (Cache::has($cacheKey)) {
+            $response = Cache::get($cacheKey);
+        } else {
+            $response = $this->request('post', '/oauth/token', [
+                'headers' => ['Accept' => 'application/json'],
+                'form_params' => [
+                    'grant_type' => 'client_credentials',
+                    'client_id' => config('sso.client_id'),
+                    'client_secret' => config('sso.client_secret'),
+                ]
+            ]);
+            Cache::put($cacheKey, $response, floor($response['expires_in']/60));
+        }
         $this->setHeader([
             'Accept' => 'application/json',
             'Authorization' => 'Bearer ' . $response['access_token']
