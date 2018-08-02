@@ -89,7 +89,7 @@ class CalculateStaffPoint extends Command
             ->get();
 
         $logs->map(function ($item) {
-            if (!isset($this->daily[$log->staff_sn])) {
+            if (!isset($this->daily[$item->staff_sn])) {
                 $this->initDailyStatisticData($item);
             }
             // 非本月生效的积分日志
