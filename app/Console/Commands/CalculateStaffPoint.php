@@ -89,6 +89,9 @@ class CalculateStaffPoint extends Command
             ->get();
 
         $logs->map(function ($item) {
+            if (!isset($this->daily[$log->staff_sn])) {
+                $this->initDailyStatisticData($item);
+            }
             // 非本月生效的积分日志
             if (!Carbon::parse($item->changed_at)->isCurrentMonth()) {
                 $this->handleLastMonthlyStatisticData($item);
@@ -161,6 +164,21 @@ class CalculateStaffPoint extends Command
         return $artisan;
     }
 
+    public function initDailyStatisticData($log)
+    {
+        $this->daily[$log->staff_sn] = [
+            'point_a' => 0,
+            'source_a_monthly' => $this->makePointTypeData(),
+            'point_b_monthly' => 0,
+            'source_b_monthly' => $this->makePointTypeData(),
+            'point_a_total' => 0,
+            'source_a_total' => $this->makePointTypeData(),
+            'point_b_total' => 0,
+            'source_b_total' => $this->makePointTypeData(),
+            'calculated_at' => $this->curtime,
+        ];
+    }
+
     /**
      * 处理上月统计数据.
      *
@@ -204,21 +222,11 @@ class CalculateStaffPoint extends Command
      */
     public function monthStatisticData($log)
     {
-        // 是否存在上次结算员工
-        if (isset($this->daily[$log->staff_sn]) && isset($this->daily[$log->staff_sn]['point_a'])) {
-            $this->daily[$log->staff_sn]['point_a'] += $log->point_a;
-            $this->daily[$log->staff_sn]['source_a_monthly'] = $this->monthlySource($log, 'source_a_monthly', 'daily');
+        $this->daily[$log->staff_sn]['point_a'] += $log->point_a;
+        $this->daily[$log->staff_sn]['source_a_monthly'] = $this->monthlySource($log, 'source_a_monthly', 'daily');
 
-            $this->daily[$log->staff_sn]['point_b_monthly'] += $log->point_b;
-            $this->daily[$log->staff_sn]['source_b_monthly'] = $this->monthlySource($log, 'source_b_monthly', 'daily');
-        } else {
-            $this->daily[$log->staff_sn]['point_a'] = $log->point_a;
-            $this->daily[$log->staff_sn]['source_a_monthly'] = $this->monthlySource($log, 'source_a_monthly', 'daily');
-
-            $this->daily[$log->staff_sn]['point_b_monthly'] = $log->point_b;
-            $this->daily[$log->staff_sn]['source_b_monthly'] = $this->monthlySource($log, 'source_b_monthly', 'daily');
-        }
-        $this->daily[$log->staff_sn]['calculated_at'] = $this->curtime;
+        $this->daily[$log->staff_sn]['point_b_monthly'] += $log->point_b;
+        $this->daily[$log->staff_sn]['source_b_monthly'] = $this->monthlySource($log, 'source_b_monthly', 'daily');
     }
 
     /**
@@ -228,21 +236,11 @@ class CalculateStaffPoint extends Command
      */
     public function totalStatisticData($log)
     {
-        // 是否存在上次结算员工
-        if (isset($this->daily[$log->staff_sn]) && isset($this->daily[$log->staff_sn]['point_a_total'])) {
-            $this->daily[$log->staff_sn]['point_a_total'] += $log->point_a;
-            $this->daily[$log->staff_sn]['source_a_total'] = $this->monthlySource($log, 'source_a_total', 'daily');
+        $this->daily[$log->staff_sn]['point_a_total'] += $log->point_a;
+        $this->daily[$log->staff_sn]['source_a_total'] = $this->monthlySource($log, 'source_a_total', 'daily');
 
-            $this->daily[$log->staff_sn]['point_b_total'] += $log->point_b;
-            $this->daily[$log->staff_sn]['source_b_total'] = $this->monthlySource($log, 'source_b_total', 'daily');
-        } else {
-            $this->daily[$log->staff_sn]['point_a_total'] = $log->point_a;
-            $this->daily[$log->staff_sn]['source_a_total'] = $this->monthlySource($log, 'source_a_total', 'daily');
-
-            $this->daily[$log->staff_sn]['point_b_total'] = $log->point_b;
-            $this->daily[$log->staff_sn]['source_b_total'] = $this->monthlySource($log, 'source_b_total', 'daily');
-        }
-        $this->daily[$log->staff_sn]['calculated_at'] = $this->curtime;
+        $this->daily[$log->staff_sn]['point_b_total'] += $log->point_b;
+        $this->daily[$log->staff_sn]['source_b_total'] = $this->monthlySource($log, 'source_b_total', 'daily');
     }
 
     /**
