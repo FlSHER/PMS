@@ -26,7 +26,7 @@ class CreatePersonalPointStatisticsTable extends Migration
             $table->mediumInteger('point_a')->comment('A分');
             $table->mediumInteger('point_b_monthly')->comment('当月B分');
             $table->mediumInteger('point_b_total')->comment('累计B分');
-            $table->timestamp('date')->comment('结算时间');
+            $table->timestamp('calculated_at')->comment('结算时间');
             $table->text('source_b_monthly')->comment('当月各来源B分');
             $table->text('source_b_total')->comment('累计各来源B分');
             $table->mediumInteger('point_a_total')->comment('累计A分');
