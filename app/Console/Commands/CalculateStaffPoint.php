@@ -229,7 +229,7 @@ class CalculateStaffPoint extends Command
     public function totalStatisticData($log)
     {
         // 是否存在上次结算员工
-        if (isset($this->daily[$log->staff_sn])) {
+        if (isset($this->daily[$log->staff_sn]) && isset($this->daily[$log->staff_sn]['point_a_total'])) {
             $this->daily[$log->staff_sn]['point_a_total'] += $log->point_a;
             $this->daily[$log->staff_sn]['source_a_total'] = $this->monthlySource($log, 'source_a_total', 'daily');
 
