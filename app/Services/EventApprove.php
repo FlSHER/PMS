@@ -40,7 +40,7 @@ class EventApprove
         abort_if($this->group->first_approved_at !== null, 422, '初审已通过');
 
         $makeData = [
-            'first_approve_remark' => !empty($params['remark']) ? $params['remark'] : '准予通过',
+            'first_approve_remark' => !empty($params['remark']) ? $params['remark'] : '',
             'first_approved_at' => now(),
             'status_id' => 1,
         ];
