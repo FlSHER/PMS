@@ -18,14 +18,14 @@ class CalculateStaffPoint extends Command
 {
     /**
      * 日结统计数据.
-     * 
+     *
      * @var array
      */
     protected $daily;
 
     /**
      * 月结统计数据.
-     * 
+     *
      * @var array
      */
     protected $monthly;
@@ -51,7 +51,7 @@ class CalculateStaffPoint extends Command
     {
         $this->curtime = now();
         $this->pretime = $this->preNode()->created_at ?? null;
-        
+
         parent::__construct();
     }
 
@@ -82,22 +82,22 @@ class CalculateStaffPoint extends Command
         // 拿上次统计到现在的积分日志
         $logs = PointLogModel::query()
             ->select('point_a', 'point_b', 'staff_sn', 'source_id', 'changed_at')
-            ->when($this->preNode(), function ($query) use ($now) {
-                $query->whereBetween('created_at', [$this->preNode()->created_at, $now]);
+            ->when($this->preNode(), function ($query) {
+                $query->whereBetween('created_at', [$this->preNode()->created_at, $this->curtime]);
             })
             ->where('is_revoke', 0)
             ->get();
 
-        $logs->map(function ($item) use ($now) {
+        $logs->map(function ($item) {
             // 非本月生效的积分日志
             if (!Carbon::parse($item->changed_at)->isCurrentMonth()) {
                 $this->handleLastMonthlyStatisticData($item);
             } else {
                 // 统计当月分
-                $this->monthStatisticData($item, $now);
+                $this->monthStatisticData($item);
             }
             // 统计累计分
-            $this->totalStatisticData($item, $now);
+            $this->totalStatisticData($item);
         });
 
         $commandModel = $this->createLog();
@@ -130,7 +130,7 @@ class CalculateStaffPoint extends Command
 
     /**
      * 上次结算节点信息.
-     * 
+     *
      * @author 28youth
      * @return \App\Models\ArtisanCommandLog|null
      */
@@ -149,7 +149,7 @@ class CalculateStaffPoint extends Command
      * @author 28youth
      * @return ArtisanCommandLog
      */
-    public function createLog() : ArtisanCommandLog
+    public function createLog(): ArtisanCommandLog
     {
         $artisan = new ArtisanCommandLog();
         $artisan->command_sn = 'pms:calculate-staff-point';
@@ -163,7 +163,7 @@ class CalculateStaffPoint extends Command
 
     /**
      * 处理上月统计数据.
-     * 
+     *
      * @author 28youth
      * @param  $log
      */
@@ -190,7 +190,7 @@ class CalculateStaffPoint extends Command
             $this->monthly[$log->staff_sn]['point_b_total'] = $log->point_b;
             $this->monthly[$log->staff_sn]['source_b_monthly'] = $this->monthlySource($log, 'source_b_monthly');
             $this->monthly[$log->staff_sn]['source_b_total'] = $this->monthlySource($log, 'source_b_total');
-            
+
             // 新增的结算时间等于积分的生效时间
             $this->monthly[$log->staff_sn]['date'] = Carbon::parse($log->changed_at)->startOfDay();
         }
@@ -198,11 +198,11 @@ class CalculateStaffPoint extends Command
 
     /**
      * 处理上次统计数据.
-     * 
+     *
      * @author 28youth
      * @param  $log
      */
-    public function monthStatisticData($log, $now)
+    public function monthStatisticData($log)
     {
         // 是否存在上次结算员工
         if (isset($this->daily[$log->staff_sn])) {
@@ -226,7 +226,7 @@ class CalculateStaffPoint extends Command
      *
      * @return void
      */
-    public function totalStatisticData($log, $now)
+    public function totalStatisticData($log)
     {
         // 是否存在上次结算员工
         if (isset($this->daily[$log->staff_sn])) {
@@ -247,7 +247,7 @@ class CalculateStaffPoint extends Command
 
     /**
      * 初始化默认积分来源信息.
-     * 
+     *
      * @author 28youth
      * @return array
      */
@@ -277,7 +277,7 @@ class CalculateStaffPoint extends Command
 
     /**
      * 初始化统计分类数据.
-     * 
+     *
      * @author 28youth
      * @return array
      */
