@@ -13,7 +13,7 @@ class EventLogAddressee extends Model
      * @var array
      */
     protected $fillable = [
-        'event_log_id',
+        'event_log_group_id',
         'staff_sn',
         'staff_name',
     ];

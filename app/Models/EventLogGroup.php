@@ -45,7 +45,7 @@ class EventLogGroup extends Model
      */
     public function addressees()
     {
-        return $this->hasMany(EventLogAddressee::class, 'event_log_id', 'id');
+        return $this->hasMany(EventLogAddressee::class, 'event_log_group_id', 'id');
     }
 
     /**
