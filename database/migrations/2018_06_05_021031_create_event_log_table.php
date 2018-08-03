@@ -43,6 +43,7 @@ class CreateEventLogTable extends Migration
             /* 索引和外键 */
             $table->foreign('event_id')->references('id')->on('events');
             $table->foreign('event_type_id')->references('id')->on('event_types');
+            $table->foreign('event_log_group_id')->references('id')->on('event_log_groups');
             $table->index('first_approver_sn');
             $table->index('final_approver_sn');
             $table->index('rejecter_sn');
