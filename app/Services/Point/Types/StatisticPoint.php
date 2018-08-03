@@ -43,18 +43,61 @@ class StatisticPoint extends Log
     public function statisticMonthly($monthly, $staffsn)
     {
         $staff = $this->checkClientStaff($staffsn);
-
-        $date = Carbon::create(null, null, 02)->subMonth();
-        $logModel = StatisticLogModel::where('staff_sn', $staffsn)
-            ->whereBetween('date', monthBetween($date))
+        $logModel = StatisticLogModel::query()
+            ->where('date', $monthly['date'])
+            ->where('staff_sn', $staffsn)
             ->first();
         if ($logModel === null) {
             $logModel = new StatisticLogModel();
-            $logModel->date = $date;
+            $logModel->fill($staff);
+            $logModel->date = $monthly['date'];
+            $logModel->point_a = $monthly['point_a'];
+            $logModel->point_a_total = $monthly['point_a_total'];
+            $logModel->source_a_total = $monthly['source_a_total'];
+            $logModel->source_a_monthly = $monthly['source_a_monthly'];
+            $logModel->point_b_total = $monthly['point_b_total'];
+            $logModel->source_b_total = $monthly['source_b_total'];
+            $logModel->point_b_monthly = $monthly['point_b_monthly'];
+            $logModel->source_b_monthly = $monthly['source_b_monthly'];
+            $logModel->save();
+        } else {
+            $logModel->fill($staff);
+            $logModel->date = $monthly['date'];
+            $logModel->point_a += $monthly['point_a'];
+            $logModel->point_a_total += $monthly['point_a_total'];
+            $logModel->source_a_monthly = $this->monthlySource($logModel->source_a_monthly, $monthly);
+            $logModel->source_a_total = $this->monthlySource($logModel->source_a_total, $monthly);
+            $logModel->point_b_monthly += $monthly['point_b_monthly'];
+            $logModel->point_b_total += $monthly['point_b_total'];
+            $logModel->source_b_monthly = $this->monthlySource($logModel->source_b_monthly, $monthly);
+            $logModel->source_b_total = $this->monthlySource($logModel->source_b_total, $monthly);
+            $logModel->save();
         }
-        $logModel->fill($staff + $monthly);
+    }
 
-        $logModel->save();
+    /**
+     * 来源积分统计.
+     *
+     * @author 28youth
+     * @return array
+     */
+    public function monthlySource($source, $data)
+    {
+        foreach ($source as $k => &$v) {
+            $v['point_a_total'] += $data['point_a'];
+            $v['point_b_total'] += $data['point_b_total'];
+            if ($data['point_a'] >= 0) {
+                $v['add_a_point'] += $data['point_a'];
+            } else {
+                $v['sub_a_point'] += $data['point_a'];
+            }
+            if ($data['point_b_total'] >= 0) {
+                $v['add_point'] += $data['point_b_total'];
+            } else {
+                $v['sub_point'] += $data['point_b_total'];
+            }
+        }
+        return $current;
     }
 
 }
