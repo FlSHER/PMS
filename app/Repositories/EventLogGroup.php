@@ -148,15 +148,10 @@ class EventLogGroup
         $user = $request->user();
 
         return $this->group->filterByQueryString()
-            ->where(function ($query) {
-                $query->whereNotNull('final_approved_at');
-            })
-            ->orWhere(function ($query) {
-                $query->whereNotNull('rejected_at');
-            })
             ->whereHas('addressees', function ($query) use ($user) {
                 $query->where('staff_sn', $user->staff_sn);
             })
+            ->where('status_id', 2)
             ->sortByQueryString()
             ->withPagination();
     }
