@@ -97,7 +97,7 @@ class StatisticPoint extends Log
                 $v['sub_point'] += $data['point_b_total'];
             }
         }
-        return $current;
+        return $source;
     }
 
 }
