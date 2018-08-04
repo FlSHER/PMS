@@ -66,7 +66,7 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $admin) {
     //事件日志
     $admin->get('event-logs', Admin\EventLogController::class . '@index');//事件获取列表
     $admin->get('event-logs/{id}', Admin\EventLogController::class . '@details');//事件单条详情
-    $admin->post('event-logs/{eventlog}/revoke', Admin\EventLogController::class . '@revoke'); //作废事件操作
+    $admin->post('event-logs/{eventLogGroup}/revoke', Admin\EventLogController::class . '@revoke'); //作废事件操作
     // 获取基础分配置
     // @get /admin/base-points/setting
     $admin->get('base-points/setting', Admin\BasePointController::class . '@index');
