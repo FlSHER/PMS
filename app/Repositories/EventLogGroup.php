@@ -126,8 +126,7 @@ class EventLogGroup
 
         $builder->when($cate, function ($query) use ($cate, $user) {
             if ($cate == 'audit') {
-                $query->where('rejecter_sn', '!=', $user->staff_sn)
-                    ->whereNull('rejecter_sn');
+                $query->whereNull('rejecter_sn');
             } else if ($cate == 'reject') {
                 $query->where('rejecter_sn', $user->staff_sn);
             }
