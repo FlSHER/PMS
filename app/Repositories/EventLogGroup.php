@@ -169,7 +169,7 @@ class EventLogGroup
         $step = $request->query('step');
 
         return $this->group->filterByQueryString()
-            ->where(function ($query) use ($user) {
+            ->where(function ($query) use ($user, $step) {
                 if ($step != 'final'){
                     $query->where(function ($query) use ($user) {
                         $query->where('first_approver_sn', $user->staff_sn)->byAudit(0);
