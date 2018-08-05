@@ -166,16 +166,20 @@ class EventLogGroup
     public function getProcessingList(Request $request)
     {
         $user = $request->user();
+        $step = $request->query('step');
 
         return $this->group->filterByQueryString()
             ->where(function ($query) use ($user) {
-                $query->where(function ($query) use ($user) {
-                    $query->where('first_approver_sn', $user->staff_sn)->byAudit(0);
-
-                })
-                    ->orWhere(function ($query) use ($user) {
+                if ($step != 'final'){
+                    $query->where(function ($query) use ($user) {
+                        $query->where('first_approver_sn', $user->staff_sn)->byAudit(0);
+                    });
+                }
+                if ($step != 'first'){
+                    $query->orWhere(function ($query) use ($user) {
                         $query->where('final_approver_sn', $user->staff_sn)->byAudit(1);
                     });
+                }
             })
             ->sortByQueryString()
             ->withPagination();
