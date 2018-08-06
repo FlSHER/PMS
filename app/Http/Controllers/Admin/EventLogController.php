@@ -35,12 +35,12 @@ class EventLogController extends Controller
      *
      * @return void
      */
-    public function revoke(Request $request, EventLogGroup $eventLogGroup)
+    public function revoke(Request $request, EventLogGroup $group)
     {
         $rules = [
-            'first_approver_point' => 'required|integer|min:0',
-            'final_approver_point' => 'required|integer|min:0',
-            'recorder_point' => 'required|integer|min:0',
+            'first_approver_point' => 'integer|min:0',
+            'final_approver_point' => 'integer|min:0',
+            'recorder_point' => 'integer|min:0',
         ];
         $messages = [
             'recorder_point.min' => '记录人扣分值不能小于:min',
@@ -49,19 +49,19 @@ class EventLogController extends Controller
         ];
         $this->validate($request, $rules, $messages);
 
-        $custom = $request->only(['recorder_point', 'first_approver_point', 'final_approver_point']);
+        $data = $request->only(['recorder_point', 'first_approver_point', 'final_approver_point']);
 
         $params = [
-            'recorder_point' => $custom['recorder_point'] ?: $eventLogGroup->recorder_point,
-            'first_approver_point' => $custom['first_approver_point'] ?: $eventLogGroup->first_approver_point,
-            'final_approver_point' => $custom['final_approver_point'] ?: $eventLogGroup->final_approver_point
+            'recorder_point' => empty($request->recorder_point) ? $group->recorder_point : $request->recorder_point,
+            'first_approver_point' => empty($request->first_approver_point) ? $group->first_approver_point : $request->first_approver_point,
+            'final_approver_point' => empty($request->final_approver_point) ? $group->final_approver_point : $request->final_approver_point
         ];
-
-        $eventLogGroup->getConnection()->transaction(function () use ($eventLogGroup, $params) {
-            $approveService = new EventApprove($eventLogGroup);
+        
+        $group->getConnection()->transaction(function () use ($group, $params) {
+            $approveService = new EventApprove($group);
             $approveService->revokeApprove($params);
         });
 
-        return response()->json($eventLogGroup, 201);
+        return response()->json($group, 201);
     }
 }
