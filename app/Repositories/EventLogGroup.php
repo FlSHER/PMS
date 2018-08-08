@@ -63,6 +63,7 @@ class EventLogGroup
         $user = $request->user();
 
         return EventLogModel::query()->filterByQueryString()
+            ->with('participants')
             ->whereHas('participants', function ($query) use ($user) {
                 $query->where('staff_sn', $user->staff_sn);
             })
