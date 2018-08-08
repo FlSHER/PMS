@@ -122,6 +122,10 @@ class EventApprove
         $changeAt = Carbon::parse($this->group->executed_at);
         if ($command && Carbon::parse($command->created_at)->gt($changeAt)) {
             $log_ids = $this->group->logs->pluck('id');
+
+            // 修改积分状态为已撤销
+            PointLogModel::whereIn('source_foreign_key', $log_ids)->update(['is_revoke' => 1]);
+
             $logs = PointLogModel::query()
                 ->whereIn('source_foreign_key', $log_ids)
                 ->select('point_a', 'point_b', 'staff_sn', 'source_id', 'changed_at')
