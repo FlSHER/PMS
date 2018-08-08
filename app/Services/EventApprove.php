@@ -6,6 +6,8 @@ use Carbon\Carbon;
 use App\Models\ArtisanCommandLog;
 use App\Services\Point\Types\Event;
 use App\Models\EventLog as EventLogModel;
+use App\Models\PointLog as PointLogModel;
+use App\Models\PointType as PointTypeModel;
 use App\Models\EventLogGroup as EventLogGroupModel;
 use App\Models\PersonalPointStatistic as StatisticModel;
 use App\Models\PersonalPointStatisticLog as StatisticLogModel;
@@ -105,11 +107,13 @@ class EventApprove
         abort_if($this->group->status_id !== 2, 400, '不可作废未完成的奖扣事件');
 
         // 修改事件分组状态.
+        $this->group->revoke_remark = request()->remark;
         $this->group->status_id = -3;
         $this->group->save();
 
         // 同步状态到事件.
         EventLogModel::where('event_log_group_id', $this->group->id)->update([
+            'revoke_remark' => request()->remark,
             'status_id' => -3
         ]);
 
@@ -117,107 +121,99 @@ class EventApprove
         $command = $this->preNode();
         $changeAt = Carbon::parse($this->group->executed_at);
         if ($command && Carbon::parse($command->created_at)->gt($changeAt)) {
-            $params = [
-                [
-                    'staff_sn' => $this->group->recorder_sn, 
-                    'point_b' => $params['recorder_point'], 
-                    'change_at' => $changeAt, 
-                    'point_a' => 0
-                ],
-                [
-                    'staff_sn' => $this->group->first_approver_sn, 
-                    'point_b' => $params['first_approver_point'], 
-                    'change_at' => $changeAt, 
-                    'point_a' => 0
-                ],
-                [
-                    'staff_sn' => $this->group->final_approver_sn, 
-                    'point_b' => $params['final_approver_point'], 
-                    'change_at' => $changeAt, 
-                    'point_a' => 0
-                ]
-            ];
-            $this->group->logs->map(function ($item) use (&$params, $changeAt) {
-                $item->participants->map(function ($val) use (&$params, $changeAt) {
-                    array_push($params, [
-                        'change_at' => $changeAt,
-                        'staff_sn' => $val->staff_sn,
-                        'point_a' => round($val->point_a * $val->count),
-                        'point_b' => round($val->point_b * $val->count)
-                    ]);
-                });
-            });
-            $merge = $this->mergeData($params);
+            $log_ids = $this->group->logs->pluck('id');
+            $logs = PointLogModel::query()
+                ->whereIn('source_foreign_key', $log_ids)
+                ->select('point_a', 'point_b', 'staff_sn', 'source_id', 'changed_at')
+                ->get();
 
-            array_walk($merge, [$this, 'handleStatistic']);
-        }
-    }
+            $logs->map(function ($item) {
+                // 非本月生效的积分日志
+                if (!Carbon::parse($item->changed_at)->isCurrentMonth()) {
 
-    /**
-     * 撤销更新统计数据.
-     * 
-     * @author 28youth
-     * @param  array $log 
-     * @param  int $staffsn
-     * @return void
-     */
-    public function handleStatistic($log, $staffsn)
-    {
-        $isCurrent = $log['change_at']->isCurrentMonth();
-
-        // 更新当月统计
-        if ($isCurrent) {
-            $logModel = StatisticModel::where('staff_sn', $staffsn)->first();
-            $logModel->point_a -=  $log['point_a'];
-            $logModel->point_a_total -=  $log['point_a'];
-            $logModel->point_b_monthly -=  $log['point_b'];
-            $logModel->point_b_total -=  $log['point_b'];
-            $logModel->save();
-
-        // 更新其他月份统计
-        } else {
-            $logModel = StatisticLogModel::query()
-                ->where('date', $log['change_at'])
-                ->where('staff_sn', $staffsn)
-                ->first();
-            $logModel->point_a -=  $log['point_a'];
-            $logModel->point_a_total -=  $log['point_a'];
-            $logModel->point_b_monthly -=  $log['point_b'];
-            $logModel->point_b_total -=  $log['point_b'];
-            $logModel->save();
-        }
-    }
-
-    /**
-     * 合并重复的事件参与人.
-     * 
-     * @author 28youth
-     */
-    public function mergeData($params)
-    {
-        $tmpSn = [];
-        $tmpArr = [];
-        foreach ($params as $key => $v) {
-            if (in_array($v['staff_sn'], $tmpSn)) {
-                $tmpArr[$v['staff_sn']]['change_at'] = $v['change_at'];
-                if (isset($tmpArr[$v['staff_sn']])) {
-                    $tmpArr[$v['staff_sn']]['point_b'] += (int)$v['point_b'];
-                    $tmpArr[$v['staff_sn']]['point_a'] += (int)$v['point_a'];
+                    $this->updateMonthlyStatistic($item);
                 } else {
-                    $tmpArr[$v['staff_sn']]['point_b'] = (int)$v['point_b'];
-                    $tmpArr[$v['staff_sn']]['point_a'] = (int)$v['point_a'];
+                    // 统计当月分
+                    $this->updateDailyStatistic($item);
                 }
-            } else {
-                if (!isset($tmpArr[$v['staff_sn']])) {
-                    $tmpArr[$v['staff_sn']]['change_at'] = $v['change_at'];
-                    $tmpArr[$v['staff_sn']]['point_b'] = (int)$v['point_b'];
-                    $tmpArr[$v['staff_sn']]['point_a'] = (int)$v['point_a'];
+            });
+        }
+    }
+
+    /**
+     * 更新月结数据.
+     * 
+     * @author 28youth
+     * @param  [type] $log [description]
+     * @return [type]      [description]
+     */
+    public function updateMonthlyStatistic($log)
+    {
+        $logModel = StatisticLogModel::query()
+            ->where('date', $log->change_at)
+            ->where('staff_sn', $log->staff_sn)
+            ->first();
+        $logModel->point_a -= $log->point_a;
+        $logModel->point_a_total -= $log->point_a;
+        $logModel->source_a_monthly = $this->makeSource($logModel->source_a_monthly, $log);
+        $logModel->source_a_total = $this->makeSource($logModel->source_a_total, $log);
+
+        $logModel->point_b_monthly -= $log->point_b;
+        $logModel->point_b_total -= $log->point_b;
+        $logModel->source_b_monthly = $this->makeSource($logModel->source_b_monthly, $log);
+        $logModel->source_b_total = $this->makeSource($logModel->source_b_total, $log);
+        $logModel->save();
+    }
+
+    /**
+     * 更新日结数据.
+     * 
+     * @author 28youth
+     * @param  [type] $log [description]
+     * @return [type]      [description]
+     */
+    public function updateDailyStatistic($log)
+    {
+        $logModel = StatisticModel::where('staff_sn', $log->staff_sn)->first();
+        $logModel->point_a -= $log->point_a;
+        $logModel->point_a_total -= $log->point_a;
+        $logModel->source_a_monthly = $this->makeSource($logModel->source_a_monthly, $log);
+        $logModel->source_a_total = $this->makeSource($logModel->source_a_total, $log);
+
+        $logModel->point_b_monthly -= $log->point_b;
+        $logModel->point_b_total -= $log->point_b;
+        $logModel->source_b_monthly = $this->makeSource($logModel->source_b_monthly, $log);
+        $logModel->source_b_total = $this->makeSource($logModel->source_b_total, $log);
+        $logModel->save();
+    }
+
+    /**
+     * 撤销更新分类统计分.
+     * 
+     * @author 28youth
+     * @param  [type] $source 来源统计
+     * @param  [type] $log    积分记录
+     * @return array
+     */
+    public function makeSource($source, $log)
+    {
+        foreach ($source as $k => &$v) {
+            if ($v['id'] === $log->source_id) {
+                $v['point_a_total'] -= $log->point_a;
+                $v['point_b_total'] -= $log->point_b;
+                if ($log->point_a >= 0) {
+                    $v['add_a_point'] -= $log->point_a;
+                } else {
+                    $v['sub_a_point'] -= $log->point_a;
                 }
-                $tmpSn[] = $v['staff_sn'];
+                if ($log->point_b >= 0) {
+                    $v['add_point'] -= $log->point_b;
+                } else {
+                    $v['sub_point'] -= $log->point_b;
+                }
             }
         }
-
-        return $tmpArr;
+        return $source;
     }
 
      /**
