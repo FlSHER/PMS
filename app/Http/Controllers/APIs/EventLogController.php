@@ -286,10 +286,14 @@ class EventLogController extends Controller
         }
         $group->status_id = -2;
         $group->first_approved_at = null;
+        $group->withdraw_remark = $request->remark;
         $group->getConnection()->transaction(function () use ($group) {
             $group->save();
 
-            EventLogModel::where('event_log_group_id', $group->id)->update(['status_id' => -2]);
+            EventLogModel::where('event_log_group_id', $group->id)->update([
+                'withdraw_remark' => $request->remark,
+                'status_id' => -2
+            ]);
         });
 
         return response()->json($group, 201);

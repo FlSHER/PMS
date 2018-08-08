@@ -40,6 +40,21 @@ class CreateChangeFieldsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('change_fields');
+        Schema::table('personal_point_statistic_logs', function (Blueprint $table) {
+            $table->dropColumn('point_a_total');
+            $table->dropColumn('source_a_monthly');
+            $table->dropColumn('source_a_total');
+        });
+
+        Schema::table('personal_point_statistics', function (Blueprint $table) {
+            $table->dropColumn('point_a_total');
+            $table->dropColumn('source_a_monthly');
+            $table->dropColumn('source_a_total');
+        });
+
+        Schema::table('point_logs', function (Blueprint $table) {
+            $table->dropColumn('type_id');
+            $table->dropColumn('is_revoke');
+        });
     }
 }
