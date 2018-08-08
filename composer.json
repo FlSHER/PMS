@@ -11,12 +11,20 @@
             "options": {
                 "symlink": true
             }
+        },
+        {
+            "type": "path",
+            "url": "packages/package-schedule",
+            "options": {
+                "symlink": true
+            }
         }
     ],
     "require": {
         "php": "^7.1.3",
         "doctrine/dbal": "^2.8",
         "fideloper/proxy": "^4.0",
+        "fisher/dingtalk-schedule": "dev-master",
         "fisher/package-sso": "^1.0",
         "guzzlehttp/guzzle": "^6.3",
         "laravel/framework": "5.6.*",

@@ -71,13 +71,11 @@
 <body class="g-bg-color">
 <div class="flex-center position-ref full-height g-bg-color">
     <div class="content">
-
         <div class="title m-b-md">
-            The {name} Package For PMS
+            The schedule Package For PMS
         </div>
-
     </div>
 </div>
-<script src="{{ mix('app.js', 'assets/{name}') }}"></script>
+<script src="{{ mix('app.js', 'assets/schedule') }}"></script>
 </body>
 </html>
