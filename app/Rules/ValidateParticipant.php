@@ -97,6 +97,10 @@ class ValidateParticipant implements Rule
      */
     public function checkValue($v)
     {
+        if ($v['point_a'] == 0 && $v['point_b'] == 0) {
+            return $this->response('参与人A分B分至少有一项不能为零');
+        }
+
         if ($v['point_a'] > $this->event->point_a_max || $v['point_a'] < $this->event->point_a_min) {
             return $this->response($this->event->id.'参与人A分范围不能超出'. $this->event->point_a_min. '~' .$this->event->point_a_max);
         }
