@@ -52,12 +52,7 @@ class ValidateParticipant implements Rule
 
         $final = FinalApproverModel::where('staff_sn', $params['final_approver_sn'])->first();
 
-        if ($final === null) {
-            return $this->response('终审人填写错误!');
-        }
-
         $this->model = $final;
-
     }
 
     /**
@@ -69,6 +64,10 @@ class ValidateParticipant implements Rule
      */
     public function passes($attribute, $value)
     {
+        if ($this->model === null) {
+            return $this->response('终审人填写错误!');
+        }
+
         foreach ($value as $k => $val) {
 
             $this->event = EventModel::find($val['event_id']);
