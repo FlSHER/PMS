@@ -65,39 +65,36 @@ class StatisticPoint extends Log
             $logModel->date = $monthly['date'];
             $logModel->point_a += $monthly['point_a'];
             $logModel->point_a_total += $monthly['point_a_total'];
-            $logModel->source_a_monthly = $this->monthlySource($logModel->source_a_monthly, $monthly);
-            $logModel->source_a_total = $this->monthlySource($logModel->source_a_total, $monthly);
+            $logModel->source_a_monthly = $this->mergeSource($logModel->source_a_monthly, $monthly['source_a_monthly']);
+            $logModel->source_a_total = $this->mergeSource($logModel->source_a_total, $monthly['source_a_total']);
             $logModel->point_b_monthly += $monthly['point_b_monthly'];
             $logModel->point_b_total += $monthly['point_b_total'];
-            $logModel->source_b_monthly = $this->monthlySource($logModel->source_b_monthly, $monthly);
-            $logModel->source_b_total = $this->monthlySource($logModel->source_b_total, $monthly);
+            $logModel->source_b_monthly = $this->mergeSource($logModel->source_b_monthly, $monthly['source_b_monthly']);
+            $logModel->source_b_total = $this->mergeSource($logModel->source_b_total, $monthly['source_b_total']);
             $logModel->save();
         }
     }
 
     /**
-     * 来源积分统计.
+     * 更新各来源分统计.
      *
      * @author 28youth
      * @return array
      */
-    public function monthlySource($source, $data)
+    public function mergeSource($source, $data)
     {
-        foreach ($source as $k => &$v) {
-            $v['point_a_total'] += $data['point_a'];
-            $v['point_b_total'] += $data['point_b_total'];
-            if ($data['point_a'] >= 0) {
-                $v['add_a_point'] += $data['point_a'];
-            } else {
-                $v['sub_a_point'] += $data['point_a'];
-            }
-            if ($data['point_b_total'] >= 0) {
-                $v['add_point'] += $data['point_b_total'];
-            } else {
-                $v['sub_point'] += $data['point_b_total'];
+        foreach ($source as $key => $value) {
+            if (isset($data[$key])) {
+                $data[$key]['add_point'] += $value['add_point'];
+                $data[$key]['sub_point'] += $value['sub_point'];
+                $data[$key]['add_a_point'] += $value['add_a_point'];
+                $data[$key]['sub_a_point'] += $value['sub_a_point'];
+                $data[$key]['point_a_total'] += $value['point_a_total'];
+                $data[$key]['point_b_total'] += $value['point_b_total'];
             }
         }
-        return $source;
+
+        return $data;
     }
 
 }

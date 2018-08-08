@@ -16,7 +16,7 @@ use Illuminate\Contracts\Routing\Registrar as RouteContract;
 Route::options('{a?}/{b?}/{c?}', function () {
     return response('', 204);
 });
-Route::group([/*'middleware' => 'auth:api'*/], function (RouteContract $admin) {
+Route::group(['middleware' => 'auth:api'], function (RouteContract $admin) {
     //事件表接口
     $admin->get('/events', Admin\EventController::class . '@index');//事件列表ok
     $admin->post('/events', Admin\EventController::class . '@store');//添加事件 ok
