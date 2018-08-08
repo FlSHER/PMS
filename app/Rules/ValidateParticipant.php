@@ -12,14 +12,6 @@ use App\Models\FinalApprover as FinalApproverModel;
  */
 class ValidateParticipant implements Rule
 {
-
-    /**
-     * 参数.
-     *
-     * @var array
-     */
-    public $params;
-
     /**
      * 终审人数据模型.
      * 
@@ -46,11 +38,9 @@ class ValidateParticipant implements Rule
      *
      * @return void
      */
-    public function __construct($params)
+    public function __construct($final_approver_sn)
     {
-        $this->params = $params;
-
-        $final = FinalApproverModel::where('staff_sn', $params['final_approver_sn'])->first();
+        $final = FinalApproverModel::where('staff_sn', $final_approver_sn)->first();
 
         $this->model = $final;
     }
@@ -104,18 +94,19 @@ class ValidateParticipant implements Rule
             return $this->response($this->event->id.'参与人A分范围不能超出'. $this->event->point_a_min. '~' .$this->event->point_a_max);
         }
 
-        if ($v['point_a'] > $this->model->point_a_awarding_limit || $v['point_a'] < -$this->model->point_a_deducting_limit) {
-            return $this->response('终审人A分审核范围不能超出'. -$this->model->point_a_deducting_limit. '~' .$this->model->point_a_awarding_limit);
-        }
+        if (!empty($this->model)) {
+            if ($v['point_a'] > $this->model->point_a_awarding_limit || $v['point_a'] < -$this->model->point_a_deducting_limit) {
+                return $this->response('终审人A分审核范围不能超出'. -$this->model->point_a_deducting_limit. '~' .$this->model->point_a_awarding_limit);
+            }
 
-        if ($v['point_b'] > $this->event->point_b_max || $v['point_b'] < $this->event->point_b_min) {
-            return $this->response($this->event->id.'参与人B分范围不能超出'. $this->event->point_b_min. '~' .$this->event->point_b_max);
-        }
+            if ($v['point_b'] > $this->event->point_b_max || $v['point_b'] < $this->event->point_b_min) {
+                return $this->response($this->event->id.'参与人B分范围不能超出'. $this->event->point_b_min. '~' .$this->event->point_b_max);
+            }
 
-        if ($v['point_b'] > $this->model->point_b_awarding_limit || $v['point_b'] < -$this->model->point_b_deducting_limit) {
-            return $this->response('终审人B分审核范围不能超出'. -$this->model->point_b_deducting_limit. '~' .$this->model->point_b_awarding_limit);
+            if ($v['point_b'] > $this->model->point_b_awarding_limit || $v['point_b'] < -$this->model->point_b_deducting_limit) {
+                return $this->response('终审人B分审核范围不能超出'. -$this->model->point_b_deducting_limit. '~' .$this->model->point_b_awarding_limit);
+            }
         }
-
     }
 
     protected function response(string $message)

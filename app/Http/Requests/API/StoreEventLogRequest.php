@@ -51,7 +51,7 @@ class StoreEventLogRequest extends FormRequest
                 'required',
                 'array'
             ],
-            'events' => ['required', new ValidateParticipant($this->all())],
+            'events' => ['required', new ValidateParticipant($this->final_approver_sn)],
             'executed_at' => 'bail|required|date|before:' . date('Y-m-d H:i'),
             'first_approver_name' => 'required|string',
             'final_approver_name' => 'required|string',
