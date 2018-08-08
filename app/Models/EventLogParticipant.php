@@ -46,4 +46,14 @@ class EventLogParticipant extends Model
     {
         $this->attributes['count'] = ((bool)$value !== true) ? 1 : $value;
     }
+
+    public function getPointAAttribute($value)
+    {
+        return intval($value);
+    }
+
+    public function getPointBAttribute($value)
+    {
+        return intval($value);
+    }
 }
