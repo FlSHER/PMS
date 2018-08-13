@@ -80,7 +80,6 @@ class PointRankController extends Controller
                 ->where(function ($query) use ($staffSns, $departmentIds) {
                     $query->whereIn('staff_sn', $staffSns)->orWhereIn('department_id', $departmentIds);
                 })
-                ->whereBetween('calculated_at', monthBetween())
                 ->orderBy('total', 'desc')
                 ->get();
         } else {
@@ -89,7 +88,7 @@ class PointRankController extends Controller
                 ->where(function ($query) use ($staffSns, $departmentIds) {
                     $query->whereIn('staff_sn', $staffSns) ->orWhereIn('department_id', $departmentIds);
                 })
-                ->whereBetween('date', monthBetween($datetime))
+                ->whereBetween('date', $datetime)
                 ->orderBy('total', 'desc')
                 ->get();
         }
@@ -121,8 +120,8 @@ class PointRankController extends Controller
      */
     public function stageRank(...$params)
     {
-        $stime = request()->query('start_at');
-        $etime = request()->query('end_at');
+        $stime = Carbon::parse(request()->query('start_at'))->subMonth()->endOfMonth();
+        $etime = Carbon::parse(request()->query('end_at'))->endOfMonth();
         [$group, $user, $staffSns, $departmentIds] = $params;
 
         $items = StatisticLogModel::query()
@@ -203,7 +202,7 @@ class PointRankController extends Controller
                 $query->whereIn('staff_sn', $group->staff()->pluck('staff_sn'))
                     ->orWhereIn('department_id', $group->departments()->pluck('department_id'));
             })
-            ->whereBetween('date', monthBetween($datetime))
+            ->where('date', $datetime)
             ->orderBy('total', 'desc')
             ->get();
 
