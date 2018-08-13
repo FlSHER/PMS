@@ -9,6 +9,7 @@ use function App\monthBetween;
 use function App\stageBetween;
 use App\Http\Resources\StatisticResource;
 use App\Models\PointLog as PointLogModel;
+use App\Models\PointType as PointTypeModel;
 use App\Models\PersonalPointStatistic as StatisticModel;
 use App\Models\PersonalPointStatisticLog as StatisticLogModel;
 
@@ -141,4 +142,19 @@ class StaffPointController extends Controller
 
         return response()->json($items, 200);
     }
+
+    /**
+     * 获取积分分类.
+     * 
+     * @author 28youth
+     * @param  \App\Models\PointType $type
+     * @return mixed
+     */
+    public function type(Request $request, PointTypeModel $pointTypeModel)
+    {
+        $type = $pointTypeModel->get();
+
+        return response()->json($type, 200);
+    }
+
 }
