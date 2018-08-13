@@ -113,6 +113,10 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
         // 积分分类来源
         // get /api/points/source
         $api->get('source', APIs\StaffPointController::class . '@source');
+
+        // 积分分类
+        // get /api/points/type
+        $api->get('type', APIs\StaffPointController::class . '@type');
     });
 
 
