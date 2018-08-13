@@ -16,7 +16,7 @@ class CreatePointManagementTargetLogsTable extends Migration
         Schema::create('point_management_target_logs', function (Blueprint $table) {
             $table->increments('id');
             $table->unsignedInteger('target_id')->comment('奖扣指标ID');
-            $table->timestamp('date')->comment('年月（其余默认为0或1）');
+            $table->dateTime('date')->comment('年月（其余默认为0或1）');
             $table->unsignedInteger('point_b_awarding_target')->comment('奖分指标');
             $table->unsignedInteger('point_b_deducting_target')->comment('扣分指标');
             $table->unsignedInteger('event_count_target')->comment('奖扣次数指标');

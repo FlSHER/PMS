@@ -16,7 +16,7 @@ class CreatePointManagementTargetLogHasStaffTable extends Migration
         Schema::create('point_management_target_log_has_staff', function (Blueprint $table) {
             $table->unsignedInteger('target_id')->comment('奖扣指标ID');
             $table->unsignedInteger('target_log_id')->comment('奖扣指标日志ID');
-            $table->timestamp('date')->comment('年月（其余默认为0或1）');
+            $table->dateTime('date')->comment('年月（其余默认为0或1）');
             $table->unsignedMediumInteger('staff_sn')->comment('员工编号');
             $table->char('staff_name', 10)->comment('员工姓名');
             $table->unsignedTinyInteger('brand_id')->comment('品牌ID');
