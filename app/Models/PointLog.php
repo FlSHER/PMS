@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PointLog extends Model
 {
     use Traits\ListScopes;
+    use SoftDeletes;
 
     /**
      * 批量赋值的属性
