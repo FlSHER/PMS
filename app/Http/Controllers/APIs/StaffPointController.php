@@ -30,13 +30,13 @@ class StaffPointController extends Controller
         if (Carbon::parse($datetime)->isCurrentMonth()) {
             $monthly = StatisticModel::query()
                 ->where('staff_sn', $user)
-                ->whereBetween('calculated_at', monthBetween($datetime))
+                ->where('calculated_at', $datetime)
                 ->orderBy('calculated_at', 'desc')
                 ->first();
         } else {
             $monthly = StatisticLogModel::query()
                 ->where('staff_sn', $user)
-                ->whereBetween('date', monthBetween($datetime))
+                ->where('date', $datetime)
                 ->first();
         }
 
