@@ -88,7 +88,7 @@ class PointRankController extends Controller
                 ->where(function ($query) use ($staffSns, $departmentIds) {
                     $query->whereIn('staff_sn', $staffSns) ->orWhereIn('department_id', $departmentIds);
                 })
-                ->whereBetween('date', $datetime)
+                ->where('date', $datetime)
                 ->orderBy('total', 'desc')
                 ->get();
         }
