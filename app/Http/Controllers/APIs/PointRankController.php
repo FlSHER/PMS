@@ -126,7 +126,7 @@ class PointRankController extends Controller
 
         $items = StatisticLogModel::query()
             ->select(\DB::raw('staff_sn, staff_name, SUM(point_b_monthly) as total'))
-            ->whereBetween('date', stageBetween($stime, $etime))
+            ->whereBetween('date', [$stime, $etime])
             ->where(function ($query) use ($staffSns, $departmentIds) {
                 $query->whereIn('staff_sn', $staffSns)->orWhereIn('department_id', $departmentIds);
             })
@@ -225,8 +225,10 @@ class PointRankController extends Controller
 
         $user->total = 0;
         $prevItem = (object)['total' => 0, 'rank' => 1];
+        $curkey = 0;
 
-        $items->map(function ($item, $key) use (&$user, &$prevItem) {
+        $items->map(function ($item, $key) use (&$user, &$prevItem, &$curkey) {
+            $curkey = ($key + 1);
             $rank = ($prevItem->total == $item->total) ? $prevItem->rank : ($key + 1);
             $item->rank = $rank;
             if ($item->staff_sn === $user->staff_sn) {
@@ -237,7 +239,7 @@ class PointRankController extends Controller
             return $item;
         });
 
-        $lastRank = ($prevItem->total == 0) ? $prevItem->rank : $prevItem->rank++;
+        $lastRank = ($prevItem->total == 0) ? $curkey : $curkey++;
 
         $group->staff->map(function ($staff) use ($items, &$user, $lastRank) {
             if (!in_array($staff->staff_sn, $items->pluck('staff_sn')->toArray())) {
