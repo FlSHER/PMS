@@ -87,8 +87,8 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
     $api->group(['prefix' => 'points'], function (RouteContract $api) {
 
         // 我的积分统计列表
-        // get /api/points
-        $api->get('/', APIs\StaffPointController::class . '@all');
+        // get /api/points/all
+        $api->get('all', APIs\StaffPointController::class . '@all');
 
         // 积分排行详情
         // get /api/points/ranking/show
