@@ -128,7 +128,7 @@ class EventApprove
 
             $logs = PointLogModel::query()
                 ->whereIn('source_foreign_key', $log_ids)
-                ->select('point_a', 'point_b', 'staff_sn', 'source_id', 'changed_at')
+                ->select('point_a', 'point_b', 'staff_sn', 'type_id', 'changed_at')
                 ->get();
 
             $logs->map(function ($item) {
@@ -202,7 +202,7 @@ class EventApprove
     public function makeSource($source, $log)
     {
         foreach ($source as $k => &$v) {
-            if ($v['id'] === $log->source_id) {
+            if ($v['id'] === $log->type_id) {
                 $v['point_a_total'] -= $log->point_a;
                 $v['point_b_total'] -= $log->point_b;
                 if ($log->point_a >= 0) {

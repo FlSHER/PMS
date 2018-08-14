@@ -81,7 +81,7 @@ class CalculateStaffPoint extends Command
         }
         // 拿上次统计到现在的积分日志
         $logs = PointLogModel::query()
-            ->select('point_a', 'point_b', 'staff_sn', 'source_id', 'changed_at')
+            ->select('point_a', 'point_b', 'staff_sn', 'type_id', 'changed_at')
             ->when($this->preNode(), function ($query) {
                 $query->whereBetween('created_at', [$this->preNode()->created_at, now()]);
             })
@@ -322,7 +322,7 @@ class CalculateStaffPoint extends Command
 
         foreach ($current as $k => &$v) {
 
-            if ($v['id'] === $log->source_id) {
+            if ($v['id'] === $log->type_id) {
                 $v['point_a_total'] += $log->point_a;
                 $v['point_b_total'] += $log->point_b;
                 if ($log->point_a >= 0) {
