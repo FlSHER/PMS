@@ -46,6 +46,30 @@ class StaffPointController extends Controller
     }
 
     /**
+     * 积分分类统计列表.
+     *
+     * @author 28youth
+     * @param  \Illuminate\Http\Request $request
+     * @return mixed
+     */
+    public function all(Request $request)
+    {
+        $user = $request->staff_sn ?: $request->user()->staff_sn;
+
+        $data = [];
+        $statistics = StatisticLogModel::query()
+                ->where('staff_sn', $user)
+                ->orderBy('date', 'asc')
+                ->get();
+        $statistics->map(function ($item, $key) use (&$data) {
+            $date = Carbon::parse($item['date']);
+            $data[$date->year.'-'.$date->month] = $item;
+        });
+
+        return response()->json($data, 200);
+    }
+
+    /**
      * 获取某一段时间统计结果.
      *
      * @author 28youth
