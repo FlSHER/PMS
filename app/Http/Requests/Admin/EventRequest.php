@@ -40,18 +40,18 @@ class EventRequest extends FormRequest
                     if ($value < $this->point_a_min) {
                         return $event('A分默认最大值小于最小值');
                     }
-                    if ($this->final_approver_sn != '' && $final != null) {
-                        if (strstr($value, '-')) {
-                            $pointAMax = str_replace('-', ' ', $value);
-                            if ($pointAMax > $final['point_a_deducting_limit']) {
-                                return $event('A分最大扣分值超过终审人上限');
-                            }
-                        } else {
-                            if ($value > $final['point_a_awarding_limit']) {
-                                return $event('A分最大加分值超过终审人上限');
-                            }
-                        }
-                    }
+//                    if ($this->final_approver_sn != '' && $final != null) {
+//                        if (strstr($value, '-')) {
+//                            $pointAMax = str_replace('-', ' ', $value);
+//                            if ($pointAMax > $final['point_a_deducting_limit']) {
+//                                return $event('A分最大扣分值超过终审人上限');
+//                            }
+//                        } else {
+//                            if ($value > $final['point_a_awarding_limit']) {
+//                                return $event('A分最大加分值超过终审人上限');
+//                            }
+//                        }
+//                    }
                 },
             ],
             'point_a_default' => 'required|numeric|between:' . $this->point_a_min . ',' . $this->point_a_max,
@@ -61,18 +61,18 @@ class EventRequest extends FormRequest
                     if ($value < $this->point_b_min) {
                         return $fail('B分默认最大值小于最小值');
                     }
-                    if ($this->final_approver_sn != '' && $final != null) {
-                        if (strstr($value, '-')) {
-                            $pointAMax = str_replace('-', ' ', $value);
-                            if ($pointAMax > $final['point_b_deducting_limit']) {
-                                return $fail('B分最大扣分大于终审人上限');
-                            }
-                        } else {
-                            if ($value > $final['point_b_awarding_limit']) {
-                                return $fail('B分最大加分值大于终审人上限');
-                            }
-                        }
-                    }
+//                    if ($this->final_approver_sn != '' && $final != null) {
+//                        if (strstr($value, '-')) {
+//                            $pointAMax = str_replace('-', ' ', $value);
+//                            if ($pointAMax > $final['point_b_deducting_limit']) {
+//                                return $fail('B分最大扣分大于终审人上限');
+//                            }
+//                        } else {
+//                            if ($value > $final['point_b_awarding_limit']) {
+//                                return $fail('B分最大加分值大于终审人上限');
+//                            }
+//                        }
+//                    }
                 }
             ],
             'point_b_default' => 'required|numeric|between:' . $this->point_b_min . ',' . $this->point_b_max,
