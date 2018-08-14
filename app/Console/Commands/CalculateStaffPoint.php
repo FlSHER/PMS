@@ -314,8 +314,9 @@ class CalculateStaffPoint extends Command
      */
     public function monthlySource($log, $type, $cate = 'monthly')
     {
-        $current = $this->{$cate}[$log->staff_sn][$type] ?? $this->makePointTypeData();
-        $current = empty($current) ? $this->makePointTypeData() : $current;
+        $key = $log->staff_sn;
+        if ($cate == 'monthly') $key .= '|' . Carbon::parse($log->changed_at)->startOfMonth();
+        $current = $this->{$cate}[$key][$type] ?? $this->makePointTypeData();
 
         foreach ($current as $k => &$v) {
             if ($v['id'] === $log->type_id) {
