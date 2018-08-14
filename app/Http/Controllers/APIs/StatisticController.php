@@ -95,13 +95,13 @@ class StatisticController extends Controller
      */
     public function stageRank(...$params)
     {
-        $stime = Carbon::parse(request()->query('start_at'))->subMonth()->endOfMonth();
-        $etime = Carbon::parse(request()->query('end_at'))->endOfMonth();
+        $stime = request()->query('start_at');
+        $etime = request()->query('end_at');
         [$group, $staffSns, $departmentIds] = $params;
 
         $items = StatisticLogModel::query()
             ->select(\DB::raw('staff_sn, staff_name, SUM(point_b_monthly) as total'))
-            ->whereBetween('date',[$stime, $etime])
+            ->whereBetween('date',stageBetween($stime, $etime))
             ->where(function ($query) use ($staffSns, $departmentIds) {
                 $query->whereIn('staff_sn', $staffSns)->orWhereIn('department_id', $departmentIds);
             })

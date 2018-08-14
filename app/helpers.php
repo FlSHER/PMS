@@ -29,7 +29,7 @@ function monthBetween($datetime = ''): array
  */
 function stageBetween($stime = '', $etime = ''): array
 {
-	$toStime = Carbon::parse($stime)->startOfMonth();
+	$toStime = Carbon::parse($stime)->subMonth()->endOfMonth();
 	$toEtime = Carbon::parse($etime)->endOfMonth();
 
 	if (!$stime && !$etime) {
