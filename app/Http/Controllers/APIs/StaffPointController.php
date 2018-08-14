@@ -57,16 +57,24 @@ class StaffPointController extends Controller
         $user = $request->staff_sn ?: $request->user()->staff_sn;
 
         $data = [];
-        $statistics = StatisticLogModel::query()
-                ->where('staff_sn', $user)
-                ->orderBy('date', 'asc')
-                ->get();
-        $statistics->map(function ($item, $key) use (&$data) {
+        $monthly = StatisticLogModel::query()
+            ->where('staff_sn', $user)
+            ->orderBy('date', 'asc')
+            ->get();
+
+        $total = StatisticModel::where('staff_sn', $user)->first();
+
+        $monthly->map(function ($item, $key) use (&$data) {
             $date = Carbon::parse($item['date']);
             $data[$date->year.'-'.$date->month] = $item;
         });
 
-        return response()->json($data, 200);
+        $response = [
+            'list' => $data,
+            'total' => $total
+        ];
+
+        return response()->json($response, 200);
     }
 
     /**

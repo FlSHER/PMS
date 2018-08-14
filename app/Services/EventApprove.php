@@ -159,13 +159,13 @@ class EventApprove
             ->first();
         $logModel->point_a -= $log->point_a;
         $logModel->point_a_total -= $log->point_a;
-        $logModel->source_a_monthly = $this->makeSource($logModel->source_a_monthly, $log);
-        $logModel->source_a_total = $this->makeSource($logModel->source_a_total, $log);
+        $logModel->source_a_monthly = $this->makeSource($logModel->source_a_monthly, $log, 'source_a_monthly');
+        $logModel->source_a_total = $this->makeSource($logModel->source_a_total, $log, 'source_a_total');
 
         $logModel->point_b_monthly -= $log->point_b;
         $logModel->point_b_total -= $log->point_b;
-        $logModel->source_b_monthly = $this->makeSource($logModel->source_b_monthly, $log);
-        $logModel->source_b_total = $this->makeSource($logModel->source_b_total, $log);
+        $logModel->source_b_monthly = $this->makeSource($logModel->source_b_monthly, $log, 'source_b_monthly');
+        $logModel->source_b_total = $this->makeSource($logModel->source_b_total, $log, 'source_b_total');
         $logModel->save();
     }
 
@@ -181,13 +181,13 @@ class EventApprove
         $logModel = StatisticModel::where('staff_sn', $log->staff_sn)->first();
         $logModel->point_a -= $log->point_a;
         $logModel->point_a_total -= $log->point_a;
-        $logModel->source_a_monthly = $this->makeSource($logModel->source_a_monthly, $log);
-        $logModel->source_a_total = $this->makeSource($logModel->source_a_total, $log);
+        $logModel->source_a_monthly = $this->makeSource($logModel->source_a_monthly, $log, 'source_a_monthly');
+        $logModel->source_a_total = $this->makeSource($logModel->source_a_total, $log, 'source_a_total');
 
         $logModel->point_b_monthly -= $log->point_b;
         $logModel->point_b_total -= $log->point_b;
-        $logModel->source_b_monthly = $this->makeSource($logModel->source_b_monthly, $log);
-        $logModel->source_b_total = $this->makeSource($logModel->source_b_total, $log);
+        $logModel->source_b_monthly = $this->makeSource($logModel->source_b_monthly, $log, 'source_b_monthly');
+        $logModel->source_b_total = $this->makeSource($logModel->source_b_total, $log, 'source_b_total');
         $logModel->save();
     }
 
@@ -199,17 +199,18 @@ class EventApprove
      * @param  [type] $log    积分记录
      * @return array
      */
-    public function makeSource($source, $log)
+    public function makeSource($source, $log, $type)
     {
         foreach ($source as $k => &$v) {
-            if ($v['id'] === $log->type_id) {
-                $v['point_a_total'] -= $log->point_a;
-                $v['point_b_total'] -= $log->point_b;
+            if (in_array($type, ['source_a_monthly', 'source_a_total'])) {
+                $v['point'] -= $log->point_a;
                 if ($log->point_a >= 0) {
-                    $v['add_a_point'] -= $log->point_a;
+                    $v['add_point'] -= $log->point_a;
                 } else {
-                    $v['sub_a_point'] -= $log->point_a;
+                    $v['sub_point'] -= $log->point_a;
                 }
+            } elseif (in_array($type, ['source_b_monthly', 'source_b_total'])) {
+                $v['point'] -= $log->point_b;
                 if ($log->point_b >= 0) {
                     $v['add_point'] -= $log->point_b;
                 } else {

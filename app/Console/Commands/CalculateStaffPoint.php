@@ -295,10 +295,7 @@ class CalculateStaffPoint extends Command
         $source = PointTypeModel::get()->map(function ($item) {
             $item->add_point = 0;
             $item->sub_point = 0;
-            $item->add_a_point = 0;
-            $item->sub_a_point = 0;
-            $item->point_a_total = 0;
-            $item->point_b_total = 0;
+            $item->point = 0;
 
             return $item;
         })->toArray();
@@ -321,19 +318,21 @@ class CalculateStaffPoint extends Command
         $current = empty($current) ? $this->makePointTypeData() : $current;
 
         foreach ($current as $k => &$v) {
-
             if ($v['id'] === $log->type_id) {
-                $v['point_a_total'] += $log->point_a;
-                $v['point_b_total'] += $log->point_b;
-                if ($log->point_a >= 0) {
-                    $v['add_a_point'] += $log->point_a;
-                } else {
-                    $v['sub_a_point'] += $log->point_a;
-                }
-                if ($log->point_b >= 0) {
-                    $v['add_point'] += $log->point_b;
-                } else {
-                    $v['sub_point'] += $log->point_b;
+                if (in_array($type, ['source_a_monthly', 'source_a_total'])) {
+                    $v['point'] += $log->point_a;
+                    if ($log->point_a >= 0) {
+                        $v['add_point'] += $log->point_a;
+                    } else {
+                        $v['sub_point'] += $log->point_a;
+                    }
+                } elseif (in_array($type, ['source_b_monthly', 'source_b_total'])) {
+                    $v['point'] += $log->point_b;
+                    if ($log->point_b >= 0) {
+                        $v['add_point'] += $log->point_b;
+                    } else {
+                        $v['sub_point'] += $log->point_b;
+                    }
                 }
             }
         }
