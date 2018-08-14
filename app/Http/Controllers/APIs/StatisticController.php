@@ -169,7 +169,7 @@ class StatisticController extends Controller
             return $item;
         });
 
-        $lastRank = ($prevItem->total == 0) ? $curkey : $curkey++;
+        $lastRank = ($prevItem->total == 0) ? $curkey : ($curkey + 1);
 
         $group->staff->map(function ($staff) use ($items, $lastRank) {
             if (!in_array($staff->staff_sn, $items->pluck('staff_sn')->toArray())) {
