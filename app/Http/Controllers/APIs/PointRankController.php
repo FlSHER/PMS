@@ -93,7 +93,7 @@ class PointRankController extends Controller
                 ->get();
         }
 
-        $this->calculatedRank($items, $user, $group);
+        $items = $this->calculatedRank($items, $user, $group);
 
         $response = [
             'list' => $items,
@@ -134,7 +134,7 @@ class PointRankController extends Controller
             ->orderBy('total', 'desc')
             ->get();
 
-        $this->calculatedRank($items, $user, $group);
+        $items = $this->calculatedRank($items, $user, $group);
 
         return response()->json([
             'list' => $items,
@@ -169,7 +169,7 @@ class PointRankController extends Controller
             ->orderBy('total', 'desc')
             ->get();
 
-        $this->calculatedRank($items, $user, $group);
+        $items = $this->calculatedRank($items, $user, $group);
 
         return response()->json([
             'list' => $items,
@@ -222,55 +222,52 @@ class PointRankController extends Controller
     public function calculatedRank(...$params)
     {
         [$items, $user, $group] = $params;
-
         $user->total = 0;
-        $prevItem = (object)['total' => 0, 'rank' => 1];
-        $curkey = 1;
 
-        $items->map(function ($item, $key) use (&$user, &$prevItem, &$curkey) {
-            $curkey = $key;
-            $rank = ($prevItem->total == $item->total) ? $prevItem->rank : ($key + 1);
-            $item->rank = $rank;
-            if ($item->staff_sn === $user->staff_sn) {
-                $user->rank = $rank;
-                $user->total = $item->total;
-            }
-            $prevItem = $item;
-            return $item;
-        });
-
-        $lastRank = ($prevItem->total == 0) ? $curkey : ($curkey + 1);
-
-        $group->staff->map(function ($staff) use ($items, &$user, $lastRank) {
+        $group->staff->map(function ($staff) use ($items, &$user) {
             if (!in_array($staff->staff_sn, $items->pluck('staff_sn')->toArray())) {
                 $items->push([
                     'staff_sn' => $staff->staff_sn,
                     'staff_name' => $staff->staff_name,
-                    'rank' => $lastRank,
                     'total' => 0,
                 ]);
-                if ($staff->staff_sn === $user->staff_sn) {
-                    $user->rank = $lastRank;
-                }
             }
         });
-
         $staffResponse = collect(app('api')->getStaff([
             'filters' => 'department_id='.json_encode($group->departments()->pluck('department_id')).';status_id>=0'
         ]));
 
-        $staffResponse->map(function ($staff) use ($items, &$user, $lastRank) {
+        $staffResponse->map(function ($staff) use ($items, &$user) {
             if (!in_array($staff['staff_sn'], $items->pluck('staff_sn')->toArray())) {
                 $items->push([
                     'staff_sn' => $staff['staff_sn'],
                     'staff_name' => $staff['realname'],
-                    'rank' => $lastRank,
                     'total' => 0,
                 ]);
-                if ($staff['staff_sn'] === $user->staff_sn) {
-                    $user->rank = $lastRank;
-                }
             }
         });
+        $items = $items->toArray();
+        uasort($items, function ($cur, $next) {
+            $map = array('total' => 'desc');
+            foreach($map as $key => $val){
+                if($cur[$key] == $next[$key]){
+                    continue;
+                }
+                return ($cur[$key] > $next[$key]) ? -1 : 1;
+            }
+            return 0;
+        });
+        $prevItem = ['total' => 0, 'rank' => 1];
+        foreach ($items as $key => &$value) {
+            $rank = ($prevItem['total'] == $value['total']) ? $prevItem['rank'] : ($key + 1);
+            $value['rank'] = $rank;
+            if ($value['staff_sn'] === $user->staff_sn) {
+                $user->rank = $rank;
+                $user->total = $value['total'];
+            }
+            $prevItem = $value;
+        }
+
+        return array_values($items);
     }
 }
