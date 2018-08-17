@@ -54,7 +54,7 @@ class EventRequest extends FormRequest
 //                    }
                 },
             ],
-            'point_a_default' => 'required|numeric|digits_between:' . $this->point_a_min . ',' . $this->point_a_max,
+            'point_a_default' => 'required|numeric|between:' . $this->point_a_min . ',' . $this->point_a_max,
             'point_b_min' => 'required|numeric',
             'point_b_max' => ['required', 'numeric',
                 function ($attribute, $value, $fail) use ($final) {
