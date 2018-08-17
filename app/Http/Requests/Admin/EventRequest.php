@@ -54,7 +54,9 @@ class EventRequest extends FormRequest
 //                    }
                 },
             ],
-            'point_a_default' => 'required|numeric|between:' . $this->point_a_min . ',' . $this->point_a_max,
+            'point_a_default' => 'required|numeric|between:' .
+                ($this->point_a_min < $this->point_a_max ? $this->point_a_min : $this->point_a_max) .
+                ',' . ($this->point_a_min < $this->point_a_max ? $this->point_a_max : $this->point_a_min),
             'point_b_min' => 'required|numeric',
             'point_b_max' => ['required', 'numeric',
                 function ($attribute, $value, $fail) use ($final) {
@@ -75,7 +77,9 @@ class EventRequest extends FormRequest
 //                    }
                 }
             ],
-            'point_b_default' => 'required|numeric|between:' . $this->point_b_min . ',' . $this->point_b_max,
+            'point_b_default' => 'required|numeric|between:' .
+                ($this->point_b_min < $this->point_b_max ? $this->point_b_min : $this->point_b_max) .
+                ',' . ($this->point_b_min < $this->point_b_max ? $this->point_b_max : $this->point_b_min),
             'first_approver_sn' => [
                 function ($attribute, $value, $event) {
                     if ($value != '') {
