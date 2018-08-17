@@ -74,7 +74,7 @@ class StatisticController extends Controller
                 ->get();
         }
 
-        $this->calculatedRank($items, $group);
+        $items = $this->calculatedRank($items, $group);
 
         $response = [
             'list' => $items,
@@ -109,7 +109,7 @@ class StatisticController extends Controller
             ->orderBy('total', 'desc')
             ->get();
 
-        $this->calculatedRank($items, $group);
+        $items = $this->calculatedRank($items, $group);
 
         return response()->json([
             'list' => $items,
@@ -139,7 +139,7 @@ class StatisticController extends Controller
             ->orderBy('total', 'desc')
             ->get();
 
-        $this->calculatedRank($items, $group);
+        $items = $this->calculatedRank($items, $group);
 
         return response()->json([
             'list' => $items,
@@ -158,25 +158,12 @@ class StatisticController extends Controller
     public function calculatedRank(...$params)
     {
         [$items, $group] = $params;
-        $prevItem = (object)['total' => 0, 'rank' => 1];
-        $curkey = 1;
 
-        $items->map(function ($item, $key) use (&$prevItem, &$curkey) {
-            $curkey = $key;
-            $rank = ($prevItem->total == $item->total) ? $prevItem->rank : ($key + 1);
-            $item->rank = $rank;
-            $prevItem = $item;
-            return $item;
-        });
-
-        $lastRank = ($prevItem->total == 0) ? $curkey : ($curkey + 1);
-
-        $group->staff->map(function ($staff) use ($items, $lastRank) {
+        $group->staff->map(function ($staff) use ($items) {
             if (!in_array($staff->staff_sn, $items->pluck('staff_sn')->toArray())) {
                 $items->push([
                     'staff_sn' => $staff->staff_sn,
                     'staff_name' => $staff->staff_name,
-                    'rank' => $lastRank,
                     'total' => 0,
                 ]);
             }
@@ -186,16 +173,36 @@ class StatisticController extends Controller
             'filters' => 'department_id=' . json_encode($group->departments()->pluck('department_id')) . ';status_id>=0'
         ]));
 
-        $staffResponse->map(function ($staff) use ($items, $lastRank) {
+        $staffResponse->map(function ($staff) use ($items) {
             if (!in_array($staff['staff_sn'], $items->pluck('staff_sn')->toArray())) {
                 $items->push([
                     'staff_sn' => $staff['staff_sn'],
                     'staff_name' => $staff['realname'],
-                    'rank' => $lastRank,
                     'total' => 0,
                 ]);
             }
         });
+
+        $items = $items->toArray();
+        usort($items, function ($cur, $next) {
+            $map = array('total' => 'desc');
+            foreach($map as $key => $val){
+                if($cur[$key] == $next[$key]){
+                    continue;
+                }
+                return ($cur[$key] > $next[$key]) ? -1 : 1;
+            }
+            return 0;
+        });
+        $prevItem = ['total' => 0, 'rank' => 1];
+        foreach ($items as $key => &$value) {
+            $rank = ($prevItem['total'] == $value['total']) ? $prevItem['rank'] : ($key + 1);
+            $value['rank'] = $rank;
+
+            $prevItem = $value;
+        }
+
+        return array_values($items);
     }
 }
 
