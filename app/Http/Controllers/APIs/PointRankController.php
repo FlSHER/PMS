@@ -247,7 +247,7 @@ class PointRankController extends Controller
             }
         });
         $items = $items->toArray();
-        uasort($items, function ($cur, $next) {
+        usort($items, function ($cur, $next) {
             $map = array('total' => 'desc');
             foreach($map as $key => $val){
                 if($cur[$key] == $next[$key]){
