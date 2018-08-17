@@ -159,10 +159,10 @@ class StatisticController extends Controller
     {
         [$items, $group] = $params;
         $prevItem = (object)['total' => 0, 'rank' => 1];
-        $curkey = 0;
+        $curkey = 1;
 
         $items->map(function ($item, $key) use (&$prevItem, &$curkey) {
-            $curkey = ($key + 1);
+            $curkey = $key;
             $rank = ($prevItem->total == $item->total) ? $prevItem->rank : ($key + 1);
             $item->rank = $rank;
             $prevItem = $item;
