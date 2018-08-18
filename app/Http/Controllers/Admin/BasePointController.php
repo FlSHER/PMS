@@ -68,6 +68,20 @@ class BasePointController extends Controller
             ->get();
     }
 
+    /**
+     * 获取考勤转积分配置.
+     * 
+     * @author 28youth
+     * @return App\Models\CommonConfiged
+     */
+    public function getAttendance(Request $request)
+    {
+        return CommonConfig::byNamespace('basepoint')
+            ->select(['name', 'value'])
+            ->where('name', 'attendance_radio')
+            ->get();
+    }
+
 	/**
 	 * 存储基础分配置.
 	 * 
@@ -131,6 +145,37 @@ class BasePointController extends Controller
                 ['value' => $data['value']]
             );
         });
+
+        return response()->json(['message' => '操作成功'], 201);
+    }
+
+    /**
+     * 设置考勤转积分比例.
+     * 
+     * @author 28youth
+     * @param  Request $request
+     * @return mixed
+     */
+    public function storeAttendance(Request $request)
+    {
+        $rules = [
+            'data' => 'required|array',
+            'data.*.point' => 'required|min:1',
+            'data.*.time' => 'required|min:1'
+        ];
+        $message = [
+            'data.*.point.required' => '输入的积分值不能为空',
+            'data.*.point.min' => '输入的积分值不能小于 :min',
+            'data.*.time.required' => '输入的时间不能为空',
+            'data.*.time.min' => '输入的时间不能小于 :min 分钟',
+        ];
+
+        $this->validate($request, $rules, $messages);
+
+        CommonConfig::updateOrCreate(
+            ['namespace' => 'basepoint', 'name' => 'attendance_radio'],
+            ['value' => json_encode($data)]
+        );
 
         return response()->json(['message' => '操作成功'], 201);
     }
