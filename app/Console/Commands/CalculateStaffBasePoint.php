@@ -9,8 +9,8 @@ use Illuminate\Http\Request;
 use Illuminate\Console\Command;
 use App\Models\CertificateStaff;
 use App\Models\ArtisanCommandLog;
-use App\Models\AuthorityGroupHasStaff;
-
+use App\Models\AuthorityGroupHasStaff as GroupStaff;
+use App\Models\AuthorityGroupHasDepartment as GroupDepartment;
 
 class CalculateStaffBasePoint extends Command
 {
@@ -29,19 +29,20 @@ class CalculateStaffBasePoint extends Command
         // 基础工龄系数
         $ratio = CommonConfig::byNamespace('basepoint')->byName('ratio')->value('value');
         // 所有权限分组员工
-        $staff_sns = AuthorityGroupHasStaff::pluck('staff_sn')->unique()->values();
+        $staff_sns = GroupStaff::pluck('staff_sn')->unique()->values();
+        // $department = GroupDepartment::pluck('department_id')->values();
         $users = app('api')->client()->getStaff(['filters' => "staff_sn={$staff_sns};status_id>=0"]);
         $commandModel = $this->createLog();
 
         try {
             \DB::beginTransaction();
 
+            $data = [];
             foreach ($users as $key => &$val) {
                 $val['base_point'] = 0;
 
                 $configs->map(function ($config) use (&$val, $ratio) {
 
-                    // json 转数组
                     $toArray = json_decode($config['value'], true);
 
                     // 匹配学历基础分
@@ -80,7 +81,28 @@ class CalculateStaffBasePoint extends Command
                     $val['base_point'] += $certificate_total;
                 }
 
-                BasePoint::dispatch($val);
+                if ($val['base_point']) {
+                    $data[$key] = [
+                        'title' => now()->month . '月基础分统计',
+                        'staff_sn' => $val['staff_sn'],
+                        'staff_name' => $val['realname'],
+                        'brand_id' => $val['brand']['id'],
+                        'brand_name' => $val['brand']['name'],
+                        'department_id' => $val['department_id'],
+                        'department_name' => $val['department']['full_name'],
+                        'shop_sn' => $val['shop_sn'],
+                        'shop_name' => $val['shop']['name'],
+                        'point_b' => $val['base_point'],
+                        'changed_at' => now(),
+                        'source_id' => 1,
+                        'type_id' => 0,
+                    ];
+                }
+                // $this->createPointLog($val);
+            }
+
+            if (!empty($data)) {
+                \DB::table('point_logs')->insert($data);
             }
 
             $commandModel->status = 1;
@@ -96,6 +118,33 @@ class CalculateStaffBasePoint extends Command
 
     }
 
+
+    /**
+     * 基础分记录.
+     * 
+     * @author 28youth
+     * @param  array
+     * @return mixed
+     */
+    public function createPointLog($staff)
+    {
+        $model = new PointLogModel();
+
+        $model->title = now()->month . '月基础分统计';
+        $model->staff_sn = $staff['staff_sn'];
+        $model->staff_name = $staff['realname'];
+        $model->brand_id = $staff['brand']['id'];
+        $model->brand_name = $staff['brand']['name'];
+        $model->department_id = $staff['department_id'];
+        $model->department_name = $staff['department']['full_name'];
+        $model->shop_sn = $staff['shop_sn'];
+        $model->shop_name = $staff['shop']['name'];
+        $model->point_b = $staff['base_point'];
+        $model->changed_at = now();
+        $model->source_id = 1;
+        $model->type_id = 0;
+        $model->save();
+    }
 
     /**
      * 创建积分日志.
