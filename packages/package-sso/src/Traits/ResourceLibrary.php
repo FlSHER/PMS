@@ -105,4 +105,15 @@ trait ResourceLibrary
         return $this->get('api/roles/'.$params);
     }
 
+    /**
+     * 获取钉钉access_token.
+     * 
+     * @author 28youth
+     * @return access_token
+     */
+    public function getAccessToken()
+    {
+        return $this->get('api/get_dingtalk_access_token');
+    }
+
 }

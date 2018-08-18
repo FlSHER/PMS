@@ -133,4 +133,5 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
     // get /api/authority-group/rank
     $api->get('authority-group/rank', APIs\AuthorityController::class . '@index');
 
+    $api->get('test', APIs\TaskController::class.'@test');
 });

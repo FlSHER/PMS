@@ -14,7 +14,7 @@
         },
         {
             "type": "path",
-            "url": "packages/package-schedule",
+            "url": "packages/package-dingtalk",
             "options": {
                 "symlink": true
             }
@@ -24,7 +24,7 @@
         "php": "^7.1.3",
         "doctrine/dbal": "^2.8",
         "fideloper/proxy": "^4.0",
-        "fisher/dingtalk-schedule": "dev-master",
+        "fisher/dingtalk": "^1.0",
         "fisher/package-sso": "^1.0",
         "guzzlehttp/guzzle": "^6.3",
         "laravel/framework": "5.6.*",
