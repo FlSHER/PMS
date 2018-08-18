@@ -34,72 +34,72 @@ class CalculateStaffBasePoint extends Command
         $users = app('api')->client()->getStaff(['filters' => "staff_sn={$staff_sns};status_id>=0"]);
         $commandModel = $this->createLog();
 
+        $data = [];
+        foreach ($users as $key => &$val) {
+            $val['base_point'] = 0;
+
+            $configs->map(function ($config) use (&$val, $ratio) {
+
+                $toArray = json_decode($config['value'], true);
+
+                // 匹配学历基础分
+                if ($config['name'] == 'education') {
+                    $match = array_first($toArray, function ($item, $key) use ($val) {
+                        return $item['name'] == $val['education'];
+                    });
+                    $val['base_point'] += $match['point'];
+                }
+
+                // 匹配职位基础分
+                if ($config['name'] == 'position') {
+                    $match1 = array_first($toArray, function ($item, $key) use ($val) {
+                        return $item['id'] == $val['position']['id'];
+                    });
+                    $val['base_point'] += $match1['point'];
+                }
+
+                // 计算工龄基础分
+                if ($config['name'] == 'max_point') {
+                    
+                    // 员工工龄转月数
+                    $month = Carbon::parse($val['employed_at'])->diffInMonths(Carbon::now());
+                    $point = ceil($month * $ratio);
+                    $val['base_point'] += ($point >= $config['value']) ? $config['value'] : $point;
+                }
+            });
+
+            // 计算证书得分
+            $certificate_total = CertificateStaff::query()
+                ->where('staff_sn', $val['staff_sn'])
+                ->select(\DB::raw('SUM(certificates.point) as total'))
+                ->leftJoin('certificates', 'certificate_staff.certificate_id', '=', 'certificates.id')
+                ->value('total');
+            if ($certificate_total !== null) {
+                $val['base_point'] += $certificate_total;
+            }
+
+            if ($val['base_point']) {
+                $data[$key] = [
+                    'title' => now()->month . '月基础分统计',
+                    'staff_sn' => $val['staff_sn'],
+                    'staff_name' => $val['realname'],
+                    'brand_id' => $val['brand']['id'],
+                    'brand_name' => $val['brand']['name'],
+                    'department_id' => $val['department_id'],
+                    'department_name' => $val['department']['full_name'],
+                    'shop_sn' => $val['shop_sn'],
+                    'shop_name' => $val['shop']['name'],
+                    'point_b' => $val['base_point'],
+                    'changed_at' => now()->startOfMonth(),
+                    'source_id' => 1,
+                    'type_id' => 0
+                ];
+            }
+            // $this->createPointLog($val);
+        }
+
         try {
             \DB::beginTransaction();
-
-            $data = [];
-            foreach ($users as $key => &$val) {
-                $val['base_point'] = 0;
-
-                $configs->map(function ($config) use (&$val, $ratio) {
-
-                    $toArray = json_decode($config['value'], true);
-
-                    // 匹配学历基础分
-                    if ($config['name'] == 'education') {
-                        $match = array_first($toArray, function ($item, $key) use ($val) {
-                            return $item['name'] == $val['education'];
-                        });
-                        $val['base_point'] += $match['point'];
-                    }
-
-                    // 匹配职位基础分
-                    if ($config['name'] == 'position') {
-                        $match1 = array_first($toArray, function ($item, $key) use ($val) {
-                            return $item['id'] == $val['position']['id'];
-                        });
-                        $val['base_point'] += $match1['point'];
-                    }
-
-                    // 计算工龄基础分
-                    if ($config['name'] == 'max_point') {
-                        
-                        // 员工工龄转月数
-                        $month = Carbon::parse($val['employed_at'])->diffInMonths(Carbon::now());
-                        $point = ceil($month * $ratio);
-                        $val['base_point'] += ($point >= $config['value']) ? $config['value'] : $point;
-                    }
-                });
-
-                // 计算证书得分
-                $certificate_total = CertificateStaff::query()
-                    ->where('staff_sn', $val['staff_sn'])
-                    ->select(\DB::raw('SUM(certificates.point) as total'))
-                    ->leftJoin('certificates', 'certificate_staff.certificate_id', '=', 'certificates.id')
-                    ->value('total');
-                if ($certificate_total !== null) {
-                    $val['base_point'] += $certificate_total;
-                }
-
-                if ($val['base_point']) {
-                    $data[$key] = [
-                        'title' => now()->month . '月基础分统计',
-                        'staff_sn' => $val['staff_sn'],
-                        'staff_name' => $val['realname'],
-                        'brand_id' => $val['brand']['id'],
-                        'brand_name' => $val['brand']['name'],
-                        'department_id' => $val['department_id'],
-                        'department_name' => $val['department']['full_name'],
-                        'shop_sn' => $val['shop_sn'],
-                        'shop_name' => $val['shop']['name'],
-                        'point_b' => $val['base_point'],
-                        'changed_at' => now(),
-                        'source_id' => 1,
-                        'type_id' => 0,
-                    ];
-                }
-                // $this->createPointLog($val);
-            }
 
             if (!empty($data)) {
                 \DB::table('point_logs')->insert($data);
@@ -140,7 +140,7 @@ class CalculateStaffBasePoint extends Command
         $model->shop_sn = $staff['shop_sn'];
         $model->shop_name = $staff['shop']['name'];
         $model->point_b = $staff['base_point'];
-        $model->changed_at = now();
+        $model->changed_at = now()->startOfMonth();
         $model->source_id = 1;
         $model->type_id = 0;
         $model->save();
