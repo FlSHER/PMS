@@ -230,6 +230,7 @@ class PointRankController extends Controller
                     'staff_sn' => $staff->staff_sn,
                     'staff_name' => $staff->staff_name,
                     'total' => 0,
+                    'disable' => 1
                 ]);
             }
         });
@@ -243,6 +244,7 @@ class PointRankController extends Controller
                     'staff_sn' => $staff['staff_sn'],
                     'staff_name' => $staff['realname'],
                     'total' => 0,
+                    'disable' => 1
                 ]);
             }
         });
