@@ -87,10 +87,7 @@ class StatisticPoint extends Log
             if (isset($data[$key])) {
                 $data[$key]['add_point'] += $value['add_point'];
                 $data[$key]['sub_point'] += $value['sub_point'];
-                $data[$key]['add_a_point'] += $value['add_a_point'];
-                $data[$key]['sub_a_point'] += $value['sub_a_point'];
-                $data[$key]['point_a_total'] += $value['point_a_total'];
-                $data[$key]['point_b_total'] += $value['point_b_total'];
+                $data[$key]['point'] += $value['point'];
             }
         }
 

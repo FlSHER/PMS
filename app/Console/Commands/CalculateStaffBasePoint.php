@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Console\Command;
 use App\Models\CertificateStaff;
 use App\Models\ArtisanCommandLog;
+use App\Models\PointLog as PointLogModel;
 use App\Models\AuthorityGroupHasStaff as GroupStaff;
 use App\Models\AuthorityGroupHasDepartment as GroupDepartment;
 
@@ -34,48 +35,64 @@ class CalculateStaffBasePoint extends Command
         $users = app('api')->client()->getStaff(['filters' => "staff_sn={$staff_sns};status_id>=0"]);
         $commandModel = $this->createLog();
 
-        $data = [];
+        $data = [];$logs = [];
         foreach ($users as $key => &$val) {
             $val['base_point'] = 0;
 
-            $configs->map(function ($config) use (&$val, $ratio) {
+            $configs->map(function ($config) use (&$val, $ratio, $key, &$logs) {
 
                 $toArray = json_decode($config['value'], true);
 
                 // 匹配学历基础分
-                if ($config['name'] == 'education') {
+                /*if ($config['name'] == 'education') {
                     $match = array_first($toArray, function ($item, $key) use ($val) {
                         return $item['name'] == $val['education'];
                     });
                     $val['base_point'] += $match['point'];
-                }
+
+                    if (!isset($logs['education'])) {
+                        $logs['education'] = ['title' => '学历基础分结算', 'type' => 'education', 'point' => $match['point']];
+                    }
+                }*/
 
                 // 匹配职位基础分
                 if ($config['name'] == 'position') {
-                    $match1 = array_first($toArray, function ($item, $key) use ($val) {
+                    $match = array_first($toArray, function ($item, $key) use ($val) {
                         return $item['id'] == $val['position']['id'];
                     });
-                    $val['base_point'] += $match1['point'];
+                    $val['base_point'] += $match['point'];
+
+                    if (!isset($logs['position'])) {
+                        $logs['position'] = ['title' => '职位基础分结算', 'type' => 'position', 'point' => $match['point']];
+                    }
                 }
 
                 // 计算工龄基础分
                 if ($config['name'] == 'max_point') {
-                    
                     // 员工工龄转月数
                     $month = Carbon::parse($val['employed_at'])->diffInMonths(Carbon::now());
                     $point = ceil($month * $ratio);
-                    $val['base_point'] += ($point >= $config['value']) ? $config['value'] : $point;
+                    $point = ($point >= $config['value']) ? $config['value'] : $point;
+                    $val['base_point'] += $point;
+
+                    if (!isset($logs['max_point'])) {
+                        $logs['max_point'] = ['title' => '工龄基础分结算', 'type' => 'max_point', 'point' => $point];
+                    }
                 }
             });
 
             // 计算证书得分
-            $certificate_total = CertificateStaff::query()
+            $total = CertificateStaff::query()
                 ->where('staff_sn', $val['staff_sn'])
                 ->select(\DB::raw('SUM(certificates.point) as total'))
                 ->leftJoin('certificates', 'certificate_staff.certificate_id', '=', 'certificates.id')
                 ->value('total');
-            if ($certificate_total !== null) {
-                $val['base_point'] += $certificate_total;
+            if ($total !== null) {
+                $val['base_point'] += $total;
+
+                if (!isset($logs['certificate'])) {
+                    $logs['certificate'] = ['title' => '证书基础分结算', 'type' => 'certificate', 'point' => $total];
+                }
             }
 
             if ($val['base_point']) {
@@ -95,15 +112,28 @@ class CalculateStaffBasePoint extends Command
                     'type_id' => 0
                 ];
             }
-            // $this->createPointLog($val);
         }
-
         try {
             \DB::beginTransaction();
 
-            if (!empty($data)) {
-                \DB::table('point_logs')->insert($data);
+            foreach ($data as $key => $val) {
+                $model = new PointLogModel();
+                $model->fill($val);
+                $model->save();
+
+                $logData = collect($logs)->map(function ($item) use ($model) {
+                    $item['source_foreign_key'] = $model->id;
+                    $item['staff_sn'] = $model->staff_sn;
+                    $item['staff_name'] = $model->staff_name;
+                    $item['created_at'] = now();
+
+                    return $item;
+                })->toArray();
+                \DB::table('point_calculate_logs')->insert($logData);
             }
+           /* if (!empty($data)) {
+                \DB::table('point_logs')->insert($data);
+            }*/
 
             $commandModel->status = 1;
             $commandModel->save();
