@@ -95,8 +95,8 @@ class TaskAuthorityController extends Controller
     {
         $this->validate($request, [
             'admin_sn' => ['required','numeric','digits:6',
-                function($attribute, $value, $fail){
-                    if((bool)TaskPublishingAuthorities::where('admin_sn',$value)->first()==false){
+                function($attribute, $value, $fail) use($request){
+                    if((bool)TaskPublishingAuthorities::where('admin_sn',$request->user()->staff_sn)->first()==false){
                         return $fail('未找到当前管理编号');
                     }
                 }
