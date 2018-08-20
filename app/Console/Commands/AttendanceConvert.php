@@ -9,9 +9,9 @@ use Illuminate\Console\Command;
 use App\Models\PointLog;
 use App\Models\CommonConfig;
 use App\Models\AuthorityGroupHasStaff;
+use App\Models\AttendanceRecord;
 use Fisher\Schedule\Services\DingtalkManager;
 use Fisher\Schedule\Services\Contracts\Dingtalk;
-use Fisher\Schedule\Models\AttendanceRecord;
 
 class AttendanceConvert extends Command
 {

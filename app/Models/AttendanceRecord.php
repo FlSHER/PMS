@@ -1,12 +1,14 @@
 <?php
 
-namespace Fisher\Schedule\Models;
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 
 class AttendanceRecord extends Model
 {
+    use Traits\ListScopes;
+    
      /**
      * 批量赋值的属性
      *
