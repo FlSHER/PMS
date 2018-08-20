@@ -108,7 +108,7 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
 
         // 积分列表
         // get /api/points/statistic/log
-        $api->get('statistic/log', APIs\StaffPointController::class . '@show');
+        $api->get('statistic/log', APIs\StaffPointController::class . '@logs');
 
         // 积分详情
         // get /api/points/statistic/:pointlog

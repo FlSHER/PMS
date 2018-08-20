@@ -123,7 +123,7 @@ class StaffPointController extends Controller
      * @param  \Illuminate\Http\Request $request
      * @return mixed
      */
-    public function show(Request $request)
+    public function logs(Request $request)
     {
         $user = $request->user();
         $staffSn = $request->query('staff_sn');
@@ -139,6 +139,7 @@ class StaffPointController extends Controller
         } */
 
         $items = PointLogModel::query()
+            ->where('is_revoke', 0)
             ->where('staff_sn', ($staffSn ?: $user->staff_sn))
             ->filterByQueryString()
             ->sortByQueryString()

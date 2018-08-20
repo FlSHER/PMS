@@ -18,6 +18,7 @@ class Kernel extends ConsoleKernel
         Commands\CalculateStaffBasePoint::class,
         Commands\CalculateStaffPoint::class,
         Commands\PointTargetCommand::class,
+        Commands\AttendanceConvert::class,
     ];
 
     /**
@@ -36,6 +37,8 @@ class Kernel extends ConsoleKernel
         // Monthly statistics of employees' base points
         $schedule->command('pms:calculate-staff-basepoint')->monthlyOn(1, '2:10');
         $schedule->command('command:pointTarget')->monthlyOn(1, '2:00');
+
+        $schedule->command('pms:attendance-convert-point')->dailyAt('4:50');
     }
 
     /**
