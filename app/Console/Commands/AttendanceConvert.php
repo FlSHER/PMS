@@ -87,6 +87,11 @@ class AttendanceConvert extends Command
                 
                 if (!isset($tmp[$uid])) {
                     $tmp[$uid] = $this->makeUserGroup($uid, $val['groupId']);
+
+                    if (isset($users['no'.$uid])) {
+                        $tmp[$uid]['staff_sn'] = $users['no'.$uid]['staff_sn'];
+                        $tmp[$uid]['staff_name'] = $users['no'.$uid]['realname'];
+                    }
                 }
                 // 基准打卡时间
                 $baseTime = Carbon::createFromTimestamp($val['baseCheckTime']/1000);
@@ -295,9 +300,14 @@ class AttendanceConvert extends Command
 
         $staff_sns = AuthorityGroupHasStaff::pluck('staff_sn')->unique()->values();
         $users = app('api')->client()->getStaff(['filters' => "staff_sn={$staff_sns};status_id>=0"]);
+        foreach ($users as $key => $value) {
+            unset($users[$key]);
+            $users['no'.$value['dingtalk_number']] = $value;
+        }
 
         return array_slice($users, $start, $count);
     }
+
     /**
      * Get provider name.
      *

@@ -16,6 +16,8 @@ class CreateAttendanceRecordsTable extends Migration
         Schema::create('attendance_records', function (Blueprint $table) {
             $table->increments('id');
             $table->string('userId', 50)->commit('用户ID');
+            $table->unsignedMediumInteger('staff_sn')->default(0)->comment('员工编号');
+            $table->char('staff_name', 10)->nullable()->comment('员工姓名');
             $table->unsignedInteger('groupId')->commit('考勤组ID');
             $table->dateTime('workDate')->nullable()->commit('工作日期');
             $table->dateTime('baseOnTime')->nullable()->commit('上班时间');
