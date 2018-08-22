@@ -99,6 +99,12 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $admin) {
         $admin->delete('{certificate}', Admin\CertificateController::class . '@delete');
     });
 
+    $admin->group(['prefix' => 'schedule'], function (RouteContract $admin){
+
+        // 获取考勤列表
+        $admin->get('/', Admin\ScheduleController::class.'@index');
+    });
+
     // 获取全部证书拥有者
     // @get /admin/certificate-staff
     $admin->get('certificate-staff', Admin\CertificateController::class . '@getCertificateStaff');

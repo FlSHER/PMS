@@ -135,7 +135,6 @@ class CalculateStaffBasePoint extends Command
                 \DB::table('point_logs')->insert($data);
             }*/
 
-            $commandModel->status = 1;
             $commandModel->save();
 
             \DB::commit();
@@ -186,10 +185,9 @@ class CalculateStaffBasePoint extends Command
     {
         $commandModel = new ArtisanCommandLog();
         $commandModel->command_sn = 'pms:calculate-staff-basepoint';
-        $commandModel->created_at = Carbon::now();
-        $commandModel->title = Carbon::now()->month . '月基础分结算';
-        $commandModel->status = 0;
-        $commandModel->save();
+        $commandModel->created_at = now();
+        $commandModel->title = now()->month . '月基础分结算';
+        $commandModel->status = 1;
 
         return $commandModel;
     }

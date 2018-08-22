@@ -26,5 +26,17 @@ class ScheduleController extends Controller
 
         return response()->json($data, 200);
     }
+
+    /**
+     * 导出考勤记录.
+     * 
+     * @author 28youth
+     * @return excel
+     */
+    public function exort()
+    {
+        # code...
+    }
+
     
 }

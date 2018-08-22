@@ -118,7 +118,6 @@ class CalculateStaffPoint extends Command
                 }
             }
 
-            $commandModel->status = 1;
             $commandModel->save();
 
             \DB::commit();
@@ -155,10 +154,9 @@ class CalculateStaffPoint extends Command
     {
         $artisan = new ArtisanCommandLog();
         $artisan->command_sn = 'pms:calculate-staff-point';
-        $artisan->created_at = Carbon::now();
+        $artisan->created_at = now();
         $artisan->title = '每月积分结算';
-        $artisan->status = 0;
-        $artisan->save();
+        $artisan->status = 1;
 
         return $artisan;
     }
@@ -190,25 +188,29 @@ class CalculateStaffPoint extends Command
         $key = $log->staff_sn.'|'.Carbon::parse($log->changed_at)->startOfMonth();
 
         if (isset($this->monthly[$key])) {
-            $this->monthly[$key]['point_a'] += $log->point_a;
-            $this->monthly[$key]['point_a_total'] += $log->point_a;
-            $this->monthly[$key]['source_a_monthly'] = $this->monthlySource($log, 'source_a_monthly');
-            $this->monthly[$key]['source_a_total'] = $this->monthlySource($log, 'source_a_total');
+            if (!empty($log->changed_at)) {
+                $this->monthly[$key]['point_a'] += $log->point_a;
+                $this->monthly[$key]['source_a_monthly'] = $this->monthlySource($log, 'source_a_monthly');
 
-            $this->monthly[$key]['point_b_monthly'] += $log->point_b;
-            $this->monthly[$key]['point_b_total'] += $log->point_b;
-            $this->monthly[$key]['source_b_monthly'] = $this->monthlySource($log, 'source_b_monthly');
-            $this->monthly[$key]['source_b_total'] = $this->monthlySource($log, 'source_b_total');
+                $this->monthly[$key]['point_b_monthly'] += $log->point_b;
+                $this->monthly[$key]['source_b_monthly'] = $this->monthlySource($log, 'source_b_monthly');
+            }
+                $this->monthly[$key]['point_a_total'] += $log->point_a;
+                $this->monthly[$key]['source_a_total'] = $this->monthlySource($log, 'source_a_total');
+                $this->monthly[$key]['point_b_total'] += $log->point_b;
+                $this->monthly[$key]['source_b_total'] = $this->monthlySource($log, 'source_b_total');
         } else {
-            $this->monthly[$key]['point_a'] = $log->point_a;
-            $this->monthly[$key]['point_a_total'] = $log->point_a;
-            $this->monthly[$key]['source_a_monthly'] = $this->monthlySource($log, 'source_a_monthly');
-            $this->monthly[$key]['source_a_total'] = $this->monthlySource($log, 'source_a_total');
+            if (!empty($log->changed_at)) {
+                $this->monthly[$key]['point_a'] = $log->point_a;
+                $this->monthly[$key]['source_a_monthly'] = $this->monthlySource($log, 'source_a_monthly');
 
-            $this->monthly[$key]['point_b_monthly'] = $log->point_b;
-            $this->monthly[$key]['point_b_total'] = $log->point_b;
-            $this->monthly[$key]['source_b_monthly'] = $this->monthlySource($log, 'source_b_monthly');
-            $this->monthly[$key]['source_b_total'] = $this->monthlySource($log, 'source_b_total');
+                $this->monthly[$key]['point_b_monthly'] = $log->point_b;
+                $this->monthly[$key]['source_b_monthly'] = $this->monthlySource($log, 'source_b_monthly');
+            }
+                $this->monthly[$key]['point_a_total'] = $log->point_a;
+                $this->monthly[$key]['source_a_total'] = $this->monthlySource($log, 'source_a_total');
+                $this->monthly[$key]['point_b_total'] = $log->point_b;
+                $this->monthly[$key]['source_b_total'] = $this->monthlySource($log, 'source_b_total');
 
             // 新增的结算时间等于积分的生效时间
             $this->monthly[$key]['date'] = Carbon::parse($log->changed_at)->startOfMonth();
