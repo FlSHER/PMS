@@ -227,7 +227,7 @@ class AttendanceConvert extends Command
         $model->point_b = $point;
         $model->source_id = 4;
         $model->changed_at = now();
-        $model->type_id = 0;
+        $model->type_id = 2;
         $model->save();
     }
     /**
