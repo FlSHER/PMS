@@ -76,7 +76,7 @@ class EventLogController extends Controller
                     $val['participants']
                 );
             }
-            
+
             // 添加事件抄送人
             $group->addressees()->createMany($data['addressees']);
 
@@ -97,11 +97,11 @@ class EventLogController extends Controller
 
     /**
      * 填充奖扣关联表数据.
-     * 
+     *
      * @author 28youth
      * @param  array $data
      */
-    public function fillEventLogGroupData($request) : EventLogGroupModel
+    public function fillEventLogGroupData($request): EventLogGroupModel
     {
         $user = $request->user();
 
@@ -130,7 +130,7 @@ class EventLogController extends Controller
         } elseif ($finalSn === $firstSn) {
             $approveService->firstApprove(['remark' => '初审人与终审人相同，系统自动通过。']);
         }
-        
+
         // 记录人等于终审人且等于初审人,终审通过
         if ($user->staff_sn === $finalSn && $user->staff_sn === $firstSn) {
             $approveService->finalApprove(['remark' => '终审人与记录人相同，系统自动通过。']);
@@ -139,7 +139,7 @@ class EventLogController extends Controller
 
     /**
      * 合并抄送人.
-     * 
+     *
      * @author 28youth
      */
     public function mergeAddressees(...$params)
@@ -287,7 +287,7 @@ class EventLogController extends Controller
         $group->status_id = -2;
         $group->first_approved_at = null;
         $group->withdraw_remark = $request->remark;
-        $group->getConnection()->transaction(function () use ($group) {
+        $group->getConnection()->transaction(function () use ($group, $request) {
             $group->save();
 
             EventLogModel::where('event_log_group_id', $group->id)->update([
