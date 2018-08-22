@@ -215,7 +215,7 @@ class AttendanceConvert extends Command
         $point = intval($data['worktime'] / $config->time) * $config->point;
         
         $model = new PointLog();
-        $model->title = $data['workDate']. '考勤转积分';
+        $model->title = Carbon::parse($data['workDate'])->toDateString(). '考勤转积分';
         $model->staff_sn = $staff[0]['staff_sn'];
         $model->staff_name = $staff[0]['realname'];
         $model->brand_id = $staff[0]['brand']['id'];
@@ -226,7 +226,7 @@ class AttendanceConvert extends Command
         $model->shop_name = $staff[0]['shop']['name'];
         $model->point_b = $point;
         $model->source_id = 4;
-        $model->changed_at = now();
+        $model->changed_at = now()->startOfDay();
         $model->type_id = 2;
         $model->save();
     }
