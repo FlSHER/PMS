@@ -224,9 +224,10 @@ class AttendanceConvert extends Command
         $model->department_name = $staff[0]['department']['full_name'];
         $model->shop_sn = $staff[0]['shop_sn'];
         $model->shop_name = $staff[0]['shop']['name'];
-        $model->point_b = $point;
-        $model->source_id = 4;
+        $model->source_foreign_key = $data['id'];
         $model->changed_at = now()->startOfDay();
+        $model->point_b = $point;
+        $model->source_id = 3;
         $model->type_id = 2;
         $model->save();
     }

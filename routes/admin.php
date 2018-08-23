@@ -103,6 +103,9 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $admin) {
 
         // 获取考勤列表
         $admin->get('/', Admin\ScheduleController::class.'@index');
+
+        // 编辑考勤记录
+        $admin->post('{record}', Admin\ScheduleController::class.'@update');
     });
 
     // 获取全部证书拥有者

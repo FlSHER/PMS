@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class PointLog extends Model
@@ -51,5 +52,17 @@ class PointLog extends Model
     public function getChangedAtAttribute($value)
     {
         return date('Y-m-d', strtotime($value));
+    }
+
+    /**
+     * 复用来源id筛选.
+     * 
+     * @author 28youth
+     * @param  Illuminate\Database\Eloquent\Builder $query
+     * @param  int  $key
+     */
+    public function scopeByForeignKey(Builder $query, $key)
+    {
+        return $query->where('source_foreign_key', $key);
     }
 }
