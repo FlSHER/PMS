@@ -124,6 +124,11 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
 
     });
 
+    // 获取考勤列表
+    $api->get('schedule', APIs\ScheduleController::class.'@index');
+
+    // 获取单条考勤统计
+    $api->get('schedule/{record}', APIs\ScheduleController::class.'@show');
 
     // 当前员工积分指标
     // @get /api/staff/target
