@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use Cache;
 use Carbon\Carbon;
-use Illuminate\Http\Request;
 use App\Models\PointLog;
 use App\Models\CommonConfig;
+use Illuminate\Http\Request;
 use App\Models\AttendanceRecord;
 use App\Models\AuthorityGroupHasStaff;
 use App\Models\PersonalPointStatistic;
@@ -18,7 +18,7 @@ class ScheduleController extends Controller
 
     /**
      * 获取考勤记录列表.
-     * 
+     *
      * @author 28youth
      * @param  \Illuminate\Http\Request $request
      * @return mixed
@@ -28,6 +28,7 @@ class ScheduleController extends Controller
         $data = AttendanceRecord::query()
             ->filterByQueryString()
             ->sortByQueryString()
+            ->orderBy('id', 'desc')
             ->withPagination();
 
         return response()->json($data, 200);
@@ -35,7 +36,7 @@ class ScheduleController extends Controller
 
     /**
      * 更新考勤统计.
-     * 
+     *
      * @author 28youth
      * @param  App\Http\Requests\Admin\AttendanceRequest $request
      * @param  App\Models\AttendanceRecord  $record
@@ -59,7 +60,7 @@ class ScheduleController extends Controller
 
     /**
      * 同步修改积分记录统计记录.
-     * 
+     *
      * @author 28youth
      * @param  [type] $record
      * @param  [type] $time
@@ -106,10 +107,10 @@ class ScheduleController extends Controller
 
     /**
      * 修改分类统计.
-     * 
+     *
      * @author 28youth
      * @param  [type] $source
-     * @param  [type] $point 
+     * @param  [type] $point
      */
     public function mergeSource($source, $point)
     {
@@ -127,7 +128,7 @@ class ScheduleController extends Controller
 
     /**
      * 获取考勤转积分配置.
-     * 
+     *
      * @author 28youth
      * @return array
      */
@@ -143,8 +144,8 @@ class ScheduleController extends Controller
 
         Cache::put($key, $config);
 
-        return $config;   
+        return $config;
     }
 
-    
+
 }

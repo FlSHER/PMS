@@ -9,10 +9,10 @@ use App\Models\AttendanceRecord;
 
 class ScheduleController extends Controller
 {
-    
+
     /**
      * 获取考勤统计信息.
-     * 
+     *
      * @author 28youth
      * @param  Illuminate\Http\Request $request
      * @return mixed
@@ -22,6 +22,7 @@ class ScheduleController extends Controller
         $data = AttendanceRecord::query()
             ->filterByQueryString()
             ->sortByQueryString()
+            ->orderBy('id', 'desc')
             ->withPagination();
 
         return response()->json($data, 200);
@@ -29,7 +30,7 @@ class ScheduleController extends Controller
 
     /**
      * 获取单条考勤信息.
-     * 
+     *
      * @author 28youth
      * @param  App\Models\AttendanceRecord $record
      * @return mixed
