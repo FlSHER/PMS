@@ -69,9 +69,12 @@ class CalculateStaffBasePoint extends Command
 
                 // 计算工龄基础分
                 if ($config['name'] == 'max_point') {
-                    // 员工工龄转月数
-                    $month = Carbon::parse($val['employed_at'])->diffInMonths(Carbon::now());
-                    $point = ceil($month * $ratio);
+                    // 员工工龄转年数
+                    $year = Carbon::parse($val['employed_at'])->diffInYears(now());
+                    if ($year <= 0) {
+                        return false;
+                    }
+                    $point = ceil($year * $ratio);
                     $point = ($point >= $config['value']) ? $config['value'] : $point;
                     $val['base_point'] += $point;
 
@@ -150,7 +153,7 @@ class CalculateStaffBasePoint extends Command
 
     /**
      * 基础分记录.
-     * 
+     *
      * @author 28youth
      * @param  array
      * @return mixed
@@ -177,7 +180,7 @@ class CalculateStaffBasePoint extends Command
 
     /**
      * 创建积分日志.
-     * 
+     *
      * @author 28youth
      * @return ArtisanCommandLog
      */

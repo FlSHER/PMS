@@ -32,7 +32,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->command('inspire')->hourly();
-        $schedule->command('pms:attendance-convert-point')->dailyAt('4:00');
+        // $schedule->command('pms:attendance-convert-point')->dailyAt('4:00');
 
         // Monthly statistics of employees' points
         $schedule->command('pms:calculate-staff-point')->dailyAt('4:40');
