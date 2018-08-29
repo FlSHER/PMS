@@ -1,16 +1,16 @@
-<?php 
+<?php
 
 namespace App\Http\Controllers\Admin;
 
-use Illuminate\Http\Request;
 use App\Models\CommonConfig;
+use Illuminate\Http\Request;
 
 class BasePointController extends Controller
 {
 
     /**
      * 获取基础分配置.
-     * 
+     *
      * @author 28youth
      * @param  \Illuminate\Http\Request $request
      * @return mixed
@@ -23,10 +23,10 @@ class BasePointController extends Controller
 
         return response()->json($items, 200);
     }
-	
+
 	/**
 	 * 获取学历分配置.
-	 * 
+	 *
 	 * @author 28youth
 	 * @return App\Models\CommonConfig
 	 */
@@ -41,7 +41,7 @@ class BasePointController extends Controller
 
     /**
      * 获取职位分配置.
-     * 
+     *
      * @author 28youth
      * @return App\Models\CommonConfig
      */
@@ -56,7 +56,7 @@ class BasePointController extends Controller
 
     /**
      * 获取工龄分配置.
-     * 
+     *
      * @author 28youth
      * @return App\Models\CommonConfiged
      */
@@ -70,7 +70,7 @@ class BasePointController extends Controller
 
     /**
      * 获取考勤转积分配置.
-     * 
+     *
      * @author 28youth
      * @return App\Models\CommonConfiged
      */
@@ -84,7 +84,7 @@ class BasePointController extends Controller
 
 	/**
 	 * 存储基础分配置.
-	 * 
+	 *
 	 * @author 28youth
 	 * @param  \Illuminate\Http\Request $request
 	 * @return mixed
@@ -98,7 +98,7 @@ class BasePointController extends Controller
         ];
         $messages = [
             'data.required' => '输入的选项内容不能为空',
-            'name.required' => '输入的选项名称不能为空', 
+            'name.required' => '输入的选项名称不能为空',
             'data.*.point.required' => '输入的配置分不能为空',
             'data.*.point.integer' => '输入的配置分必须为一个数字',
             'data.*.point.min' => '输入的配置分不能小于0'
@@ -132,11 +132,11 @@ class BasePointController extends Controller
             'data.*.value' => 'required'
         ];
         $messages = [
-            'data.*.name.required' => '输入的选项名称不能为空', 
+            'data.*.name.required' => '输入的选项名称不能为空',
             'data.*.value.required' => '输入的配置值不能为空',
         ];
         $this->validate($request, $rules, $messages);
-        
+
         $data = $request->input('data', '');
 
         collect($data)->map(function ($data) {
@@ -151,7 +151,7 @@ class BasePointController extends Controller
 
     /**
      * 设置考勤转积分比例.
-     * 
+     *
      * @author 28youth
      * @param  Request $request
      * @return mixed
@@ -160,14 +160,14 @@ class BasePointController extends Controller
     {
         $rules = [
             'data' => 'required|array',
-            'data.*.point' => 'required|min:1',
-            'data.*.time' => 'required|min:1'
+            'data.point' => 'required|min:1',
+            'data.time' => 'required|min:1'
         ];
         $message = [
-            'data.*.point.required' => '输入的积分值不能为空',
-            'data.*.point.min' => '输入的积分值不能小于 :min',
-            'data.*.time.required' => '输入的时间不能为空',
-            'data.*.time.min' => '输入的时间不能小于 :min 分钟',
+            'data.point.required' => '输入的积分值不能为空',
+            'data.point.min' => '输入的积分值不能小于 :min',
+            'data.time.required' => '输入的时间不能为空',
+            'data.time.min' => '输入的时间不能小于 :min 分钟',
         ];
 
         $this->validate($request, $rules, $messages);
