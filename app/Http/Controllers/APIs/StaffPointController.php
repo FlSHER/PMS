@@ -196,11 +196,10 @@ class StaffPointController extends Controller
      * @param Request $request
      * @return void
      */
-    public function basePoint(Request $request)
+    public function basePoint(Request $request, BasePointLog $log)
     {
-        $foreignKey = $request->query('source_foreign_key');
-        $logs = BasePointLog::find($foreignKey);
+        $log->load('details');
 
-        return response()->json($logs->load('details'), 200);
+        return response()->json($log, 200);
     }
 }

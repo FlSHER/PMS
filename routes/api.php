@@ -124,7 +124,7 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
 
         // 基础分结算记录
         // get /api/points/base-point/logs
-        $api->get('base-point/logs', APIs\StaffPointController::class . '@basePoint');
+        $api->get('base-point/logs/{log}', APIs\StaffPointController::class . '@basePoint');
     });
 
     // 获取考勤列表
