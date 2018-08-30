@@ -21,6 +21,7 @@ class CreatePointCalculateLogsTable extends Migration
             $table->char('staff_name', 10)->comment('员工姓名');
             $table->char('type', 20)->nullable()->comment('结算分类');
             $table->decimal('point', 8, 2)->default(0)->comment('积分值');
+            $table->text('data')->nullable()->comment('基础分详情');
 
             $table->timestamps();
         });

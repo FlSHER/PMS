@@ -157,7 +157,7 @@ class StaffPointController extends Controller
      */
     public function detail(PointLogModel $pointlog)
     {
-        $pointlog->load('source');
+        $pointlog->load('source', 'logs');
 
         return response()->json($pointlog);
     }
@@ -187,20 +187,6 @@ class StaffPointController extends Controller
         $type = $pointTypeModel->get();
 
         return response()->json($type, 200);
-    }
-
-    /**
-     * 基础分结算记录.
-     *
-     * @param Request $request
-     * @return void
-     */
-    public function basePointLog(Request $request)
-    {
-        $foreignKey = $request->query('foreign_key');
-        $logs = PointCalculateLog::where('source_foreign_key', $foreignKey)->get();
-
-        return response()->json($logs, 200);
     }
 
 }

@@ -61,9 +61,15 @@ class CalculateStaffBasePoint extends Command
                         return $item['id'] == $val['position']['id'];
                     });
                     $val['base_point'] += $match['point'];
+                    $data = ['职位' => $match['name']];
 
                     if (!isset($logs['position'])) {
-                        $logs['position'] = ['title' => '职位基础分结算', 'type' => 'position', 'point' => $match['point']];
+                        $logs['position'] = [
+                            'title' => '职位基础分结算',
+                            'type' => 'position',
+                            'point' => $match['point'],
+                            'data' => json_encode($data)
+                        ];
                     }
                 }
 
@@ -77,24 +83,40 @@ class CalculateStaffBasePoint extends Command
                     $point = ceil($year * $ratio);
                     $point = ($point >= $config['value']) ? $config['value'] : $point;
                     $val['base_point'] += $point;
+                    $data = [
+                        '入职时间' => $val['employed_at'],
+                        '工龄' => $year,
+                    ];
 
                     if (!isset($logs['max_point'])) {
-                        $logs['max_point'] = ['title' => '工龄基础分结算', 'type' => 'max_point', 'point' => $point];
+                        $logs['max_point'] = [
+                            'title' => '工龄基础分结算',
+                            'type' => 'max_point',
+                            'point' => $point,
+                            'data' => json_encode($data)
+                        ];
                     }
                 }
             });
 
             // 计算证书得分
-            $total = CertificateStaff::query()
+            $certificates = CertificateStaff::query()
                 ->where('staff_sn', $val['staff_sn'])
-                ->select(\DB::raw('SUM(certificates.point) as total'))
                 ->leftJoin('certificates', 'certificate_staff.certificate_id', '=', 'certificates.id')
-                ->value('total');
-            if ($total !== null) {
+                ->get();
+            if ($certificates !== null) {
+                $total = $certificates->reduce(function ($carry, $item) {
+                    return $carry + $item['point'];
+                });
                 $val['base_point'] += $total;
 
                 if (!isset($logs['certificate'])) {
-                    $logs['certificate'] = ['title' => '证书基础分结算', 'type' => 'certificate', 'point' => $total];
+                    $logs['certificate'] = [
+                        'title' => '证书基础分结算',
+                        'type' => 'certificate',
+                        'point' => $total,
+                        'data' => $certificates->toJson()
+                    ];
                 }
             }
 

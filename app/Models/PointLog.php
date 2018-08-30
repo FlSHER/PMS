@@ -49,6 +49,16 @@ class PointLog extends Model
         return $this->hasOne(PointLogSource::class, 'id', 'source_id');
     }
 
+    /**
+     * 基础分记录详情.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\hasMany
+     */
+    public function logs()
+    {
+        return $this->hasMany(PointCalculateLog::class, 'source_foreign_key', 'id');
+    }
+
     public function getChangedAtAttribute($value)
     {
         return date('Y-m-d', strtotime($value));
@@ -56,7 +66,7 @@ class PointLog extends Model
 
     /**
      * 复用来源id筛选.
-     * 
+     *
      * @author 28youth
      * @param  Illuminate\Database\Eloquent\Builder $query
      * @param  int  $key
