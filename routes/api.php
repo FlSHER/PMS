@@ -48,7 +48,7 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
 
         // 事件日志列表
         // @get /api/event-logs
-        $api->get('/', APIs\EventLogController::class . '@index');   
+        $api->get('/', APIs\EventLogController::class . '@index');
 
         // 添加事件日志
         // @post /api/event-logs/event
@@ -76,11 +76,11 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
 
         // 事件日志分组列表
         // @get /api/event-logs/group
-        $api->get('groups', APIs\EventLogGroupController::class . '@index'); 
+        $api->get('groups', APIs\EventLogGroupController::class . '@index');
 
         // 事件日志分组详情
         // @get /api/event-logs/group/:group
-        $api->get('groups/{group}', APIs\EventLogGroupController::class . '@show'); 
+        $api->get('groups/{group}', APIs\EventLogGroupController::class . '@show');
     });
 
     // route 积分制
@@ -97,11 +97,11 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
         // 认证员工分组排行榜
         // get /api/points/ranking/staff
         $api->get('ranking/staff', APIs\PointRankController::class . '@staff');
-        
+
         // 查看员工统计排行
         // get /api/points/statistic/ranking
         $api->get('statistic/ranking', APIs\StatisticController::class . '@staff');
-        
+
         // 我的积分首页
         // get /api/points/statistic/mine
         $api->get('statistic/mine', APIs\StaffPointController::class . '@index');
@@ -122,6 +122,9 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
         // get /api/points/type
         $api->get('type', APIs\StaffPointController::class . '@type');
 
+        // 基础分结算记录
+        // get /api/points/base-point/logs
+        $api->get('base-point/logs', APIs\StaffPointController::class . '@basePointLog');
     });
 
     // 获取考勤列表

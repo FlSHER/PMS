@@ -5,8 +5,8 @@ namespace App\Http\Controllers\APIs;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\PointLogSource;
-use function App\monthBetween;
 use function App\stageBetween;
+use App\Models\PointCalculateLog;
 use App\Http\Resources\StatisticResource;
 use App\Models\PointLog as PointLogModel;
 use App\Models\PointType as PointTypeModel;
@@ -102,7 +102,7 @@ class StaffPointController extends Controller
             ->where('staff_sn', $user)
             ->whereBetween('date', stageBetween($stime->startOfMonth(), $etime->endOfMonth()))
             ->get();
-            
+
         $items->map(function ($item) use (&$monthly) {
             $current = Carbon::parse($item->date)->month;
             foreach ($monthly as $key => &$month) {
@@ -177,7 +177,7 @@ class StaffPointController extends Controller
 
     /**
      * 获取积分分类.
-     * 
+     *
      * @author 28youth
      * @param  \App\Models\PointType $type
      * @return mixed
@@ -187,6 +187,20 @@ class StaffPointController extends Controller
         $type = $pointTypeModel->get();
 
         return response()->json($type, 200);
+    }
+
+    /**
+     * 基础分结算记录.
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function basePointLog(Request $request)
+    {
+        $foreignKey = $request->query('foreign_key');
+        $logs = PointCalculateLog::where('source_foreign_key', $foreignKey)->get();
+
+        return response()->json($logs, 200);
     }
 
 }
