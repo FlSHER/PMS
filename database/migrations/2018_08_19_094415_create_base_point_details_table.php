@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreatePointCalculateLogsTable extends Migration
+class CreateBasePointDetailsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,7 @@ class CreatePointCalculateLogsTable extends Migration
      */
     public function up()
     {
-        Schema::create('point_calculate_logs', function (Blueprint $table) {
+        Schema::create('base_point_details', function (Blueprint $table) {
             $table->increments('id');
             $table->char('title', 50)->comment('标题');
             $table->unsignedMediumInteger('source_foreign_key')->comment('来源关联id');

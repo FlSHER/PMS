@@ -121,6 +121,10 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $api) {
         // 积分分类
         // get /api/points/type
         $api->get('type', APIs\StaffPointController::class . '@type');
+
+        // 基础分结算记录
+        // get /api/points/base-point/logs
+        $api->get('base-point/logs', APIs\StaffPointController::class . '@basePoint');
     });
 
     // 获取考勤列表

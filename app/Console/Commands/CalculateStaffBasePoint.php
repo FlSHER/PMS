@@ -10,6 +10,7 @@ use Illuminate\Console\Command;
 use App\Models\CertificateStaff;
 use App\Models\ArtisanCommandLog;
 use App\Models\PointLog as PointLogModel;
+use App\Models\BasePointLog as BasePointLogModel;
 use App\Models\AuthorityGroupHasStaff as GroupStaff;
 use App\Models\AuthorityGroupHasDepartment as GroupDepartment;
 
@@ -142,23 +143,26 @@ class CalculateStaffBasePoint extends Command
             \DB::beginTransaction();
 
             foreach ($data as $key => $val) {
-                $model = new PointLogModel();
-                $model->fill($val);
-                $model->save();
+                // 记录基础分记录
+                $baseModel = new BasePointLogModel();
+                $baseModel->fill($val);
+                $baseModel->save();
 
-                $logData = collect($logs)->map(function ($item) use ($model) {
-                    $item['source_foreign_key'] = $model->id;
-                    $item['staff_sn'] = $model->staff_sn;
-                    $item['staff_name'] = $model->staff_name;
+                // 基础分转总积分记录
+                $logModel = new PointLogModel();
+                $logModel->fill($val);
+                $logModel->source_foreign_key = $baseModel->id;
+                $logModel->save();
+
+                // 记录基础分详细记录
+                \DB::table('base_point_details')->insert(array_map(function($item) use ($baseModel) {
+                    $item['source_foreign_key'] = $baseModel->id;
+                    $item['staff_sn'] = $baseModel->staff_sn;
+                    $item['staff_name'] = $baseModel->staff_name;
                     $item['created_at'] = now();
-
                     return $item;
-                })->toArray();
-                \DB::table('point_calculate_logs')->insert($logData);
+                }, $logs));
             }
-           /* if (!empty($data)) {
-                \DB::table('point_logs')->insert($data);
-            }*/
 
             $commandModel->save();
 

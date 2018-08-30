@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\APIs;
 
 use Carbon\Carbon;
+use App\Models\BasePointLog;
 use Illuminate\Http\Request;
 use App\Models\PointLogSource;
 use function App\stageBetween;
-use App\Models\PointCalculateLog;
+use App\Models\BasePointDetail;
 use App\Http\Resources\StatisticResource;
 use App\Models\PointLog as PointLogModel;
 use App\Models\PointType as PointTypeModel;
@@ -157,7 +158,7 @@ class StaffPointController extends Controller
      */
     public function detail(PointLogModel $pointlog)
     {
-        $pointlog->load('source', 'logs');
+        $pointlog->load('source');
 
         return response()->json($pointlog);
     }
@@ -189,4 +190,17 @@ class StaffPointController extends Controller
         return response()->json($type, 200);
     }
 
+    /**
+     * 基础分结算记录.
+     *
+     * @param Request $request
+     * @return void
+     */
+    public function basePoint(Request $request)
+    {
+        $foreignKey = $request->query('source_foreign_key');
+        $logs = BasePointLog::find($foreignKey);
+
+        return response()->json($logs->load('details'), 200);
+    }
 }
