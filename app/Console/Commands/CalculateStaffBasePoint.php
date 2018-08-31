@@ -35,12 +35,12 @@ class CalculateStaffBasePoint extends Command
         // $department = GroupDepartment::pluck('department_id')->values();
         $users = app('api')->client()->getStaff(['filters' => "staff_sn={$staff_sns};status_id>=0"]);
         $commandModel = $this->createLog();
-
         $data = [];$logs = [];
         foreach ($users as $key => &$val) {
+            $log = [];
             $val['base_point'] = 0;
 
-            $configs->map(function ($config) use (&$val, $ratio, $key, &$logs) {
+            $configs->map(function ($config) use (&$val, $ratio, $key, &$log) {
 
                 $toArray = json_decode($config['value'], true);
 
@@ -51,8 +51,8 @@ class CalculateStaffBasePoint extends Command
                     });
                     $val['base_point'] += $match['point'];
 
-                    if (!isset($logs['education'])) {
-                        $logs['education'] = ['title' => '学历基础分结算', 'type' => 'education', 'point' => $match['point']];
+                    if (!isset($log['education'])) {
+                        $log['education'] = ['title' => '学历基础分结算', 'type' => 'education', 'point' => $match['point']];
                     }
                 }*/
 
@@ -64,8 +64,8 @@ class CalculateStaffBasePoint extends Command
                     $val['base_point'] += $match['point'];
                     $data = ['职位' => $match['name']];
 
-                    if (!isset($logs['position'])) {
-                        $logs['position'] = [
+                    if (!isset($log['position'])) {
+                        $log['position'] = [
                             'title' => '职位基础分结算',
                             'type' => 'position',
                             'point' => $match['point'],
@@ -77,7 +77,7 @@ class CalculateStaffBasePoint extends Command
                 // 计算工龄基础分
                 if ($config['name'] == 'max_point') {
                     // 员工工龄转年数
-                    $year = Carbon::parse($val['employed_at'])->diffInYears(now());
+                    $year = Carbon::parse($val['hired_at'])->diffInYears(now());
                     if ($year <= 0) {
                         return false;
                     }
@@ -85,12 +85,12 @@ class CalculateStaffBasePoint extends Command
                     $point = ($point >= $config['value']) ? $config['value'] : $point;
                     $val['base_point'] += $point;
                     $data = [
-                        '入职时间' => $val['employed_at'],
+                        '入职时间' => $val['hired_at'],
                         '工龄' => $year,
                     ];
 
-                    if (!isset($logs['max_point'])) {
-                        $logs['max_point'] = [
+                    if (!isset($log['max_point'])) {
+                        $log['max_point'] = [
                             'title' => '工龄基础分结算',
                             'type' => 'max_point',
                             'point' => $point,
@@ -105,14 +105,14 @@ class CalculateStaffBasePoint extends Command
                 ->where('staff_sn', $val['staff_sn'])
                 ->leftJoin('certificates', 'certificate_staff.certificate_id', '=', 'certificates.id')
                 ->get();
-            if ($certificates !== null) {
-                $total = $certificates->reduce(function ($carry, $item) {
-                    return $carry + $item['point'];
+            if (!$certificates->isEmpty()) {
+                $total = 0;
+                $certificates->map(function ($item) use (&$total) {
+                    $total += $item['point'];
                 });
                 $val['base_point'] += $total;
-
-                if (!isset($logs['certificate'])) {
-                    $logs['certificate'] = [
+                if (!isset($log['certificate']) && $total) {
+                    $log['certificate'] = [
                         'title' => '证书基础分结算',
                         'type' => 'certificate',
                         'point' => $total,
@@ -137,6 +137,7 @@ class CalculateStaffBasePoint extends Command
                     'source_id' => 1,
                     'type_id' => 0
                 ];
+                $logs[$key] = $log;
             }
         }
         try {
@@ -161,7 +162,7 @@ class CalculateStaffBasePoint extends Command
                     $item['staff_name'] = $baseModel->staff_name;
                     $item['created_at'] = now();
                     return $item;
-                }, $logs));
+                }, $logs[$key]));
             }
 
             $commandModel->save();
