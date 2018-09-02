@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 return [
 
@@ -11,7 +11,7 @@ return [
     | 同步更新至 日结表, 月结表.
     |
     */
-    'monthly_date' => '5',
+    'monthly_date' => 20,
 
 
 ];
