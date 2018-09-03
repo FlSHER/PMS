@@ -34,6 +34,6 @@ class CreateBasePointDetailsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('point_calculate_logs');
+        Schema::dropIfExists('base_point_details');
     }
 }
