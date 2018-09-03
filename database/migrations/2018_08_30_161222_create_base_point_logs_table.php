@@ -25,6 +25,7 @@ class CreateBasePointLogsTable extends Migration
             $table->char('shop_sn', 10)->nullable()->default('')->comment('店铺代码');
             $table->char('shop_name', 50)->nullable()->default('')->comment('店铺名称');
             $table->mediumInteger('point_b')->default(0)->comment('基础积分');
+            $table->char('type', 20)->nullable()->comment('记录分类: baseEdu-学历分结算');
 
             $table->timestamps();
         });

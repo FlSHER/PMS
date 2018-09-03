@@ -32,8 +32,10 @@ class CalculateStaffBasePoint extends Command
         $ratio = CommonConfig::byNamespace('basepoint')->byName('ratio')->value('value');
         // 所有权限分组员工
         $staff_sns = GroupStaff::pluck('staff_sn')->unique()->values();
-        // $department = GroupDepartment::pluck('department_id')->values();
-        $users = app('api')->client()->getStaff(['filters' => "staff_sn={$staff_sns};status_id>=0"]);
+        $department = GroupDepartment::pluck('department_id')->values();
+        $users = app('api')->client()->getStaff([
+            'filters' => "(staff_sn={$staff_sns})|(department_id={$department});status_id>=0"
+        ]);
         $commandModel = $this->createLog();
         $data = [];$logs = [];
         foreach ($users as $key => &$val) {
