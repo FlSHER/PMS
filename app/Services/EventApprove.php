@@ -117,20 +117,21 @@ class EventApprove
             'status_id' => -3
         ]);
 
+        $log_ids = $this->group->logs->pluck('id');
+        // 修改积分状态为已撤销
+        PointLogModel::whereIn('source_foreign_key', $log_ids)
+            ->where('source_id', 2)
+            ->update(['is_revoke' => 1]);
+
+        $logs = PointLogModel::query()
+            ->whereIn('source_foreign_key', $log_ids)
+            ->where('source_id', 2)
+            ->get();
+
         // 判断事件是否统计(已统计进入更新统计)
         $command = $this->preNode();
-        $changeAt = Carbon::parse($this->group->executed_at);
-        if ($command && Carbon::parse($command->created_at)->gt($changeAt)) {
-            $log_ids = $this->group->logs->pluck('id');
-
-            // 修改积分状态为已撤销
-            PointLogModel::whereIn('source_foreign_key', $log_ids)->update(['is_revoke' => 1]);
-
-            $logs = PointLogModel::query()
-                ->whereIn('source_foreign_key', $log_ids)
-                ->select('point_a', 'point_b', 'staff_sn', 'type_id', 'changed_at')
-                ->get();
-
+        $createAt = Carbon::parse($logs->last()->created_at);
+        if ($command && Carbon::parse($command->created_at)->gt($createAt)) {
             $logs->map(function ($item) {
                 // 非本月生效的积分日志
                 if (!Carbon::parse($item->changed_at)->isCurrentMonth()) {
@@ -146,7 +147,7 @@ class EventApprove
 
     /**
      * 更新月结数据.
-     * 
+     *
      * @author 28youth
      * @param  [type] $log [description]
      * @return [type]      [description]
@@ -171,7 +172,7 @@ class EventApprove
 
     /**
      * 更新日结数据.
-     * 
+     *
      * @author 28youth
      * @param  [type] $log [description]
      * @return [type]      [description]
@@ -193,7 +194,7 @@ class EventApprove
 
     /**
      * 撤销更新分类统计分.
-     * 
+     *
      * @author 28youth
      * @param  [type] $source 来源统计
      * @param  [type] $log    积分记录
