@@ -106,7 +106,7 @@ class ConvertOneTimePoint extends Command
         $model->department_name = $user['department']['full_name'];
         $model->shop_sn = $user['shop_sn'];
         $model->shop_name = $user['shop']['name'];
-        $model->changed_at = now();
+        $model->changed_at = null;
         $model->point_b = $point;
         $model->source_id = 3;
         $model->type_id = 0;
