@@ -51,7 +51,7 @@ class PointLog extends Model
 
     public function getChangedAtAttribute($value)
     {
-        return date('Y-m-d', strtotime($value));
+        return $value == null ? date('Y-m-d', strtotime($value)) : null;
     }
 
     /**
@@ -59,7 +59,7 @@ class PointLog extends Model
      *
      * @author 28youth
      * @param  Illuminate\Database\Eloquent\Builder $query
-     * @param  int  $key
+     * @param  int $key
      */
     public function scopeByForeignKey(Builder $query, $key)
     {
