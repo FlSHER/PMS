@@ -195,10 +195,10 @@ class CalculateStaffPoint extends Command
         //changed_at非空时加分
         if (!empty($log->changed_at)) {
             $this->monthly[$key]['point_a'] += $log->point_a;
-            $this->monthly[$key]['source_a_monthly'] = $this->monthlySource($log, 'source_a_monthly');
+            $this->monthly[$key]['source_a_monthly'] = $this->monthlySource($this->monthly[$key], $log, 'source_a_monthly');
 
             $this->monthly[$key]['point_b_monthly'] += $log->point_b;
-            $this->monthly[$key]['source_b_monthly'] = $this->monthlySource($log, 'source_b_monthly');
+            $this->monthly[$key]['source_b_monthly'] = $this->monthlySource($this->monthly[$key], $log, 'source_b_monthly');
         }
     }
 
@@ -211,10 +211,10 @@ class CalculateStaffPoint extends Command
     public function monthStatisticData($log)
     {
         $this->daily[$log->staff_sn]['point_a'] += $log->point_a;
-        $this->daily[$log->staff_sn]['source_a_monthly'] = $this->monthlySource($log, 'source_a_monthly', 'daily');
+        $this->daily[$log->staff_sn]['source_a_monthly'] = $this->monthlySource($this->daily[$log->staff_sn], $log, 'source_a_monthly', 'daily');
 
         $this->daily[$log->staff_sn]['point_b_monthly'] += $log->point_b;
-        $this->daily[$log->staff_sn]['source_b_monthly'] = $this->monthlySource($log, 'source_b_monthly', 'daily');
+        $this->daily[$log->staff_sn]['source_b_monthly'] = $this->monthlySource($this->daily[$log->staff_sn], $log, 'source_b_monthly', 'daily');
 
         $this->daily[$log->staff_sn]['calculated_at'] = $this->curtime;
     }
@@ -232,16 +232,16 @@ class CalculateStaffPoint extends Command
             $key = $log->staff_sn . '|' . $i;
             if (!empty($this->monthly[$key])) {
                 $this->monthly[$key]['point_a_total'] += $log->point_a;
-                $this->monthly[$key]['source_a_total'] = $this->monthlySource($log, 'source_a_total');
+                $this->monthly[$key]['source_a_total'] = $this->monthlySource($this->monthly[$key], $log, 'source_a_total');
                 $this->monthly[$key]['point_b_total'] += $log->point_b;
-                $this->monthly[$key]['source_b_total'] = $this->monthlySource($log, 'source_b_total');
+                $this->monthly[$key]['source_b_total'] = $this->monthlySource($this->monthly[$key], $log, 'source_b_total');
             }
         }
 
         $this->daily[$log->staff_sn]['point_a_total'] += $log->point_a;
-        $this->daily[$log->staff_sn]['source_a_total'] = $this->monthlySource($log, 'source_a_total', 'daily');
+        $this->daily[$log->staff_sn]['source_a_total'] = $this->monthlySource($this->daily[$log->staff_sn], $log, 'source_a_total', 'daily');
         $this->daily[$log->staff_sn]['point_b_total'] += $log->point_b;
-        $this->daily[$log->staff_sn]['source_b_total'] = $this->monthlySource($log, 'source_b_total', 'daily');
+        $this->daily[$log->staff_sn]['source_b_total'] = $this->monthlySource($this->daily[$log->staff_sn], $log, 'source_b_total', 'daily');
         $this->daily[$log->staff_sn]['staff_sn'] = $log->staff_sn;
     }
 
@@ -353,12 +353,9 @@ class CalculateStaffPoint extends Command
      * @author 28youth
      * @return array
      */
-    public function monthlySource($log, $type, $cate = 'monthly')
+    public function monthlySource($origin, $log, $type)
     {
-        $key = $log->staff_sn;
-        if ($cate == 'monthly') $key .= '|' . Carbon::parse($log->changed_at)->startOfMonth();
-        $current = $this->{$cate}[$key][$type] ?? $this->makePointTypeData();
-
+        $current = $origin[$type] ?? $this->makePointTypeData();
         foreach ($current as $k => &$v) {
             if ($v['id'] === $log->type_id) {
                 if (in_array($type, ['source_a_monthly', 'source_a_total'])) {
