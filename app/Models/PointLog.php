@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -51,7 +52,9 @@ class PointLog extends Model
 
     public function getChangedAtAttribute($value)
     {
-        return $value == null ? date('Y-m-d', strtotime($value)) : null;
+        if (empty($value)) return null;
+        
+        return Carbon::parse($value)->toDateString();
     }
 
     /**
