@@ -179,40 +179,31 @@ class CalculateStaffPoint extends Command
     }
 
     /**
-     * 处理上月统计数据.
+     * 历史统计数据添加当月分
      *
      * @author 28youth
      * @param  $log
      */
     public function handleLastMonthlyStatisticData($log)
     {
-        // 是否存在结算月份的结算员工
-        $key = $log->staff_sn . '|' . Carbon::parse($log->changed_at)->startOfMonth();
-
-        if (isset($this->monthly[$key])) {
-            if (!empty($log->changed_at)) {
-                $this->monthly[$key]['point_a'] += $log->point_a;
-                $this->monthly[$key]['source_a_monthly'] = $this->monthlySource($log, 'source_a_monthly');
-
-                $this->monthly[$key]['point_b_monthly'] += $log->point_b;
-                $this->monthly[$key]['source_b_monthly'] = $this->monthlySource($log, 'source_b_monthly');
-            }
-        } else {
-            if (!empty($log->changed_at)) {
-                $this->monthly[$key]['point_a'] = $log->point_a;
-                $this->monthly[$key]['source_a_monthly'] = $this->monthlySource($log, 'source_a_monthly');
-
-                $this->monthly[$key]['point_b_monthly'] = $log->point_b;
-                $this->monthly[$key]['source_b_monthly'] = $this->monthlySource($log, 'source_b_monthly');
-            }
-            // 新增的结算时间等于积分的生效时间
-            $this->monthly[$key]['date'] = Carbon::parse($log->changed_at)->startOfMonth();
+        $startOfMonth = Carbon::parse($log->changed_at)->startOfMonth();
+        $key = $log->staff_sn . '|' . $startOfMonth;
+        //如当月记录不存在，初始化
+        if (!isset($this->monthly[$key])) {
+            $this->initMonthlyData($startOfMonth, $log->staff_sn);
         }
-        $this->monthly[$key]['staff_sn'] = $log->staff_sn;
+        //changed_at非空时加分
+        if (!empty($log->changed_at)) {
+            $this->monthly[$key]['point_a'] += $log->point_a;
+            $this->monthly[$key]['source_a_monthly'] = $this->monthlySource($log, 'source_a_monthly');
+
+            $this->monthly[$key]['point_b_monthly'] += $log->point_b;
+            $this->monthly[$key]['source_b_monthly'] = $this->monthlySource($log, 'source_b_monthly');
+        }
     }
 
     /**
-     * 处理上次统计数据.
+     * 当前统计数据添加当月分.
      *
      * @author 28youth
      * @param  $log
@@ -229,7 +220,7 @@ class CalculateStaffPoint extends Command
     }
 
     /**
-     * 处理总分结算.
+     * 添加累计分.
      *
      * @return void
      */
@@ -239,7 +230,7 @@ class CalculateStaffPoint extends Command
         $i = Carbon::parse($changedAt)->startOfMonth();
         for ($i; $i->timestamp < now()->startOfMonth()->timestamp; $i->addMonth()) {
             $key = $log->staff_sn . '|' . $i;
-            if ($this->monthly[$key]) {
+            if (isset($this->monthly[$key])) {
                 $this->monthly[$key]['point_a_total'] += $log->point_a;
                 $this->monthly[$key]['source_a_total'] = $this->monthlySource($log, 'source_a_total');
                 $this->monthly[$key]['point_b_total'] += $log->point_b;
@@ -249,11 +240,54 @@ class CalculateStaffPoint extends Command
 
         $this->daily[$log->staff_sn]['point_a_total'] += $log->point_a;
         $this->daily[$log->staff_sn]['source_a_total'] = $this->monthlySource($log, 'source_a_total', 'daily');
-
         $this->daily[$log->staff_sn]['point_b_total'] += $log->point_b;
         $this->daily[$log->staff_sn]['source_b_total'] = $this->monthlySource($log, 'source_b_total', 'daily');
-
         $this->daily[$log->staff_sn]['staff_sn'] = $log->staff_sn;
+    }
+
+    /**
+     * 初始化历史统计
+     *
+     * @param Carbon $date
+     * @param $staffSn
+     */
+    protected function initMonthlyData(Carbon $date, $staffSn)
+    {
+
+        $key = $staffSn . '|' . $date;
+        $this->monthly[$key] = [
+            'point_a' => 0,
+            'source_a_monthly' => $this->makePointTypeData(),
+            'point_b' => 0,
+            'source_b_monthly' => $this->makePointTypeData(),
+            'date' => $date,
+            'staff_sn' => $staffSn,
+        ];
+        $prevMonthDate = $date->subMonth();
+        $nextMonthDate = $date->addMonth();
+        $prevMonth = $this->monthly[$staffSn . '|' . $prevMonthDate];
+        $nextMonth = $this->monthly[$staffSn . '|' . $nextMonthDate];
+        if (isset($prevMonth)) {
+            $this->monthly[$key]['point_a_total'] = $prevMonth['point_a_total'];
+            $this->monthly[$key]['source_a_total'] = $prevMonth['source_a_total'];
+            $this->monthly[$key]['point_b_total'] = $prevMonth['point_b_total'];
+            $this->monthly[$key]['source_b_total'] = $prevMonth['source_b_total'];
+        } elseif (isset($nextMonth)) {
+            $this->monthly[$key]['point_a_total'] = $nextMonth['point_a_total'] - $nextMonth['point_a'];
+            $this->monthly[$key]['source_a_total'] = array_map(function ($source, $sourceKey) use ($nextMonth) {
+                return $source - $nextMonth['source_a_monthly'][$sourceKey];
+            }, $nextMonth['source_a_total']);
+            $this->monthly[$key]['point_b_total'] = $nextMonth['point_b_total'] - $nextMonth['point_b'];
+            $this->monthly[$key]['source_b_total'] = array_map(function ($source, $sourceKey) use ($nextMonth) {
+                return $source - $nextMonth['source_b_monthly'][$sourceKey];
+            }, $nextMonth['source_b_total']);
+        } else {
+            $this->monthly[$key]['point_a_total'] = $this->daily['point_a_total'];
+            $this->monthly[$key]['source_a_total'] = $this->daily['source_a_total'];
+            $this->monthly[$key]['point_b_total'] = $this->daily['point_b_total'];
+            $this->monthly[$key]['source_b_total'] = $this->daily['source_b_total'];
+        }
+
     }
 
     /**
