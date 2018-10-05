@@ -258,7 +258,7 @@ class CalculateStaffPoint extends Command
         $this->monthly[$key] = [
             'point_a' => 0,
             'source_a_monthly' => $this->makePointTypeData(),
-            'point_b' => 0,
+            'point_b_monthly' => 0,
             'source_b_monthly' => $this->makePointTypeData(),
             'date' => $date,
             'staff_sn' => $staffSn,
