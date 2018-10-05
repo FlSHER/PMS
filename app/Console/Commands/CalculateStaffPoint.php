@@ -263,10 +263,10 @@ class CalculateStaffPoint extends Command
             'date' => $date,
             'staff_sn' => $staffSn,
         ];
-        $prevMonthDate = $date->subMonth();
-        $nextMonthDate = $date->addMonth();
-        $prevMonth = $this->monthly[$staffSn . '|' . $prevMonthDate];
-        $nextMonth = $this->monthly[$staffSn . '|' . $nextMonthDate];
+        $prevMonthDate = $date->copy()->subMonth();
+        $nextMonthDate = $date->copy()->addMonth();
+        $prevMonth = $this->monthly[$staffSn . '|' . $prevMonthDate] ?? null;
+        $nextMonth = $this->monthly[$staffSn . '|' . $nextMonthDate] ?? null;
         if (!empty($prevMonth)) {
             $this->monthly[$key]['point_a_total'] = $prevMonth['point_a_total'];
             $this->monthly[$key]['source_a_total'] = $prevMonth['source_a_total'];
