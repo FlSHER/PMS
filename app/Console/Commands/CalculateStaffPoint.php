@@ -189,7 +189,7 @@ class CalculateStaffPoint extends Command
         $startOfMonth = Carbon::parse($log->changed_at)->startOfMonth();
         $key = $log->staff_sn . '|' . $startOfMonth;
         //如当月记录不存在，初始化
-        if (!isset($this->monthly[$key])) {
+        if (empty($this->monthly[$key])) {
             $this->initMonthlyData($startOfMonth, $log->staff_sn);
         }
         //changed_at非空时加分
@@ -230,7 +230,7 @@ class CalculateStaffPoint extends Command
         $i = Carbon::parse($changedAt)->startOfMonth();
         for ($i; $i->timestamp < now()->startOfMonth()->timestamp; $i->addMonth()) {
             $key = $log->staff_sn . '|' . $i;
-            if (isset($this->monthly[$key])) {
+            if (!empty($this->monthly[$key])) {
                 $this->monthly[$key]['point_a_total'] += $log->point_a;
                 $this->monthly[$key]['source_a_total'] = $this->monthlySource($log, 'source_a_total');
                 $this->monthly[$key]['point_b_total'] += $log->point_b;
@@ -267,12 +267,12 @@ class CalculateStaffPoint extends Command
         $nextMonthDate = $date->addMonth();
         $prevMonth = $this->monthly[$staffSn . '|' . $prevMonthDate];
         $nextMonth = $this->monthly[$staffSn . '|' . $nextMonthDate];
-        if (isset($prevMonth)) {
+        if (!empty($prevMonth)) {
             $this->monthly[$key]['point_a_total'] = $prevMonth['point_a_total'];
             $this->monthly[$key]['source_a_total'] = $prevMonth['source_a_total'];
             $this->monthly[$key]['point_b_total'] = $prevMonth['point_b_total'];
             $this->monthly[$key]['source_b_total'] = $prevMonth['source_b_total'];
-        } elseif (isset($nextMonth)) {
+        } elseif (!empty($nextMonth)) {
             $this->monthly[$key]['point_a_total'] = $nextMonth['point_a_total'] - $nextMonth['point_a'];
             $this->monthly[$key]['source_a_total'] = array_map(function ($source, $sourceKey) use ($nextMonth) {
                 return $source - $nextMonth['source_a_monthly'][$sourceKey];
@@ -282,10 +282,10 @@ class CalculateStaffPoint extends Command
                 return $source - $nextMonth['source_b_monthly'][$sourceKey];
             }, $nextMonth['source_b_total']);
         } else {
-            $this->monthly[$key]['point_a_total'] = $this->daily['point_a_total'];
-            $this->monthly[$key]['source_a_total'] = $this->daily['source_a_total'];
-            $this->monthly[$key]['point_b_total'] = $this->daily['point_b_total'];
-            $this->monthly[$key]['source_b_total'] = $this->daily['source_b_total'];
+            $this->monthly[$key]['point_a_total'] = $this->daily[$staffSn]['point_a_total'];
+            $this->monthly[$key]['source_a_total'] = $this->daily[$staffSn]['source_a_total'];
+            $this->monthly[$key]['point_b_total'] = $this->daily[$staffSn]['point_b_total'];
+            $this->monthly[$key]['source_b_total'] = $this->daily[$staffSn]['source_b_total'];
         }
 
     }
