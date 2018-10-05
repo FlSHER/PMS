@@ -63,7 +63,7 @@ class CalculateStaffPoint extends Command
                 // 结算跨月
                 if (!Carbon::parse($this->pretime)->isCurrentMonth()) {
                     // 放入月结数据
-                    $key = $item->staff_sn.'|'.now()->startOfMonth();
+                    $key = $item->staff_sn . '|' . now()->startOfMonth();
                     $this->monthly[$key] = $item->toArray();
                     // 初始化月结时间
                     $this->monthly[$key]['date'] = now()->startOfMonth();
@@ -93,7 +93,9 @@ class CalculateStaffPoint extends Command
                 $this->initDailyStatisticData($item);
             }
             // 非本月生效的积分日志
-            if (!Carbon::parse($item->changed_at)->isCurrentMonth()) {
+            if (empty($item->changed_at)) {
+                //
+            } elseif (!Carbon::parse($item->changed_at)->isCurrentMonth()) {
                 $this->handleLastMonthlyStatisticData($item);
             } else {
                 // 统计当月分
@@ -185,7 +187,7 @@ class CalculateStaffPoint extends Command
     public function handleLastMonthlyStatisticData($log)
     {
         // 是否存在结算月份的结算员工
-        $key = $log->staff_sn.'|'.Carbon::parse($log->changed_at)->startOfMonth();
+        $key = $log->staff_sn . '|' . Carbon::parse($log->changed_at)->startOfMonth();
 
         if (isset($this->monthly[$key])) {
             if (!empty($log->changed_at)) {
@@ -195,10 +197,6 @@ class CalculateStaffPoint extends Command
                 $this->monthly[$key]['point_b_monthly'] += $log->point_b;
                 $this->monthly[$key]['source_b_monthly'] = $this->monthlySource($log, 'source_b_monthly');
             }
-                $this->monthly[$key]['point_a_total'] += $log->point_a;
-                $this->monthly[$key]['source_a_total'] = $this->monthlySource($log, 'source_a_total');
-                $this->monthly[$key]['point_b_total'] += $log->point_b;
-                $this->monthly[$key]['source_b_total'] = $this->monthlySource($log, 'source_b_total');
         } else {
             if (!empty($log->changed_at)) {
                 $this->monthly[$key]['point_a'] = $log->point_a;
@@ -207,11 +205,6 @@ class CalculateStaffPoint extends Command
                 $this->monthly[$key]['point_b_monthly'] = $log->point_b;
                 $this->monthly[$key]['source_b_monthly'] = $this->monthlySource($log, 'source_b_monthly');
             }
-                $this->monthly[$key]['point_a_total'] = $log->point_a;
-                $this->monthly[$key]['source_a_total'] = $this->monthlySource($log, 'source_a_total');
-                $this->monthly[$key]['point_b_total'] = $log->point_b;
-                $this->monthly[$key]['source_b_total'] = $this->monthlySource($log, 'source_b_total');
-
             // 新增的结算时间等于积分的生效时间
             $this->monthly[$key]['date'] = Carbon::parse($log->changed_at)->startOfMonth();
         }
@@ -242,6 +235,18 @@ class CalculateStaffPoint extends Command
      */
     public function totalStatisticData($log)
     {
+        $changedAt = $log->changed_at ?: '2018-07-01 00:00:00';
+        $i = Carbon::parse($changedAt)->startOfMonth();
+        for ($i; $i->timestamp() < Carbon::startOfMonth()->timestamp(); $i->addMonth()) {
+            $key = $log->staff_sn . '|' . $i;
+            if ($this->monthly[$key]) {
+                $this->monthly[$key]['point_a_total'] += $log->point_a;
+                $this->monthly[$key]['source_a_total'] = $this->monthlySource($log, 'source_a_total');
+                $this->monthly[$key]['point_b_total'] += $log->point_b;
+                $this->monthly[$key]['source_b_total'] = $this->monthlySource($log, 'source_b_total');
+            }
+        }
+
         $this->daily[$log->staff_sn]['point_a_total'] += $log->point_a;
         $this->daily[$log->staff_sn]['source_a_total'] = $this->monthlySource($log, 'source_a_total', 'daily');
 
