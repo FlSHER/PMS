@@ -237,7 +237,7 @@ class CalculateStaffPoint extends Command
     {
         $changedAt = $log->changed_at ?: '2018-07-01 00:00:00';
         $i = Carbon::parse($changedAt)->startOfMonth();
-        for ($i; $i->timestamp < Carbon::startOfMonth()->timestamp; $i->addMonth()) {
+        for ($i; $i->timestamp < now()->startOfMonth()->timestamp; $i->addMonth()) {
             $key = $log->staff_sn . '|' . $i;
             if ($this->monthly[$key]) {
                 $this->monthly[$key]['point_a_total'] += $log->point_a;
