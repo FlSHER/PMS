@@ -154,9 +154,10 @@ class EventApprove
      */
     public function updateMonthlyStatistic($log)
     {
+        $changedAt = Carbon::parse($log->changed_at)->startOfMonth();
         $logModel = StatisticLogModel::query()
-            ->where('date', $log->change_at)
             ->where('staff_sn', $log->staff_sn)
+            ->where('date', $changedAt)
             ->first();
         $logModel->point_a -= $log->point_a;
         $logModel->point_a_total -= $log->point_a;

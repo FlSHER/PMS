@@ -206,11 +206,7 @@ class EventLogController extends Controller
     {
         $group->getConnection()->transaction(function () use ($group, $request) {
             $approveService = new EventApprove($group);
-            $approveService->finalApprove([
-                'first_approver_point' => $request->first_approver_point,
-                'recorder_point' => $request->recorder_point,
-                'remark' => $request->remark
-            ]);
+            $approveService->finalApprove($request->all());
         });
 
         return response()->json(['message' => '操作成功'], 201);
