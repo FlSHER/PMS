@@ -49,26 +49,17 @@ class StatisticPoint extends Log
             ->first();
         if ($logModel === null) {
             $logModel = new StatisticLogModel();
-            $logModel->fill($staff);
-            $logModel->date = $monthly['date'];
-            $logModel->point_a = $monthly['point_a'];
-            $logModel->point_a_total = $monthly['point_a_total'];
-            $logModel->source_a_total = $monthly['source_a_total'];
-            $logModel->source_a_monthly = $monthly['source_a_monthly'];
-            $logModel->point_b_total = $monthly['point_b_total'];
-            $logModel->source_b_total = $monthly['source_b_total'];
-            $logModel->point_b_monthly = $monthly['point_b_monthly'];
-            $logModel->source_b_monthly = $monthly['source_b_monthly'];
+            $logModel->fill($staff + $monthly);
             $logModel->save();
         } else {
             $logModel->fill($staff);
             $logModel->date = $monthly['date'];
             $logModel->point_a += $monthly['point_a'];
             $logModel->point_a_total += $monthly['point_a_total'];
-            $logModel->source_a_monthly = $this->mergeSource($logModel->source_a_monthly, $monthly['source_a_monthly']);
-            $logModel->source_a_total = $this->mergeSource($logModel->source_a_total, $monthly['source_a_total']);
             $logModel->point_b_monthly += $monthly['point_b_monthly'];
             $logModel->point_b_total += $monthly['point_b_total'];
+            $logModel->source_a_monthly = $this->mergeSource($logModel->source_a_monthly, $monthly['source_a_monthly']);
+            $logModel->source_a_total = $this->mergeSource($logModel->source_a_total, $monthly['source_a_total']);
             $logModel->source_b_monthly = $this->mergeSource($logModel->source_b_monthly, $monthly['source_b_monthly']);
             $logModel->source_b_total = $this->mergeSource($logModel->source_b_total, $monthly['source_b_total']);
             $logModel->save();
@@ -83,15 +74,15 @@ class StatisticPoint extends Log
      */
     public function mergeSource($source, $data)
     {
-        foreach ($source as $key => $value) {
-            if (isset($data[$key])) {
-                $data[$key]['add_point'] += $value['add_point'];
-                $data[$key]['sub_point'] += $value['sub_point'];
-                $data[$key]['point'] += $value['point'];
+        foreach ($data as $key => $value) {
+            if (isset($source[$key])) {
+                $source[$key]['add_point'] += $value['add_point'];
+                $source[$key]['sub_point'] += $value['sub_point'];
+                $source[$key]['point'] += $value['point'];
             }
         }
 
-        return $data;
+        return $source;
     }
 
 }

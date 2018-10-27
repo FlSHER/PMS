@@ -92,10 +92,10 @@ class CalculateStaffPoint extends Command
             if (!isset($this->daily[$item->staff_sn])) {
                 $this->initDailyStatisticData($item);
             }
-            // 非本月生效的积分日志
             if (empty($item->changed_at)) {
-                //
+                // 
             } elseif (!Carbon::parse($item->changed_at)->isCurrentMonth()) {
+                // 非本月生效的积分日志
                 $this->handleLastMonthlyStatisticData($item);
             } else {
                 // 统计当月分
@@ -211,10 +211,10 @@ class CalculateStaffPoint extends Command
     public function monthStatisticData($log)
     {
         $this->daily[$log->staff_sn]['point_a'] += $log->point_a;
-        $this->daily[$log->staff_sn]['source_a_monthly'] = $this->monthlySource($this->daily[$log->staff_sn], $log, 'source_a_monthly', 'daily');
+        $this->daily[$log->staff_sn]['source_a_monthly'] = $this->monthlySource($this->daily[$log->staff_sn], $log, 'source_a_monthly');
 
         $this->daily[$log->staff_sn]['point_b_monthly'] += $log->point_b;
-        $this->daily[$log->staff_sn]['source_b_monthly'] = $this->monthlySource($this->daily[$log->staff_sn], $log, 'source_b_monthly', 'daily');
+        $this->daily[$log->staff_sn]['source_b_monthly'] = $this->monthlySource($this->daily[$log->staff_sn], $log, 'source_b_monthly');
 
         $this->daily[$log->staff_sn]['calculated_at'] = $this->curtime;
     }
@@ -239,9 +239,9 @@ class CalculateStaffPoint extends Command
         }
 
         $this->daily[$log->staff_sn]['point_a_total'] += $log->point_a;
-        $this->daily[$log->staff_sn]['source_a_total'] = $this->monthlySource($this->daily[$log->staff_sn], $log, 'source_a_total', 'daily');
+        $this->daily[$log->staff_sn]['source_a_total'] = $this->monthlySource($this->daily[$log->staff_sn], $log, 'source_a_total');
         $this->daily[$log->staff_sn]['point_b_total'] += $log->point_b;
-        $this->daily[$log->staff_sn]['source_b_total'] = $this->monthlySource($this->daily[$log->staff_sn], $log, 'source_b_total', 'daily');
+        $this->daily[$log->staff_sn]['source_b_total'] = $this->monthlySource($this->daily[$log->staff_sn], $log, 'source_b_total');
         $this->daily[$log->staff_sn]['staff_sn'] = $log->staff_sn;
     }
 
@@ -267,6 +267,7 @@ class CalculateStaffPoint extends Command
         $nextMonthDate = $date->copy()->addMonth();
         $prevMonth = $this->monthly[$staffSn . '|' . $prevMonthDate] ?? null;
         $nextMonth = $this->monthly[$staffSn . '|' . $nextMonthDate] ?? null;
+
         if (!empty($prevMonth)) {
             $this->monthly[$key]['point_a_total'] = $prevMonth['point_a_total'];
             $this->monthly[$key]['source_a_total'] = $prevMonth['source_a_total'];
@@ -274,13 +275,9 @@ class CalculateStaffPoint extends Command
             $this->monthly[$key]['source_b_total'] = $prevMonth['source_b_total'];
         } elseif (!empty($nextMonth)) {
             $this->monthly[$key]['point_a_total'] = $nextMonth['point_a_total'] - $nextMonth['point_a'];
-            $this->monthly[$key]['source_a_total'] = array_map(function ($source, $sourceKey) use ($nextMonth) {
-                return $source - $nextMonth['source_a_monthly'][$sourceKey];
-            }, $nextMonth['source_a_total']);
+            $this->monthly[$key]['source_a_total'] = $this->totalMinusMonthly($nextMonth, true);
             $this->monthly[$key]['point_b_total'] = $nextMonth['point_b_total'] - $nextMonth['point_b'];
-            $this->monthly[$key]['source_b_total'] = array_map(function ($source, $sourceKey) use ($nextMonth) {
-                return $source - $nextMonth['source_b_monthly'][$sourceKey];
-            }, $nextMonth['source_b_total']);
+            $this->monthly[$key]['source_b_total'] = $this->totalMinusMonthly($nextMonth, false);
         } else {
             $this->monthly[$key]['point_a_total'] = $this->daily[$staffSn]['point_a_total'];
             $this->monthly[$key]['source_a_total'] = $this->daily[$staffSn]['source_a_total'];
@@ -288,6 +285,27 @@ class CalculateStaffPoint extends Command
             $this->monthly[$key]['source_b_total'] = $this->daily[$staffSn]['source_b_total'];
         }
 
+    }
+
+    /**
+     * 累计总分减去累计月总分。
+     * 
+     * @param  array $data
+     * @param  bool $type
+     * @return array
+     */
+    protected function totalMinusMonthly($data, $type)
+    {
+        $total = $type ? $data['source_a_total'] : $data['source_b_total'];
+        $month = $type ? $data['source_a_monthly'] : $data['source_b_monthly'];
+        foreach ($month as $key => $value) {
+            if (isset($total[$key])) {
+                $total[$key]['add_point'] -= $value['add_point'];
+                $total[$key]['sub_point'] -= $value['sub_point'];
+                $total[$key]['point'] -= $value['point'];
+            }
+        }
+        return $total;
     }
 
     /**
