@@ -63,10 +63,10 @@ class CalculateStaffPoint extends Command
                 // 结算跨月
                 if (!Carbon::parse($this->pretime)->isCurrentMonth()) {
                     // 放入月结数据
-                    $key = $item->staff_sn . '|' . now()->startOfMonth();
+                    $key = $item->staff_sn . '|' . Carbon::parse($this->pretime)->startOfMonth();
                     $this->monthly[$key] = $item->toArray();
                     // 初始化月结时间
-                    $this->monthly[$key]['date'] = now()->startOfMonth();
+                    $this->monthly[$key]['date'] = Carbon::parse($this->pretime)->startOfMonth();
 
                     // 跨月清空数据
                     $item->point_a = 0;
@@ -306,36 +306,6 @@ class CalculateStaffPoint extends Command
             }
         }
         return $total;
-    }
-
-    /**
-     * 初始化默认积分来源信息.
-     *
-     * @author 28youth
-     * @return array
-     */
-    public function makeSourceData()
-    {
-        $cacheKey = 'default_point_log_source';
-
-        if (Cache::has($cacheKey)) {
-            return Cache::get($cacheKey);
-        }
-        $source = PointLogSource::get()->map(function ($item) {
-            $item->add_point = 0;
-            $item->sub_point = 0;
-            $item->add_a_point = 0;
-            $item->sub_a_point = 0;
-            $item->point_a_total = 0;
-            $item->point_b_total = 0;
-
-            return $item;
-        })->toArray();
-
-        $expiresAt = now()->addDay();
-        Cache::put($cacheKey, $source, $expiresAt);
-
-        return $source;
     }
 
     /**
