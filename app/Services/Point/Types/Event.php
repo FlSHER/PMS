@@ -37,7 +37,6 @@ class Event extends Log
             'point_a' => 0,
             'point_b' => $eventlog->first_approver_point,
             'staff_sn' => $eventlog->first_approver_sn,
-            'source_id' => self::SYSTEM_POINT,
             'title' => '奖扣-初审人: ' . $eventlog->event_name
         ]);
         // 记录人得分
@@ -45,7 +44,6 @@ class Event extends Log
             'point_a' => 0,
             'point_b' => $eventlog->recorder_point,
             'staff_sn' => $eventlog->recorder_sn,
-            'source_id' => self::SYSTEM_POINT,
             'title' => '奖扣-记录人: ' . $eventlog->event_name
         ]);
 

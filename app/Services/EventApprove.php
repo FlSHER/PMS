@@ -112,10 +112,10 @@ class EventApprove
         $this->group->save();
 
         // 同步状态到事件.
-        EventLogModel::where('event_log_group_id', $this->group->id)->update([
+        $this->group->logs()->update([
             'revoke_remark' => request()->remark,
-            'status_id' => -3
-        ]);
+            'status_id' => -3,
+        ])
 
         $log_ids = $this->group->logs->pluck('id');
         // 修改积分状态为已撤销
@@ -147,10 +147,6 @@ class EventApprove
 
     /**
      * 更新月结数据.
-     *
-     * @author 28youth
-     * @param  [type] $log [description]
-     * @return [type]      [description]
      */
     public function updateMonthlyStatistic($log)
     {
@@ -173,10 +169,6 @@ class EventApprove
 
     /**
      * 更新日结数据.
-     *
-     * @author 28youth
-     * @param  [type] $log [description]
-     * @return [type]      [description]
      */
     public function updateDailyStatistic($log)
     {
@@ -197,30 +189,32 @@ class EventApprove
      * 撤销更新分类统计分.
      *
      * @author 28youth
-     * @param  [type] $source 来源统计
+     * @param  [type] $origin 来源统计
      * @param  [type] $log    积分记录
      * @return array
      */
-    public function makeSource($source, $log, $type)
+    public function makeSource($origin, $log, $type)
     {
-        foreach ($source as $k => &$v) {
-            if (in_array($type, ['source_a_monthly', 'source_a_total'])) {
-                $v['point'] -= $log->point_a;
-                if ($log->point_a >= 0) {
-                    $v['add_point'] -= $log->point_a;
-                } else {
-                    $v['sub_point'] -= $log->point_a;
-                }
-            } elseif (in_array($type, ['source_b_monthly', 'source_b_total'])) {
-                $v['point'] -= $log->point_b;
-                if ($log->point_b >= 0) {
-                    $v['add_point'] -= $log->point_b;
-                } else {
-                    $v['sub_point'] -= $log->point_b;
+        foreach ($origin as $k => &$v) {
+            if ($log->type_id === $v['id']) {
+                if (in_array($type, ['source_a_monthly', 'source_a_total'])) {
+                    $v['point'] -= $log->point_a;
+                    if ($log->point_a >= 0) {
+                        $v['add_point'] -= $log->point_a;
+                    } else {
+                        $v['sub_point'] -= $log->point_a;
+                    }
+                } elseif (in_array($type, ['source_b_monthly', 'source_b_total'])) {
+                    $v['point'] -= $log->point_b;
+                    if ($log->point_b >= 0) {
+                        $v['add_point'] -= $log->point_b;
+                    } else {
+                        $v['sub_point'] -= $log->point_b;
+                    }
                 }
             }
         }
-        return $source;
+        return $origin;
     }
 
      /**
