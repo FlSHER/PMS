@@ -115,7 +115,7 @@ class EventApprove
         $this->group->logs()->update([
             'revoke_remark' => request()->remark,
             'status_id' => -3,
-        ])
+        ]);
 
         $log_ids = $this->group->logs->pluck('id');
         // 修改积分状态为已撤销
