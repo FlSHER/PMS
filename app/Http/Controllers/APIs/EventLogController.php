@@ -210,7 +210,7 @@ class EventLogController extends Controller
             $approveService = new EventApprove($group);
             $response = $approveService->finalApprove($request->all());
 
-            return response()->json([$response, 201);
+            return response()->json($response, 201);
         });
     }
 
