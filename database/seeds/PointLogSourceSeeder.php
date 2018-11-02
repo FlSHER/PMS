@@ -18,6 +18,7 @@ class PointLogSourceSeeder extends Seeder
             ['id' => 3, 'name' => '任务'],
             ['id' => 4, 'name' => '考勤'],
             ['id' => 5, 'name' => '日志'],
+            ['id' => 6, 'name' => '大爱'],
         ]);
     }
 }
