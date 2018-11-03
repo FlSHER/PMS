@@ -62,6 +62,11 @@ class PointController extends Controller
         return $this->point->storePoint($all);
     }
 
+    public function delete(Request $request)
+    {
+        return $this->point->deletePoint($request->route('id'));
+    }
+
     protected function storeVerify($request)
     {
         try {

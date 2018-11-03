@@ -64,4 +64,9 @@ class PointService
             });
         })->export('xlsx');
     }
+
+    public function deletePoint($id)
+    {
+        return $this->point->delPoint($id);
+    }
 }

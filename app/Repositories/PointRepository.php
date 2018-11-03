@@ -40,6 +40,12 @@ class PointRepository
         return $this->point->find($id);
     }
 
+    /**
+     * 接口增加数据
+     *
+     * @param $all
+     * @return \Illuminate\Contracts\Routing\ResponseFactory|\Symfony\Component\HttpFoundation\Response
+     */
     public function storePointData($all)
     {
         if (count($all) == count($all, 1)) {
@@ -55,6 +61,19 @@ class PointRepository
             }
             return response($arr, 201);
         }
+    }
+
+    /**
+     * @param $id
+     */
+    public function delPoint($id)
+    {
+        $data = $this->point->find($id);
+        if($data == false){
+            return response('未找到数据',404);
+        }
+        $data->delete();
+        return response('',204);
     }
 
     /**
