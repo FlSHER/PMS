@@ -186,12 +186,14 @@ class EventLogController extends Controller
      */
     public function firstApprove(Request $request, EventLogGroupModel $group)
     {
-        $approveService = new EventApprove($group);
-        $response = $approveService->firstApprove([
-            'remark' => $request->remark
-        ]);
-
-        return response()->json($response, 201);
+        return $group->getConnection()->transaction(function () use ($group, $request) {
+            $approveService = new EventApprove($group);
+            $response = $approveService->firstApprove([
+                'remark' => $request->remark
+            ]);
+            
+            return response()->json($response, 201);
+        });
     }
 
     /**
@@ -204,12 +206,12 @@ class EventLogController extends Controller
      */
     public function finalApprove(Request $request, EventLogGroupModel $group)
     {
-        $group->getConnection()->transaction(function () use ($group, $request) {
+        return $group->getConnection()->transaction(function () use ($group, $request) {
             $approveService = new EventApprove($group);
-            $approveService->finalApprove($request->all());
-        });
+            $response = $approveService->finalApprove($request->all());
 
-        return response()->json(['message' => '操作成功'], 201);
+            return response()->json($response, 201);
+        });
     }
 
     /**
