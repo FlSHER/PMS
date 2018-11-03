@@ -46,6 +46,7 @@ Route::group(['middleware' => 'auth:api'], function (RouteContract $admin) {
     $admin->get('point-log/{id}', Admin\PointController::class . '@details');//积分变动详情页面
     $admin->get('point/export', Admin\PointController::class . '@export');//积分变动导出 暂时不用
     $admin->post('point-log',Admin\PointController::class.'@store');//接口对接
+    $admin->delete('point-log/{id}',Admin\PointController::class.'@delete');
     //奖扣任务
     $admin->get('targets', Admin\PointTargetController::class . '@targets');//获取奖扣指标列表
     $admin->get('targets/{id}', Admin\PointTargetController::class . '@targetsDetails');//获取奖扣指标详情
