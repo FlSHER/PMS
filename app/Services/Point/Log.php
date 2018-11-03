@@ -25,6 +25,8 @@ class Log
 
 	// 日志分
     const LOG_POINT = 5;
+    // 大爱
+    const DAAI_POINT = 5;
 
     /**
      * 获取积分记录所需用户信息.

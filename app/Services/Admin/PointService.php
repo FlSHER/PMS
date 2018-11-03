@@ -35,6 +35,11 @@ class PointService
         return $this->point->getDetailsData($request);
     }
 
+    public function storePoint($all)
+    {
+        return $this->point->storePointData($all);
+    }
+
     /**
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse

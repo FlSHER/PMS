@@ -40,6 +40,23 @@ class PointRepository
         return $this->point->find($id);
     }
 
+    public function storePointData($all)
+    {
+        if (count($all) == count($all, 1)) {
+            $all['created_at'] = date('Y-m-d H:i:s');
+            $all['updated_at'] = date('Y-m-d H:i:s');
+            return response($this->point->create($all), 201);
+        } else {
+            $arr = [];
+            foreach ($all as $key => $value) {
+                $value['created_at'] = date('Y-m-d H:i:s');
+                $value['updated_at'] = date('Y-m-d H:i:s');
+                $arr[] = $this->point->create($value);
+            }
+            return response($arr, 201);
+        }
+    }
+
     /**
      * @param $request
      * @return \Illuminate\Database\Eloquent\Builder[]|\Illuminate\Database\Eloquent\Collection
