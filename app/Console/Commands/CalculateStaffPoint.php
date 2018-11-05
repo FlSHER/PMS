@@ -70,22 +70,22 @@ class CalculateStaffPoint extends Command
             $pretime = Carbon::parse($this->pretime)->startOfMonth();
 
             $statistics = StatisticModel::get()->toArray();
-            if (!$pretime->isCurrentMonth()) {
-                foreach ($statistics as $key => $static) {
+            foreach ($statistics as $key => $static) {
+                $staffSn = $static['staff_sn'];
+                if (!$pretime->isCurrentMonth()) {
                     // 将上月累计分转化为月历史数据
-                    $staffSn = $static['staff_sn'];
                     $key = $staffSn . '|' . $pretime;
                     $this->monthly[$key] = $static;
                     $this->monthly[$key]['date'] = $pretime->toDateTimeString();
 
-                    // 跨月清空上月累积分->转为当月
-                    $this->daily[$staffSn] = $static;
-                    $this->daily[$staffSn]['point_a'] = 0;
-                    $this->daily[$staffSn]['point_b_monthly'] = 0;
-                    $this->daily[$staffSn]['source_a_monthly'] = $this->initType;
-                    $this->daily[$staffSn]['source_b_monthly'] = $this->initType;
-                    $this->daily[$staffSn]['calculated_at'] = $this->curtime;
+                    // 跨月清空上月累积分
+                    $static['point_a'] = 0;
+                    $static['point_b_monthly'] = 0;
+                    $static['source_a_monthly'] = $this->initType;
+                    $static['source_b_monthly'] = $this->initType;
+                    $static['calculated_at'] = $this->curtime;
                 }
+                $this->daily[$staffSn] = $static;
             }
         }
         // 查询新的积分记录进行结算
