@@ -86,9 +86,9 @@ class PointController extends Controller
                     'changed_at' => 'date|nullable',
                     'source_id' => 'required|exists:point_log_sources,id',
                     'source_foreign_key' => 'nullable|numeric|max:2147483647',//调用方 数据id
-                    'first_approver_sn' => 'required|digits:6|numeric',
+                    'first_approver_sn' => 'nullable|digits:6|numeric',
                     'first_approver_name' => 'required|max:10',
-                    'final_approver_sn' => 'required|digits:6|numeric',
+                    'final_approver_sn' => 'nullable|digits:6|numeric',
                     'final_approver_name' => 'required|max:10',
                     'type_id' => 'required|numeric|exists:point_types,id',
                     'is_revoke' => 'between:0,1',
