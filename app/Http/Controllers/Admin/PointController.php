@@ -90,8 +90,8 @@ class PointController extends Controller
                     'first_approver_name' => 'nullable|max:10',
                     'final_approver_sn' => 'nullable|digits:6|numeric',
                     'final_approver_name' => 'nullable|max:10',
-                    'record_sn' => 'nullable|digits:6|numeric',
-                    'record_name' => 'nullable|max:10',
+                    'recorder_sn' => 'nullable|digits:6|numeric',
+                    'recorder_name' => 'nullable|max:10',
                     'type_id' => 'required|numeric|exists:point_types,id',
                     'is_revoke' => 'between:0,1',
                 ], [], [
@@ -113,6 +113,8 @@ class PointController extends Controller
                     'first_approver_name' => '初审人姓名',
                     'final_approver_sn' => '终审人编号',
                     'final_approver_name' => '终审人姓名',
+                    'recorder_sn' => '记录人编号',
+                    'recorder_name' => '记录人姓名',
                     'type_id' => '分类ID',
                     'is_revoke' => '是否撤回记录',
                 ]
