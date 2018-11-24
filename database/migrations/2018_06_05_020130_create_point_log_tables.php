@@ -34,6 +34,8 @@ class CreatePointLogTables extends Migration
             $table->unsignedMediumInteger('final_approver_sn')->nullable()->comment('终审人编号');
             $table->char('final_approver_name', 10)->default('')->comment('终审人姓名');
             $table->unsignedSmallInteger('is_revoke')->default(0)->comment('是否撤回记录 0-否 1-是');
+            $table->unsignedMediumInteger('record_sn')->nullable()->comment('记录人编号');
+            $table->char('record_name', 10)->default('')->comment('记录人姓名');
             $table->timestamps();
             $table->softDeletes();
         });
