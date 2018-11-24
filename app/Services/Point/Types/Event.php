@@ -93,6 +93,8 @@ class Event extends Log
     protected function fillBaseData(EventLogModel $eventlog): array
     {
         return [
+            'recorder_sn' => $eventlog->recorder_sn,
+            'recorder_name' => $eventlog->recorder_name,
             'type_id' => $this->hasType($eventlog->event_type_id),
             'source_id' => self::EVENT_POINT,
             'source_foreign_key' => $eventlog->id,
