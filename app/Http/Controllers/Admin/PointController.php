@@ -90,6 +90,8 @@ class PointController extends Controller
                     'first_approver_name' => 'nullable|max:10',
                     'final_approver_sn' => 'nullable|digits:6|numeric',
                     'final_approver_name' => 'nullable|max:10',
+                    'record_sn' => 'nullable|digits:6|numeric',
+                    'record_name' => 'nullable|max:10',
                     'type_id' => 'required|numeric|exists:point_types,id',
                     'is_revoke' => 'between:0,1',
                 ], [], [

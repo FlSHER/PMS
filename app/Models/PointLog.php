@@ -36,6 +36,8 @@ class PointLog extends Model
         'first_approver_name',
         'final_approver_sn',
         'final_approver_name',
+        'record_sn',
+        'record_name',
         'type_id'
     ];
 
