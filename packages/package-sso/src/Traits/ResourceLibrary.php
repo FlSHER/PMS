@@ -116,4 +116,14 @@ trait ResourceLibrary
         return $this->get('api/get_dingtalk_access_token');
     }
 
+    /**
+     * 发送钉钉通知.
+     * 
+     * @param  array  $params
+     * @return mixed
+     */
+    public function sendMsg(array $params)
+    {
+        return $this->post('dingtalk/user-notification', $params);
+    }
 }
