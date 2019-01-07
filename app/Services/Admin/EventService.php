@@ -297,7 +297,7 @@ class EventService
 
     protected function dataTransform($json)
     {
-        $arrData = json_decode($json);
+        $arrData = json_decode($json,true);
         $array = [];
         foreach ($arrData as $items) {
             $array[] = $items['staff_sn'] . '=' . $items['staff_name'];
