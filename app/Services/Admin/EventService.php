@@ -285,7 +285,7 @@ class EventService
                 $v['point_b_min'], $v['point_b_max'], $v['point_a_default'], $v['point_b_default'],
                 $v['first_approver_name'], $v['final_approver_name'] == 1 ? '锁定' : '未锁定',
                 $v['first_approver_locked'] == 1 ? '锁定' : '未锁定', $v['final_approver_locked'],
-                $v['default_cc_addressees'] != [] ? $this->dataTransform($v['default_cc_addressees'])
+                $v['default_cc_addressees'] != false ? $this->dataTransform($v['default_cc_addressees'])
                     : $v['default_cc_addressees'], $v['is_active'] == 1 ? '激活' : '未激活'];
         }
         Excel::create('积分制事件', function ($excel) use ($eventTop) {
@@ -295,11 +295,10 @@ class EventService
         })->export('xlsx');
     }
 
-    protected function dataTransform($json)
+    protected function dataTransform($arr)
     {
-        $arrData = json_decode($json,true);
         $array = [];
-        foreach ($arrData as $items) {
+        foreach ($arr as $items) {
             $array[] = $items['staff_sn'] . '=' . $items['staff_name'];
         }
         return implode(',', $array);
