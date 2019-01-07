@@ -288,11 +288,12 @@ class EventService
                 $v['default_cc_addressees'] != false ? $this->dataTransform($v['default_cc_addressees'])
                     : '', $v['is_active'] == 1 ? '激活' : '未激活'];
         }
-        Excel::create('积分制事件', function ($excel) use ($eventTop) {
-            $excel->sheet('score', function ($query) use ($eventTop) {
-                $query->rows($eventTop);
-            });
-        })->export('xlsx');
+        return $eventTop;
+//        Excel::create('积分制事件', function ($excel) use ($eventTop) {
+//            $excel->sheet('score', function ($query) use ($eventTop) {
+//                $query->rows($eventTop);
+//            });
+//        })->export('xlsx');
     }
 
     protected function dataTransform($arr)
