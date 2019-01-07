@@ -129,12 +129,41 @@ class EventLogController extends Controller
             $approveService->firstApprove(['remark' => '初审人与记录人相同，系统自动通过。']);
         } elseif ($finalSn === $firstSn) {
             $approveService->firstApprove(['remark' => '初审人与终审人相同，系统自动通过。']);
+        } else {
+            // 通知初审人
+            $this->sendDingtalkMsg([
+                'userid_list' => [$firstSn],
+                'text' => "{$user->realname}提交了一条待初审积分消息，请及时处理",
+            ]);
         }
 
         // 记录人等于终审人且等于初审人,终审通过
         if ($user->staff_sn === $finalSn && $user->staff_sn === $firstSn) {
             $approveService->finalApprove(['remark' => '终审人与记录人相同，系统自动通过。']);
+        } else {
+            // 通知终审人
+            $this->sendDingtalkMsg([
+                'userid_list' => [$finalSn],
+                'text' => "{$user->realname}提交了一条待终审积分消息，请及时处理",
+            ]);
         }
+    }
+
+    /**
+     * 发送钉钉通知消息.
+     * 
+     * @param  array  $params
+     */
+    public function sendDingtalkMsg(array $params)
+    {
+        app('api')->sendMsg([
+            'agent_id' => 181982181,
+            'userid_list' => $params['userid_list'],
+            'message' => [
+                'url' => 'http://120.79.121.158:8102/audit_list',
+                'text' => $params['text'],
+            ],
+        ]);
     }
 
     /**
