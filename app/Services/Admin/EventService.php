@@ -286,7 +286,7 @@ class EventService
                 $v['first_approver_name'], $v['final_approver_name'] == 1 ? '锁定' : '未锁定',
                 $v['first_approver_locked'] == 1 ? '锁定' : '未锁定', $v['final_approver_locked'],
                 $v['default_cc_addressees'] != false ? $this->dataTransform($v['default_cc_addressees'])
-                    : $v['default_cc_addressees'], $v['is_active'] == 1 ? '激活' : '未激活'];
+                    : '', $v['is_active'] == 1 ? '激活' : '未激活'];
         }
         Excel::create('积分制事件', function ($excel) use ($eventTop) {
             $excel->sheet('score', function ($query) use ($eventTop) {
