@@ -110,6 +110,7 @@ class ConvertOneTimePoint extends Command
         $model->point_b = $point;
         $model->source_id = 3;
         $model->type_id = 0;
+        $model->recorder_sn = $user['staff_sn'];
         $model->save();
     }
 
@@ -143,7 +144,7 @@ class ConvertOneTimePoint extends Command
      * @author 28youth
      * @return ArtisanCommandLog
      */
-    public function createLog() : ArtisanCommandLog
+    public function createLog(): ArtisanCommandLog
     {
         $commandModel = new ArtisanCommandLog();
         $commandModel->command_sn = 'pms:one-time-point-convert';
