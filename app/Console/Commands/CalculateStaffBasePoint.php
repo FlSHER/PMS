@@ -26,7 +26,7 @@ class CalculateStaffBasePoint extends Command
 
     public function handle()
     {
-    	// 基础分配置项
+        // 基础分配置项
         $configs = CommonConfig::byNamespace('basepoint')->get();
         // 基础工龄系数
         $ratio = CommonConfig::byNamespace('basepoint')->byName('ratio')->value('value');
@@ -37,7 +37,8 @@ class CalculateStaffBasePoint extends Command
             'filters' => "(staff_sn={$staff_sns})|(department_id={$department});status_id>=0"
         ]);
         $commandModel = $this->createLog();
-        $data = [];$logs = [];
+        $data = [];
+        $logs = [];
         foreach ($users as $key => &$val) {
             $log = [];
             $val['base_point'] = 0;
@@ -137,7 +138,8 @@ class CalculateStaffBasePoint extends Command
                     'point_b' => $val['base_point'],
                     'changed_at' => now()->startOfMonth(),
                     'source_id' => 1,
-                    'type_id' => 0
+                    'type_id' => 0,
+                    'recorder_sn' => $val['staff_sn'],
                 ];
                 $logs[$key] = $log;
             }
@@ -158,7 +160,7 @@ class CalculateStaffBasePoint extends Command
                 $logModel->save();
 
                 // 记录基础分详细记录
-                \DB::table('base_point_details')->insert(array_map(function($item) use ($baseModel) {
+                \DB::table('base_point_details')->insert(array_map(function ($item) use ($baseModel) {
                     $item['source_foreign_key'] = $baseModel->id;
                     $item['staff_sn'] = $baseModel->staff_sn;
                     $item['staff_name'] = $baseModel->staff_name;
@@ -213,7 +215,7 @@ class CalculateStaffBasePoint extends Command
      * @author 28youth
      * @return ArtisanCommandLog
      */
-    public function createLog() : ArtisanCommandLog
+    public function createLog(): ArtisanCommandLog
     {
         $commandModel = new ArtisanCommandLog();
         $commandModel->command_sn = 'pms:calculate-staff-basepoint';
