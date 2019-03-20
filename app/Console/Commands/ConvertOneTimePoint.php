@@ -111,6 +111,7 @@ class ConvertOneTimePoint extends Command
         $model->source_id = 3;
         $model->type_id = 0;
         $model->recorder_sn = $user['staff_sn'];
+        $model->recorder_name = $user['realname'];
         $model->save();
     }
 

@@ -16,8 +16,8 @@ use App\Models\AuthorityGroupHasDepartment as GroupDepartment;
 
 class CalculateStaffBasePoint extends Command
 {
-    protected $signature = 'pms:calculate-staff-basepoint';
-    protected $description = 'Calculate staff base point';
+    protected $signature = 'pms:calculate-staff-basepoint {time?}';
+    protected $description = '计算员工基础积分';
 
     public function __construct()
     {
@@ -26,6 +26,7 @@ class CalculateStaffBasePoint extends Command
 
     public function handle()
     {
+        $time = Carbon::parse($this->argument('time'));
         // 基础分配置项
         $configs = CommonConfig::byNamespace('basepoint')->get();
         // 基础工龄系数
@@ -36,28 +37,16 @@ class CalculateStaffBasePoint extends Command
         $users = app('api')->client()->getStaff([
             'filters' => "(staff_sn={$staff_sns})|(department_id={$department});status_id>=0"
         ]);
-        $commandModel = $this->createLog();
         $data = [];
         $logs = [];
+        $commandModel = $this->createLog();
         foreach ($users as $key => &$val) {
             $log = [];
             $val['base_point'] = 0;
 
-            $configs->map(function ($config) use (&$val, $ratio, $key, &$log) {
+            $configs->map(function ($config) use (&$val, $ratio, $key, &$log, $time) {
 
                 $toArray = json_decode($config['value'], true);
-
-                // 匹配学历基础分
-                /*if ($config['name'] == 'education') {
-                    $match = array_first($toArray, function ($item, $key) use ($val) {
-                        return $item['name'] == $val['education'];
-                    });
-                    $val['base_point'] += $match['point'];
-
-                    if (!isset($log['education'])) {
-                        $log['education'] = ['title' => '学历基础分结算', 'type' => 'education', 'point' => $match['point']];
-                    }
-                }*/
 
                 // 匹配职位基础分
                 if ($config['name'] == 'position') {
@@ -80,7 +69,7 @@ class CalculateStaffBasePoint extends Command
                 // 计算工龄基础分
                 if ($config['name'] == 'max_point') {
                     // 员工工龄转年数
-                    $year = Carbon::parse($val['hired_at'])->diffInYears(now());
+                    $year = Carbon::parse($val['hired_at'])->diffInYears($time);
                     if ($year <= 0) {
                         return false;
                     }
@@ -126,8 +115,10 @@ class CalculateStaffBasePoint extends Command
 
             if ($val['base_point']) {
                 $data[$key] = [
-                    'title' => now()->month . '月基础分统计',
+                    'title' => $time->month . '月基础分统计',
                     'staff_sn' => $val['staff_sn'],
+                    'recorder_sn' => $val['staff_sn'],
+                    'recorder_name' => $val['realname'],
                     'staff_name' => $val['realname'],
                     'brand_id' => $val['brand']['id'],
                     'brand_name' => $val['brand']['name'],
@@ -136,10 +127,9 @@ class CalculateStaffBasePoint extends Command
                     'shop_sn' => $val['shop_sn'],
                     'shop_name' => $val['shop']['name'],
                     'point_b' => $val['base_point'],
-                    'changed_at' => now()->startOfMonth(),
+                    'changed_at' => $time->startOfMonth(),
                     'source_id' => 1,
                     'type_id' => 0,
-                    'recorder_sn' => $val['staff_sn'],
                 ];
                 $logs[$key] = $log;
             }
@@ -151,20 +141,28 @@ class CalculateStaffBasePoint extends Command
                 // 记录基础分记录
                 $baseModel = new BasePointLogModel();
                 $baseModel->fill($val);
+                if (!empty($this->argument('time'))) {
+                    $baseModel->created_at = $time;
+                    $baseModel->updated_at = $time;
+                }
                 $baseModel->save();
 
                 // 基础分转总积分记录
                 $logModel = new PointLogModel();
                 $logModel->fill($val);
                 $logModel->source_foreign_key = $baseModel->id;
+                if (!empty($this->argument('time'))) {
+                    $logModel->created_at = $time;
+                    $logModel->updated_at = $time;
+                }
                 $logModel->save();
 
                 // 记录基础分详细记录
-                \DB::table('base_point_details')->insert(array_map(function ($item) use ($baseModel) {
+                \DB::table('base_point_details')->insert(array_map(function ($item) use ($baseModel, $time) {
                     $item['source_foreign_key'] = $baseModel->id;
                     $item['staff_sn'] = $baseModel->staff_sn;
                     $item['staff_name'] = $baseModel->staff_name;
-                    $item['created_at'] = now();
+                    $item['created_at'] = $time;
                     return $item;
                 }, $logs[$key]));
             }
@@ -181,41 +179,13 @@ class CalculateStaffBasePoint extends Command
 
     }
 
-
-    /**
-     * 基础分记录.
-     *
-     * @author 28youth
-     * @param  array
-     * @return mixed
-     */
-    public function createPointLog($staff)
-    {
-        $model = new PointLogModel();
-
-        $model->title = now()->month . '月基础分统计';
-        $model->staff_sn = $staff['staff_sn'];
-        $model->staff_name = $staff['realname'];
-        $model->brand_id = $staff['brand']['id'];
-        $model->brand_name = $staff['brand']['name'];
-        $model->department_id = $staff['department_id'];
-        $model->department_name = $staff['department']['full_name'];
-        $model->shop_sn = $staff['shop_sn'];
-        $model->shop_name = $staff['shop']['name'];
-        $model->point_b = $staff['base_point'];
-        $model->changed_at = now()->startOfMonth();
-        $model->source_id = 1;
-        $model->type_id = 0;
-        $model->save();
-    }
-
     /**
      * 创建积分日志.
      *
      * @author 28youth
      * @return ArtisanCommandLog
      */
-    public function createLog(): ArtisanCommandLog
+    public function createLog() : ArtisanCommandLog
     {
         $commandModel = new ArtisanCommandLog();
         $commandModel->command_sn = 'pms:calculate-staff-basepoint';
