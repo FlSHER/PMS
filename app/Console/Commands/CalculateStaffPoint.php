@@ -152,12 +152,13 @@ class CalculateStaffPoint extends Command
     protected function handleHistoryData($log)
     {
         $startAt = Carbon::parse($log->changed_at)->startOfMonth();
+        $key = sprintf('%s|%s', $log->staff_sn, $startAt);
         $monthly = StatisticLogModel::query()
             ->where('date', $startAt)
             ->where('staff_sn', $log->staff_sn)
             ->first();
 
-        if (empty($monthly)) {
+        if (empty($monthly) && empty($this->monthly[$key])) {
             // 新添加到积分系统的员工更新历史月结记录时：
             // 创建历史月份到上次结算月份的月结记录
             $this->initBetweenMonth($log);
@@ -168,8 +169,6 @@ class CalculateStaffPoint extends Command
 
         //changed_at非空时加分
         if (!empty($log->changed_at)) {
-            $key = sprintf('%s|%s', $log->staff_sn, $startAt);
-
             $this->monthly[$key]['point_a'] += $log->point_a;
             $this->monthly[$key]['source_a_monthly'] = $this->monthlySource($this->monthly[$key], $log, 'source_a_monthly');
 
@@ -193,18 +192,22 @@ class CalculateStaffPoint extends Command
     protected function createMonthData(Carbon $date, $staffSn)
     {
         $key = sprintf('%s|%s', $staffSn, $date);
-        $this->monthly[$key] = [
-            'date' => $date->toDateTimeString(),
-            'point_a' => 0,
-            'staff_sn' => $staffSn,
-            'point_a_total' => 0,
-            'point_b_total' => 0,
-            'point_b_monthly' => 0,
-            'source_a_monthly' => $this->initType,
-            'source_b_monthly' => $this->initType,
-            'source_a_total' => $this->initType,
-            'source_b_total' => $this->initType,
-        ];
+
+        if (empty($this->monthly[$key])) {
+            $this->monthly[$key] = [
+                'date' => $date->toDateTimeString(),
+                'point_a' => 0,
+                'staff_sn' => $staffSn,
+                'point_a_total' => 0,
+                'point_b_total' => 0,
+                'point_b_monthly' => 0,
+                'source_a_monthly' => $this->initType,
+                'source_b_monthly' => $this->initType,
+                'source_a_total' => $this->initType,
+                'source_b_total' => $this->initType,
+            ];
+        }
+        
     }
 
     // 当月 月累计分处理
@@ -302,21 +305,20 @@ class CalculateStaffPoint extends Command
     {
         $current = $origin[$type] ?? $this->initType;
         foreach ($current as $k => &$v) {
-            if ($v['id'] === $log->type_id) {
-                if (in_array($type, ['source_a_monthly', 'source_a_total'])) {
-                    $v['point'] += $log->point_a;
-                    if ($log->point_a >= 0) {
-                        $v['add_point'] += $log->point_a;
-                    } else {
-                        $v['sub_point'] += $log->point_a;
-                    }
-                } elseif (in_array($type, ['source_b_monthly', 'source_b_total'])) {
-                    $v['point'] += $log->point_b;
-                    if ($log->point_b >= 0) {
-                        $v['add_point'] += $log->point_b;
-                    } else {
-                        $v['sub_point'] += $log->point_b;
-                    }
+            if ($v['id'] !== $log->type_id) continue;
+            if (in_array($type, ['source_a_monthly', 'source_a_total'])) {
+                $v['point'] += $log->point_a;
+                if ($log->point_a >= 0) {
+                    $v['add_point'] += $log->point_a;
+                } else {
+                    $v['sub_point'] += $log->point_a;
+                }
+            } elseif (in_array($type, ['source_b_monthly', 'source_b_total'])) {
+                $v['point'] += $log->point_b;
+                if ($log->point_b >= 0) {
+                    $v['add_point'] += $log->point_b;
+                } else {
+                    $v['sub_point'] += $log->point_b;
                 }
             }
         }
