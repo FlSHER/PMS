@@ -2,7 +2,7 @@
 
 namespace Fisher\SSO\Traits;
 
-trait ResourceLibrary
+trait ApiResource
 {
     /**
      * 获取员工信息.

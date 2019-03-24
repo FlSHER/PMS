@@ -13,8 +13,6 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        Commands\PackageCreateCommand::class,
-        Commands\PackageHandlerCommand::class,
         Commands\CalculateStaffBasePoint::class,
         Commands\CalculateStaffPoint::class,
         Commands\PointTargetCommand::class,

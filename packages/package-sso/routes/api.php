@@ -15,7 +15,7 @@ use Illuminate\Contracts\Routing\Registrar as RouteRegisterContract;
 |
 */
 
-Route::group(['prefix' => 'api/package-sso'], function (RouteRegisterContract $api) {
+Route::group(['prefix' => 'api/sso'], function (RouteRegisterContract $api) {
 
     // Test route.
     // @ANY /api/package-sso

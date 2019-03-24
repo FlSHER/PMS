@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Fisher\SSO\Providers;
 
-use App\Support\PackageHandler;
 use Fisher\SSO\Services\OAGuard;
 use Fisher\SSO\Services\OAUserProvider;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
+use Fisher\SSO\Services\RequestSSOService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,13 +19,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        // dd($this->app->make('path.sso.lang'));
         // Register translations.
-        $this->loadTranslationsFrom($this->app->make('path.package-sso.lang'), 'package-sso');
+        $this->loadTranslationsFrom($this->app->make('path.sso.lang'), 'sso');
 
         // Publish config.
-        $this->publishes([
-            $this->app->make('path.package-sso.config') . '/sso.php' => $this->app->configPath('sso.php'),
-        ], 'package-sso-config');
+        $this->publishes([$this->app->make('path.sso.config') . '/sso.php' => $this->app->configPath('sso.php')]);
     }
 
     /**
@@ -35,19 +34,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        // Bind all of the package paths in the container.
         $this->bindPathsInContainer();
 
-        // register cntainer aliases
-        $this->registerCoreContainerAliases();
+        $this->registerSSOService();
 
-        // Register singletons.
         $this->registerSingletions();
-
-        // Register package handlers.
-        $this->registerPackageHandlers();
-
-        $this->registerSsoService();
     }
 
     /**
@@ -55,7 +46,7 @@ class AppServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    protected function registerSsoService()
+    protected function registerSSOService()
     {
         Auth::provider('oa', function () {
             return new OAUserProvider();
@@ -67,6 +58,18 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
+     * Register services.
+     *
+     * @return void
+     */
+    public function registerSingletions()
+    {
+        $this->app->singleton('api', function ($app) {
+            return new RequestSSOService($app->make('request'));
+        });
+    }
+
+    /**
      * Bind paths in container.
      *
      * @return void
@@ -74,74 +77,12 @@ class AppServiceProvider extends ServiceProvider
     protected function bindPathsInContainer()
     {
         foreach ([
-                     'path.package-sso' => $root = dirname(dirname(__DIR__)),
-                     'path.package-sso.config' => $root . '/config',
-                     'path.package-sso.resources' => $resources = $root . '/resources',
-                     'path.package-sso.lang' => $resources . '/lang',
-                 ] as $abstract => $instance) {
+            'path.sso' => $root = dirname(dirname(__DIR__)),
+            'path.sso.config' => $root . '/config',
+            'path.sso.resources' => $resources = $root . '/resources',
+            'path.sso.lang' => $resources . '/lang',
+        ] as $abstract => $instance) {
             $this->app->instance($abstract, $instance);
         }
-    }
-
-    /**
-     * Register singletons.
-     *
-     * @return void
-     */
-    protected function registerSingletions()
-    {
-        // Owner handler.
-        $this->app->singleton('package-sso:handler', function () {
-            return new \Fisher\SSO\Handlers\PackageHandler();
-        });
-
-        // Develop handler.
-        $this->app->singleton('package-sso:dev-handler', function ($app) {
-            return new \Fisher\SSO\Handlers\DevPackageHandler($app);
-        });
-    }
-
-    /**
-     * Register the package class aliases in the container.
-     *
-     * @return void
-     */
-    protected function registerCoreContainerAliases()
-    {
-        foreach ([
-                     'package-sso:handler' => [
-                         \Fisher\SSO\Handlers\PackageHandler::class,
-                     ],
-                     'package-sso:dev-handler' => [
-                         \Fisher\SSO\Handlers\DevPackageHandler::class,
-                     ],
-                 ] as $abstract => $aliases) {
-            foreach ($aliases as $alias) {
-                $this->app->alias($abstract, $alias);
-            }
-        }
-    }
-
-    /**
-     * Register package handlers.
-     *
-     * @return void
-     */
-    protected function registerPackageHandlers()
-    {
-        $this->loadHandleFrom('package-sso', 'package-sso:handler');
-        $this->loadHandleFrom('package-sso-dev', 'package-sso:dev-handler');
-    }
-
-    /**
-     * Register handler.
-     *
-     * @param string $name
-     * @param \App\Support\PackageHandler|string $handler
-     * @return void
-     */
-    private function loadHandleFrom(string $name, $handler)
-    {
-        PackageHandler::loadHandleFrom($name, $handler);
     }
 }

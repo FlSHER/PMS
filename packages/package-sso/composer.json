@@ -1,6 +1,6 @@
 {
     "name": "fisher/package-sso",
-    "description": "A \"fisher/package-sso\" package For PMS.",
+    "description": "sso.",
     "type": "library",
     "license": "MIT",
     "require": {
@@ -19,9 +19,7 @@
         "laravel": {
             "providers": [
                 "Fisher\\SSO\\Providers\\AppServiceProvider",
-                "Fisher\\SSO\\Providers\\ModelServiceProvider",
-                "Fisher\\SSO\\Providers\\RouteServiceProvider",
-                "Fisher\\SSO\\Providers\\SSOServiceProvider"
+                "Fisher\\SSO\\Providers\\RouteServiceProvider"
             ]
         }
     },

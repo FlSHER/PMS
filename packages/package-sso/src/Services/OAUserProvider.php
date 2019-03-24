@@ -9,14 +9,14 @@
 namespace Fisher\SSO\Services;
 
 
-use Illuminate\Contracts\Auth\Authenticatable;
-use Illuminate\Contracts\Auth\UserProvider;
 use Illuminate\Http\Request;
-use Fisher\SSO\Traits\UserHelper;
+use Fisher\SSO\Traits\RequestHelper;
+use Illuminate\Contracts\Auth\UserProvider;
+use Illuminate\Contracts\Auth\Authenticatable;
 
 class OAUserProvider implements UserProvider
 {
-    use UserHelper;
+    use RequestHelper;
 
     protected function getBaseUri(): string
     {

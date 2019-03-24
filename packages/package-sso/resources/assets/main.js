@@ -1,1 +1,1 @@
-console.log('This is PMS Frontend.');
+console.log('This is Frontend.');

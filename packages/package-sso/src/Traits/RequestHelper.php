@@ -3,12 +3,12 @@
 namespace Fisher\SSO\Traits;
 
 use GuzzleHttp\Client;
+use Psr\Http\Message\ResponseInterface;
 use GuzzleHttp\Exception\ClientException;
 use Illuminate\Validation\ValidationException;
-use Psr\Http\Message\ResponseInterface;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-trait UserHelper
+trait RequestHelper
 {
 
     protected $headers;

@@ -4,13 +4,13 @@ namespace Fisher\SSO\Services;
 
 use Cache;
 use Illuminate\Http\Request;
-use Fisher\SSO\Traits\UserHelper;
-use Fisher\SSO\Traits\ResourceLibrary;
+use Fisher\SSO\Traits\ApiResource;
+use Fisher\SSO\Traits\RequestHelper;
 
 class RequestSSOService
 {
-    use UserHelper;
-    use ResourceLibrary;
+    use ApiResource;
+    use RequestHelper;
 
     public function __construct(Request $request)
     {
@@ -21,9 +21,8 @@ class RequestSSOService
     }
 
     /**
-     * oauth 客户端授权.
+     * OAuth 客户端授权.
      *
-     * @author 28youth
      * @return RequestSSOService
      */
     public function client()
